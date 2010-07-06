@@ -32,7 +32,6 @@ def test_int():
     except twc.ValidationError:
         pass
         
-        
 def test_nonint():
     vld = tws.RelatedValidator(Test2)
     assert(vld.to_python('bob') is Test2.get('bob'))
@@ -43,10 +42,14 @@ def test_nonint():
     except twc.ValidationError:
         pass
 
-
 def test_twopk():
     try:
         tws.RelatedValidator(Test3)
         assert(False)
     except twc.WidgetError, e:
         assert(str(e) == 'RelatedValidator can only act on tables that have a single primary key column')
+
+def test_null():
+    vld = tws.RelatedValidator(Test)
+    assert(vld.from_python(None) is None)
+    assert(vld.to_python('') is None)

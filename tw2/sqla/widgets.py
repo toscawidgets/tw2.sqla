@@ -21,6 +21,8 @@ class RelatedValidator(twc.IntValidator):
         self.int = isinstance(list(cols)[0].type, sa.types.Integer)
         
     def to_python(self, value):
+        if not value:
+            return None
         if self.int:
             try:
                 value = int(value)
@@ -32,7 +34,7 @@ class RelatedValidator(twc.IntValidator):
         return value
 
     def from_python(self, value):
-        return unicode(value.mapper.primary_key_from_instance(value)[0])
+        return value and unicode(value.mapper.primary_key_from_instance(value)[0])
 
 
 class DbFormPage(twf.FormPage):
@@ -48,6 +50,27 @@ class DbFormPage(twf.FormPage):
         v = cls.entity.query.get(req.GET.get('id')) or cls.entity()            
         v.from_dict(data)
         return webob.Response(request=req, status=302, location=cls.redirect)
+
+
+class DbSelectionField(twf.SelectionField):
+    entity = twc.Param('SQLAlchemy mapped class to use', request_local=False)
+
+    def prepare(self):
+        self.options = [(x.id, unicode(x)) for x in self.entity.query.all()]
+        super(DbSelectionField, self).prepare()    
+
+
+class DbSingleSelectField(DbSelectionField, twf.SingleSelectField):
+    @classmethod
+    def post_define(cls):
+        if getattr(cls, 'entity', None):
+            cls.validator = RelatedValidator(entity=cls.entity)
+    
+class DbCheckBoxList(DbSelectionField, twf.CheckBoxList):
+    @classmethod
+    def post_define(cls):
+        if getattr(cls, 'entity', None):
+            cls.item_validator = RelatedValidator(entity=cls.entity)
 
 
 class AutoField(object):

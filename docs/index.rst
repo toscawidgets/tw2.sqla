@@ -51,14 +51,14 @@ As of 2010, the leading efforts in the Python WSGI space are `Sprox <http://spro
 
 Sprox and Rum are the primary influences for tw2.sqla. One major difference is that tw2.sqla is only intended to work with SQLAlchemy and ToscaWidgets 2, and makes no attempt to abstract the dependencies. Here is a high-level comparison of their functionality:
 
-==================================  =======================================================  =======================================================================  =======================================================
-Feature                             Sprox                                                    Rum                                                                      tw2.sqla
-==================================  =======================================================  =======================================================================  =======================================================
-Session and transaction management  None; relies on the containing framework                 Supported, same technique as TG2                                         Supported, same technique as TG2
-Loading and saving data             None; responsibility of the application                  Supported, with both conversion and initiation                           Supported, with both conversion and initiation
-Generating widget definitions       Supported, with customisation of both fields and policy  Supported; customising possible but difficult                            Supported, with customisation of both fields and policy
-Populating selection fields         Supported; no cacheing                                   Supported; no cacheing                                                   Supported, with cacheing
-==================================  =======================================================  =======================================================================  =======================================================
+==================================  =======================================================  ==============================================  =======================================================
+Feature                             Sprox                                                    Rum                                             tw2.sqla
+==================================  =======================================================  ==============================================  =======================================================
+Session and transaction management  None; relies on the containing framework                 Supported, same technique as TG2                Supported, same technique as TG2
+Loading and saving data             None; responsibility of the application                  Supported, with both conversion and initiation  Supported, with both conversion and initiation
+Generating widget definitions       Supported, with customisation of both fields and policy  Supported; Sprox can be used if desired         Supported, with customisation of both fields and policy
+Populating selection fields         Supported; no cacheing                                   Supported; no cacheing                          Supported, with cacheing
+==================================  =======================================================  ==============================================  =======================================================
 
 
 Design
@@ -84,6 +84,12 @@ Design
 `Loading and Saving Data`
 
     .. autoclass:: tw2.sqla.RelatedValidator
+
+
+    Efficiency consideration
+    Say we have a ManyToOne relation, "status" using the column "status_id". We could have a SelectionField on "status" using RelatedValidator, or one on "status_id" using IntValidator. The former would do stronger validation, while the latter would be more efficient.
+    
+    For now, lets go with "status"
 
 
 `Generating Widget Definitions`
