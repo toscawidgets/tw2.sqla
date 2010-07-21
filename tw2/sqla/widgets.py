@@ -1,4 +1,4 @@
-import tw2.core as twc, tw2.forms as twf, elixir as el, webob, sqlalchemy as sa
+import tw2.core as twc, tw2.forms as twf, elixir as el, webob, sqlalchemy as sa, sys
 import sqlalchemy.types as sat, tw2.dynforms as twd
 from zope.sqlalchemy import ZopeTransactionExtension
 
@@ -121,6 +121,6 @@ def commit_veto(environ, status, headers):
     return not 200 <= int(status.split(None, 1)[0]) < 400
 
 def transactional_session():
-    """Return an SQLAlchemy scoped_session that is correctly configured for transactional use with repoze.tm."""
+    """Return an SQLAlchemy scoped_session. If called from a script, use ZopeTransactionExtension so the session is integrated with repoze.tm. The extention is not enabled if called from the interactive interpreter."""
     return sa.orm.scoped_session(sa.orm.sessionmaker(autoflush=True, autocommit=False,
-            extension=ZopeTransactionExtension()))
+            extension=sys.argv[0] and ZopeTransactionExtension() or None))
