@@ -42,17 +42,47 @@ class DbFormPage(twf.FormPage):
     redirect = twc.Param('Location to redirect to after successful POST', request_local=False)
     _no_autoid = True
 
-    def fetch_data(self, req):        
-        self.value = req.GET and self.entity.query.get_by(**req.GET) or None
+    def fetch_data(self, req):
+        self.value = req.GET and self.entity.query.filter_by(**req.GET.mixed()).first() or None
 
     @classmethod
     def validated_request(cls, req, data):
-        v = req.GET and cls.entity.query.get_by(**req.GET) or cls.entity()            
+        if req.GET:
+            v = cls.entity.query.filter_by(**req.GET.mixed()).first()
+        else:
+            print "Creating..."
+            v = cls.entity()            
         v.from_dict(data)
+        el.session.commit()
         if hasattr(cls, 'redirect'):
             return webob.Response(request=req, status=302, location=cls.redirect)
         else:
             return super(DbFormPage, cls).validated_request(req, data)
+
+
+class DbListPage(twc.Page):
+    entity = twc.Param('SQLAlchemy mapped class to use', request_local=False)
+    newlink = twc.Param('New item widget', default=None)
+    template = 'tw2.sqla.templates.dblistpage'
+    _no_autoid = True
+    
+    def fetch_data(self, req):
+        self.value = self.entity.query.all()
+
+    @classmethod
+    def post_define(cls):
+        if cls.newlink:
+            cls.newlink = cls.newlink(parent=cls)
+
+    def __init__(self, **kw):
+        super(DbListPage, self).__init__(**kw)
+        if self.newlink:
+            self.newlink = self.newlink.req()
+
+    def prepare(self):
+        super(DbListPage, self).prepare()
+        if self.newlink:
+            self.newlink.prepare()
 
 
 class DbSelectionField(twf.SelectionField):
