@@ -42,14 +42,17 @@ class DbFormPage(twf.FormPage):
     redirect = twc.Param('Location to redirect to after successful POST', request_local=False)
     _no_autoid = True
 
-    def fetch_data(self, req):
-        self.value = self.entity.query.get(req.GET.get('id'))
+    def fetch_data(self, req):        
+        self.value = req.GET and self.entity.query.get_by(**req.GET) or None
 
     @classmethod
     def validated_request(cls, req, data):
-        v = cls.entity.query.get(req.GET.get('id')) or cls.entity()            
+        v = req.GET and cls.entity.query.get_by(**req.GET) or cls.entity()            
         v.from_dict(data)
-        return webob.Response(request=req, status=302, location=cls.redirect)
+        if hasattr(cls, 'redirect'):
+            return webob.Response(request=req, status=302, location=cls.redirect)
+        else:
+            return super(DbFormPage, cls).validated_request(req, data)
 
 
 class DbSelectionField(twf.SelectionField):
