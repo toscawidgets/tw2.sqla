@@ -53,7 +53,6 @@ class DbFormPage(twf.FormPage):
             print "Creating..."
             v = cls.entity()            
         v.from_dict(data)
-        el.session.commit()
         if hasattr(cls, 'redirect'):
             return webob.Response(request=req, status=302, location=cls.redirect)
         else:
