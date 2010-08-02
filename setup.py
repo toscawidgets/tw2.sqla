@@ -2,13 +2,13 @@ from setuptools import setup, find_packages
 
 setup(
     name='tw2.sqla',
-    version='0.1',
+    version='2.0a1',
     description='SQLAlchemy database layer for ToscaWidgets 2',
     author='Paul Johnston',
     author_email='paj@pajhome.org.uk',
-    url='http://www.toscawidgets.org/',
+    url='http://www.toscawidgets.org/documentation/tw2.core/',
     install_requires=[
-        "tw2.dynforms",
+        "tw2.forms>=2.0b4",
         "sqlalchemy",
         "repoze.tm2 >= 1.0a4",
         "zope.sqlalchemy >= 0.4",
