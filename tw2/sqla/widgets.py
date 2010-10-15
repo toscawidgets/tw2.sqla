@@ -50,7 +50,6 @@ class DbFormPage(twf.FormPage):
         if req.GET:
             v = cls.entity.query.filter_by(**req.GET.mixed()).first()
         else:
-            print "Creating..."
             v = cls.entity()            
         v.from_dict(data)
         if hasattr(cls, 'redirect'):
