@@ -2,6 +2,8 @@ import tw2.core as twc, tw2.forms as twf, webob, sqlalchemy as sa, sys
 import sqlalchemy.types as sat, tw2.dynforms as twd
 from zope.sqlalchemy import ZopeTransactionExtension
 
+from tw2.sqla.utils import from_dict
+
 class RelatedValidator(twc.IntValidator):
     """Validator for related object
     
@@ -59,8 +61,15 @@ class DbFormPage(twf.FormPage):
             v = cls.entity.query.filter_by(**req.GET.mixed()).first()
         else:
             print "Creating..."
-            v = cls.entity()            
-        v.from_dict(data)
+            v = cls.entity()
+
+        if hasattr(v, 'from_dict'):
+            v.from_dict(data)
+        else:
+            v = from_dict(v, data)
+            print "TODO -- I need to actually SAVE the suckah here..."
+            if hasattr(cls, 'save'):
+                cls.save(v)
         if hasattr(cls, 'redirect'):
             return webob.Response(request=req, status=302, location=cls.redirect)
         else:
