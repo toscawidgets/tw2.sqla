@@ -9,6 +9,7 @@ setup(
     url='http://www.toscawidgets.org/documentation/tw2.core/',
     install_requires=[
         "tw2.forms>=2.0b4",
+        "tw2.dynforms",
         "sqlalchemy",
         "repoze.tm2 >= 1.0a4",
         "zope.sqlalchemy >= 0.4",
