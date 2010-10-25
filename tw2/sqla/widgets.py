@@ -1,4 +1,4 @@
-import tw2.core as twc, tw2.forms as twf, elixir as el, webob, sqlalchemy as sa, sys
+import tw2.core as twc, tw2.forms as twf, webob, sqlalchemy as sa, sys
 import sqlalchemy.types as sat, tw2.dynforms as twd
 from zope.sqlalchemy import ZopeTransactionExtension
 
