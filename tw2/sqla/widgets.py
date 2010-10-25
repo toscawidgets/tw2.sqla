@@ -104,7 +104,9 @@ class DbCheckBoxList(DbSelectionField, twf.CheckBoxList):
             cls.item_validator = RelatedValidator(entity=cls.entity)
 
 
-class AutoField(object):
+class FieldPolicy(object):
+
+    pkey_widget = twf.HiddenField
 
     name_mapping = {
         'password':     twf.PasswordField,
@@ -122,12 +124,15 @@ class AutoField(object):
     }
 
     def factory(self, column):
-        if column.name in self.name_mapping:
+        if column.primary_key:
+            widget = self.pkey_widget
+        elif column.name in self.name_mapping:
             widget = self.name_mapping[column.name]
         else:
             for t in self.type_mapping:
                 if isinstance(column.type, t):
                     widget = self.type_mapping[t]
+                    break
             else:
                 raise twc.WidgetError("Cannot automatically create a widget for '%s'" % column.name)
         if column.nullable:
@@ -135,6 +140,26 @@ class AutoField(object):
         else:
             widget = widget(id=column.name, validator=twc.Required)        
         return widget
+
+
+
+class AutoTableForm(twf.TableForm):
+    entity = twc.Param('SQLAlchemy mapped class to use', request_local=False)
+    policy = twc.Param('Policy to use', default=FieldPolicy())
+    
+    @classmethod
+    def post_define(cls):
+        if hasattr(cls, 'entity'):
+            cl = getattr(cls.child, 'children', None)
+            ncld = []
+            for c in cls.entity.table.columns:
+                if cl:
+                    w = getattr(cl, c.name, None)
+                if cl and w:
+                    ncld.append(w)
+                else:
+                    ncld.append(cls.policy.factory(c))
+            cls.child = cls.child(children=ncld)
 
 
 # Borrowed from TG2
