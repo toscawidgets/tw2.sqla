@@ -14,7 +14,8 @@ class RelatedValidator(twc.IntValidator):
     
     def __init__(self, entity, **kw):
         super(RelatedValidator, self).__init__(**kw)
-        cols = entity.table.primary_key.columns
+        tableattr = ['table', '__table__'][hasattr(entity, '__table__')]
+        cols = getattr(entity, tableattr).primary_key.columns
         if len(cols) != 1:
             raise twc.WidgetError('RelatedValidator can only act on tables that have a single primary key column')
         self.entity = entity
