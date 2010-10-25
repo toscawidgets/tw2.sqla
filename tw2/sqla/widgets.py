@@ -1,4 +1,4 @@
-import tw2.core as twc, tw2.forms as twf, elixir as el, webob, sqlalchemy as sa, sys
+import tw2.core as twc, tw2.forms as twf, webob, sqlalchemy as sa, sys
 import sqlalchemy.types as sat, tw2.dynforms as twd
 from zope.sqlalchemy import ZopeTransactionExtension
 
@@ -14,7 +14,8 @@ class RelatedValidator(twc.IntValidator):
     
     def __init__(self, entity, **kw):
         super(RelatedValidator, self).__init__(**kw)
-        cols = entity.table.primary_key.columns
+        tableattr = ['table', '__table__'][hasattr(entity, '__table__')]
+        cols = getattr(entity, tableattr).primary_key.columns
         if len(cols) != 1:
             raise twc.WidgetError('RelatedValidator can only act on tables that have a single primary key column')
         self.entity = entity
@@ -28,7 +29,14 @@ class RelatedValidator(twc.IntValidator):
                 value = int(value)
             except ValueError:
                 raise twc.ValidationError('norel', self)
-        value = self.entity.get(value)
+        if hasattr(self.entity, 'get'):
+            value = self.entity.get(value)
+        else:
+            tableattr = ['table', '__table__'][hasattr(self.entity,
+                                                       '__table__')]
+            col = getattr(self.entity, tableattr).primary_key.columns.keys()[0]
+            value = self.entity.query.filter(
+                getattr(self.entity, col)==value).one()
         if not value:
             raise twc.ValidationError('norel', self)
         return value
