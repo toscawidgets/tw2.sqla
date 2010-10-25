@@ -29,7 +29,14 @@ class RelatedValidator(twc.IntValidator):
                 value = int(value)
             except ValueError:
                 raise twc.ValidationError('norel', self)
-        value = self.entity.get(value)
+        if hasattr(self.entity, 'get'):
+            value = self.entity.get(value)
+        else:
+            tableattr = ['table', '__table__'][hasattr(self.entity,
+                                                       '__table__')]
+            col = getattr(self.entity, tableattr).primary_key.columns.keys()[0]
+            value = self.entity.query.filter(
+                getattr(self.entity, col)==value).one()
         if not value:
             raise twc.ValidationError('norel', self)
         return value
