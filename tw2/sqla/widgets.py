@@ -35,8 +35,7 @@ class RelatedValidator(twc.IntValidator):
         if hasattr(self.entity, 'get'):
             value = self.entity.get(value)
         else:
-            tableattr = ['table', '__table__'][hasattr(self.entity,
-                                                       '__table__')]
+            tableattr = ['table', '__table__'][hasattr(self.entity,'__table__')]
             col = getattr(self.entity, tableattr).primary_key.columns.keys()[0]
             value = self.entity.query.filter(
                 getattr(self.entity, col)==value).one()
@@ -45,7 +44,9 @@ class RelatedValidator(twc.IntValidator):
         return value
 
     def from_python(self, value):
-        return value and unicode(value.mapper.primary_key_from_instance(value)[0])
+        mapperattr = ['mapper', '__mapper__'][hasattr(self.entity,'__mapper__')]
+        return value and unicode(
+            getattr(value, mapperattr).primary_key_from_instance(value)[0])
 
 
 class DbFormPage(twf.FormPage):
