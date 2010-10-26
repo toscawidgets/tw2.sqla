@@ -11,6 +11,18 @@ def from_dict(entity, data, session=None):
 
     mapper = sa.orm.object_mapper(entity)
 
+    pk_props = entity.__mapper__.primary_key
+    if [1 for p in pk_props if p.key in data and data[p.key]]:
+        # If all of our primary keys are present and non-empty, then load.
+        kw = dict([(p.key, data[p.key]) for p in pk_props])
+        entity = entity.query.filter_by(**kw).one()
+    else:
+        # If any primary keys were specified as empty, ditch 'em.
+        # This happens with ``id = tw2.forms.HiddenField``
+        for p in pk_props:
+            if p.key in data and not data[p.key]:
+                del data[p.key]
+
     for key, value in data.iteritems():
         if isinstance(value, dict):
             dbvalue = getattr(entity, key)
