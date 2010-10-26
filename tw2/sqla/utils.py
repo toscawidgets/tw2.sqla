@@ -1,6 +1,6 @@
 import sqlalchemy as sa
 
-def from_dict(entity, data):
+def from_dict(entity, data, session=None):
     """
     Update a mapped class with data from a JSON-style nested dict/list
     structure.  -- Copied straight from elixir.entity
@@ -18,9 +18,9 @@ def from_dict(entity, data):
 
             if not [1 for p in pk_props if p.key in data] and \
                dbvalue is not None:
-                from_dict(dbvalue, value)
+                dbvalue = from_dict(dbvalue, value, session=session)
             else:
-                record = update_or_create(rel_class, value)
+                record = update_or_create(rel_class, value, session=session)
                 setattr(entity, key, record)
         elif isinstance(value, list) and \
              value and isinstance(value[0], dict):
@@ -32,29 +32,33 @@ def from_dict(entity, data):
                     raise Exception(
                             'Cannot send mixed (dict/non dict) data '
                             'to list relationships in from_dict data.')
-                record = update_or_create(rel_class, row)
+                record = update_or_create(rel_class, row, session=session)
                 new_attr_value.append(record)
             setattr(entity, key, new_attr_value)
         else:
             setattr(entity, key, value)
     return entity
 
-def update_or_create(cls, data, surrogate=True):
+def update_or_create(cls, data, surrogate=True, session=None):
     pk_props = cls.__mapper__.primary_key
-
-    # if all pk are present and not None
+    add = False
+    # if all pk are present
     if not [1 for p in pk_props if data.get(p.key) is None]:
         pk_tuple = tuple([data[prop.key] for prop in pk_props])
         record = cls.query.get(pk_tuple)
         if record is None:
+            add = True
             if surrogate:
                 raise Exception("cannot create surrogate with pk")
             else:
                 record = cls()
     else:
+        add = True
         if surrogate:
             record = cls()
         else:
             raise Exception("cannot create non surrogate without pk")
-    from_dict(record, data)
+    record = from_dict(record, data, session=session)
+    if add:
+        session.add(record)
     return record

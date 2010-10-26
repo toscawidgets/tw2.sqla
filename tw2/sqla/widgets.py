@@ -76,9 +76,9 @@ class DbFormPage(twf.FormPage):
         elif pylons:
             # TBD Is this really a good enough test that we're running pylons?
             # In the case of pylons/turbogears
-            v = from_dict(v, data)
             # TBD what about setups with multiple engines and sessions?
-            pylons.configuration.config['DBSession'].add(v)
+            session = pylons.configuration.config['DBSession']
+            v = from_dict(v, data, session=session)
             transaction.commit()
         else:
             raise UnimplementedError, "Neither elixir nor pylons"
