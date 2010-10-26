@@ -3,7 +3,8 @@ import sqlalchemy as sa
 def from_dict(entity, data, session=None):
     """
     Update a mapped class with data from a JSON-style nested dict/list
-    structure.  -- Copied straight from elixir.entity
+    structure.
+    Adapted from elixir.entity
     """
     # surrogate can be guessed from autoincrement/sequence but I guess
     # that's not 100% reliable, so we'll need an override
@@ -40,6 +41,10 @@ def from_dict(entity, data, session=None):
     return entity
 
 def update_or_create(cls, data, surrogate=True, session=None):
+    """
+    Adapted from elixir.entity
+    """
+
     pk_props = cls.__mapper__.primary_key
     add = False
     # if all pk are present
