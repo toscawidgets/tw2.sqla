@@ -1,6 +1,7 @@
 import tw2.core as twc, tw2.forms as twf, webob, sqlalchemy as sa, sys
 import sqlalchemy.types as sat, tw2.dynforms as twd
 from zope.sqlalchemy import ZopeTransactionExtension
+import transaction
 
 from tw2.sqla.utils import from_dict
 
@@ -63,13 +64,25 @@ class DbFormPage(twf.FormPage):
             print "Creating..."
             v = cls.entity()
 
+        pylons = None
+        try:
+            import pylons
+        except Exception:
+            pass
+
         if hasattr(v, 'from_dict'):
+            # In the case of elixir
             v.from_dict(data)
-        else:
+        elif pylons:
+            # TBD Is this really a good enough test that we're running pylons?
+            # In the case of pylons/turbogears
             v = from_dict(v, data)
-            print "TODO -- I need to actually SAVE the suckah here..."
-            if hasattr(cls, 'save'):
-                cls.save(v)
+            # TBD what about setups with multiple engines and sessions?
+            pylons.configuration.config['DBSession'].add(v)
+            transaction.commit()
+        else:
+            raise UnimplementedError, "Neither elixir nor pylons"
+
         if hasattr(cls, 'redirect'):
             return webob.Response(request=req, status=302, location=cls.redirect)
         else:
