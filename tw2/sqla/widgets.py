@@ -50,6 +50,11 @@ class DbFormPage(twf.FormPage):
     redirect = twc.Param('Location to redirect to after successful POST', request_local=False)
     _no_autoid = True
 
+    @classmethod
+    def post_define(cls):
+        if hasattr(cls, 'entity') and not hasattr(cls, 'title'):
+            cls.title = twc.util.name2label(cls.entity.table.name)
+
     def fetch_data(self, req):
         self.value = req.GET and self.entity.query.filter_by(**req.GET.mixed()).first() or None
 
@@ -58,7 +63,7 @@ class DbFormPage(twf.FormPage):
         if req.GET:
             v = cls.entity.query.filter_by(**req.GET.mixed()).first()
         else:
-            v = cls.entity()            
+            v = cls.entity()
         v.from_dict(data)
         if hasattr(cls, 'redirect'):
             return webob.Response(request=req, status=302, location=cls.redirect)
@@ -79,6 +84,15 @@ class DbListPage(twc.Page):
     def post_define(cls):
         if cls.newlink:
             cls.newlink = cls.newlink(parent=cls)
+        if hasattr(cls, 'entity'):
+            if not hasattr(cls, 'title'):
+                cls.title = twc.util.name2label(cls.entity.table.name)
+            if hasattr(cls, 'edit'):
+                cls.edit = cls.edit(redirect=cls._gen_compound_id(for_url=True), entity=cls.entity, id=cls.id+'_edit')
+                cls.newlink = twf.LinkField(link=cls.edit._gen_compound_id(for_url=True), text='New', value=1)
+                policy = ViewGridPolicy()
+                policy.pkey = twf.LinkField(text='$', link=cls.id+'_edit?id=$')
+                cls.child = cls.child(policy=policy)
 
     def __init__(self, **kw):
         super(DbListPage, self).__init__(**kw)
@@ -112,9 +126,32 @@ class DbCheckBoxList(DbSelectionField, twf.CheckBoxList):
             cls.item_validator = RelatedValidator(entity=cls.entity)
 
 
-class FieldPolicy(object):
+class AutoContainer(twc.Widget):
+    entity = twc.Param('SQLAlchemy mapped class to use', request_local=False)
+    policy = twc.Param('Policy to use')
+    
+    @classmethod
+    def post_define(cls):
+        if not hasattr(cls, 'entity') and hasattr(cls, 'parent') and hasattr(cls.parent, 'entity'):
+            cls.entity = cls.parent.entity
+        if hasattr(cls, 'entity'):
+            cl = getattr(cls.child, 'children', None)
+            ncld = []
+            for c in cls.entity.table.columns:
+                if cl:
+                    w = getattr(cl, c.name, None)
+                if cl and w:
+                    ncld.append(w)
+                else:
+                    nw = cls.policy.factory(c)
+                    if nw:
+                        ncld.append(nw)
+            cls.child = cls.child(children=ncld)
 
-    pkey_widget = twf.HiddenField
+
+class TableFormPolicy(object):
+
+    pkey_widget = None
 
     name_mapping = {
         'password':     twf.PasswordField,
@@ -143,31 +180,38 @@ class FieldPolicy(object):
                     break
             else:
                 raise twc.WidgetError("Cannot automatically create a widget for '%s'" % column.name)
-        if column.nullable:
-            widget = widget(id=column.name)
-        else:
-            widget = widget(id=column.name, validator=twc.Required)        
+        if widget:
+            if column.nullable:
+                widget = widget(id=column.name)
+            else:
+                widget = widget(id=column.name, validator=twc.Required)        
         return widget
 
+class AutoTableForm(AutoContainer, twf.TableForm):
+    policy = TableFormPolicy()
 
 
-class AutoTableForm(twf.TableForm):
-    entity = twc.Param('SQLAlchemy mapped class to use', request_local=False)
-    policy = twc.Param('Policy to use', default=FieldPolicy())
-    
-    @classmethod
-    def post_define(cls):
-        if hasattr(cls, 'entity'):
-            cl = getattr(cls.child, 'children', None)
-            ncld = []
-            for c in cls.entity.table.columns:
-                if cl:
-                    w = getattr(cl, c.name, None)
-                if cl and w:
-                    ncld.append(w)
-                else:
-                    ncld.append(cls.policy.factory(c))
-            cls.child = cls.child(children=ncld)
+class ViewGridPolicy(object):
+    pkey = None
+    def factory(self, column):
+        if column.primary_key:
+            if self.pkey:
+                return self.pkey(id=column.name)
+            else:
+                return None
+        return twf.LabelField(id=column.name)
+
+class AutoViewGrid(AutoContainer, twf.GridLayout):
+    policy = ViewGridPolicy()
+
+
+class AutoListPageEdit(DbListPage):
+    _no_autoid = True
+    class child(AutoViewGrid):
+        pass
+    class edit(DbFormPage):
+        _no_autoid = True
+        child = AutoTableForm
 
 
 # Borrowed from TG2
