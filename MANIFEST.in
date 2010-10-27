@@ -1,2 +1,2 @@
-recursive-include tw/sqla/templates *
-recursive-include tw/sqla/static *
+recursive-include tw2/sqla/templates *
+recursive-include tw2/sqla/static *
