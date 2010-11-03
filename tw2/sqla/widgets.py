@@ -1,6 +1,9 @@
 import tw2.core as twc, tw2.forms as twf, webob, sqlalchemy as sa, sys
 import sqlalchemy.types as sat, tw2.dynforms as twd
 from zope.sqlalchemy import ZopeTransactionExtension
+import transaction
+
+from tw2.sqla.utils import from_dict
 
 class RelatedValidator(twc.IntValidator):
     """Validator for related object
@@ -32,8 +35,7 @@ class RelatedValidator(twc.IntValidator):
         if hasattr(self.entity, 'get'):
             value = self.entity.get(value)
         else:
-            tableattr = ['table', '__table__'][hasattr(self.entity,
-                                                       '__table__')]
+            tableattr = ['table', '__table__'][hasattr(self.entity,'__table__')]
             col = getattr(self.entity, tableattr).primary_key.columns.keys()[0]
             value = self.entity.query.filter(
                 getattr(self.entity, col)==value).one()
@@ -42,7 +44,9 @@ class RelatedValidator(twc.IntValidator):
         return value
 
     def from_python(self, value):
-        return value and unicode(value.mapper.primary_key_from_instance(value)[0])
+        mapperattr = ['mapper', '__mapper__'][hasattr(self.entity,'__mapper__')]
+        return value and unicode(
+            getattr(value, mapperattr).primary_key_from_instance(value)[0])
 
 
 class DbFormPage(twf.FormPage):
@@ -64,7 +68,26 @@ class DbFormPage(twf.FormPage):
             v = cls.entity.query.filter_by(**req.GET.mixed()).first()
         else:
             v = cls.entity()
-        v.from_dict(data)
+
+        pylons = None
+        try:
+            import pylons
+        except Exception:
+            pass
+
+        if hasattr(v, 'from_dict'):
+            # In the case of elixir
+            v.from_dict(data)
+        elif pylons:
+            # TBD Is this really a good enough test that we're running pylons?
+            # In the case of pylons/turbogears
+            # TBD what about setups with multiple engines and sessions?
+            session = pylons.configuration.config['DBSession']
+            v = from_dict(v, data, session=session)
+            transaction.commit()
+        else:
+            raise UnimplementedError, "Neither elixir nor pylons"
+
         if hasattr(cls, 'redirect'):
             return webob.Response(request=req, status=302, location=cls.redirect)
         else:
