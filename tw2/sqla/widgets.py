@@ -145,9 +145,46 @@ class DbCheckBoxList(DbSelectionField, twf.CheckBoxList):
             cls.item_validator = RelatedValidator(entity=cls.entity)
 
 
+class WidgetPolicy(object):
+    """
+    A policy object is used to generate widgets from SQLAlchemy columns
+    """
+
+    pkey_widget = None
+    name_widgets = {}
+    type_widgets = {}    
+    default_widget = None
+
+    def factory(self, column):
+        if column.primary_key:
+            widget = self.pkey_widget
+        elif column.name in self.name_widgets:
+            widget = self.name_widgets[column.name]
+        else:
+            for t in self.type_widgets:
+                if isinstance(column.type, t):
+                    widget = self.type_widgets[t]
+                    break
+            else:
+                if self.default_widget:
+                    widget = self.default_widget
+                else:
+                    raise twc.WidgetError("Cannot automatically create a widget for '%s'" % column.name)
+        if widget:
+            if column.nullable:
+                widget = widget(id=column.name)
+            else:
+                widget = widget(id=column.name, validator=twc.Required)        
+        return widget
+
+
 class AutoContainer(twc.Widget):
+    """
+    An AutoContainer has its children automatically created from an SQLAlchemy entity,
+    using a widget policy.
+    """
     entity = twc.Param('SQLAlchemy mapped class to use', request_local=False)
-    policy = twc.Param('Policy to use')
+    policy = twc.Param('WidgetPolicy to use')
     
     @classmethod
     def post_define(cls):
@@ -168,17 +205,13 @@ class AutoContainer(twc.Widget):
             cls.child = cls.child(children=ncld)
 
 
-class TableFormPolicy(object):
-
-    pkey_widget = None
-
-    name_mapping = {
+class TableFormPolicy(WidgetPolicy):
+    name_widgets = {
         'password':     twf.PasswordField,
         'email':        twf.TextField(validator=twc.EmailValidator),
         'ipaddress':    twf.TextField(validator=twc.IpAddressValidator),
     }
-
-    type_mapping = {
+    type_widgets = {
         sat.String:     twf.TextField,
         sat.Integer:    twf.TextField(validator=twc.IntValidator),
         sat.DateTime:   twd.CalendarDateTimePicker,
@@ -186,39 +219,13 @@ class TableFormPolicy(object):
         sat.Binary:     twf.FileField,
         sat.Boolean:    twf.CheckBox,
     }
-
-    def factory(self, column):
-        if column.primary_key:
-            widget = self.pkey_widget
-        elif column.name in self.name_mapping:
-            widget = self.name_mapping[column.name]
-        else:
-            for t in self.type_mapping:
-                if isinstance(column.type, t):
-                    widget = self.type_mapping[t]
-                    break
-            else:
-                raise twc.WidgetError("Cannot automatically create a widget for '%s'" % column.name)
-        if widget:
-            if column.nullable:
-                widget = widget(id=column.name)
-            else:
-                widget = widget(id=column.name, validator=twc.Required)        
-        return widget
-
+    
 class AutoTableForm(AutoContainer, twf.TableForm):
     policy = TableFormPolicy()
 
 
-class ViewGridPolicy(object):
-    pkey = None
-    def factory(self, column):
-        if column.primary_key:
-            if self.pkey:
-                return self.pkey(id=column.name)
-            else:
-                return None
-        return twf.LabelField(id=column.name)
+class ViewGridPolicy(WidgetPolicy):
+    default_widget = twf.LabelField
 
 class AutoViewGrid(AutoContainer, twf.GridLayout):
     policy = ViewGridPolicy()
