@@ -9,7 +9,9 @@ class RelatedValidator(twc.IntValidator):
     """Validator for related object
     
     `entity`
-        The SQLAlchemy class to use. This must have a single primary key column.
+        The SQLAlchemy class to use. This map to a single table with a single primary key column.
+        It must also have the SQLAlchemy `query` property; this will be the case for Elixir classes,
+        and DeclarativeBase depending on configuration.
     """
     msgs = {
         'norel': 'No related object found',
@@ -17,36 +19,30 @@ class RelatedValidator(twc.IntValidator):
     
     def __init__(self, entity, **kw):
         super(RelatedValidator, self).__init__(**kw)
-        tableattr = ['table', '__table__'][hasattr(entity, '__table__')]
-        cols = getattr(entity, tableattr).primary_key.columns
+        mapper = sa.orm.class_mapper(entity)
+        if len(mapper.tables) != 1:
+            raise twc.WidgetError('RelatedValidator can only act on entities that map to a single table')
+        cols = list(mapper.tables[0].primary_key.columns)
         if len(cols) != 1:
             raise twc.WidgetError('RelatedValidator can only act on tables that have a single primary key column')
         self.entity = entity
-        self.int = isinstance(list(cols)[0].type, sa.types.Integer)
+        self.primary_key = cols[0]
         
     def to_python(self, value):
         if not value:
             return None
-        if self.int:
+        if isinstance(self.primary_key.type, sa.types.Integer):
             try:
                 value = int(value)
             except ValueError:
                 raise twc.ValidationError('norel', self)
-        if hasattr(self.entity, 'get'):
-            value = self.entity.get(value)
-        else:
-            tableattr = ['table', '__table__'][hasattr(self.entity,'__table__')]
-            col = getattr(self.entity, tableattr).primary_key.columns.keys()[0]
-            value = self.entity.query.filter(
-                getattr(self.entity, col)==value).one()
+        value = self.entity.query.filter(getattr(self.entity, self.primary_key.name)==value).first()
         if not value:
             raise twc.ValidationError('norel', self)
         return value
 
     def from_python(self, value):
-        mapperattr = ['mapper', '__mapper__'][hasattr(self.entity,'__mapper__')]
-        return value and unicode(
-            getattr(value, mapperattr).primary_key_from_instance(value)[0])
+        return value and unicode(sa.orm.object_mapper(value).primary_key_from_instance(value)[0])
 
 
 class DbFormPage(twf.FormPage):
