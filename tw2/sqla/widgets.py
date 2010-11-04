@@ -109,9 +109,9 @@ class DbListPage(twc.Page):
             if hasattr(cls, 'edit'):
                 cls.edit = cls.edit(redirect=cls._gen_compound_id(for_url=True), entity=cls.entity, id=cls.id+'_edit')
                 cls.newlink = twf.LinkField(link=cls.edit._gen_compound_id(for_url=True), text='New', value=1)
-                policy = ViewGridPolicy()
-                policy.pkey = twf.LinkField(text='$', link=cls.id+'_edit?id=$')
-                cls.child = cls.child(policy=policy)
+                class mypol(cls.child.policy):
+                    pkey_widget = twf.LinkField(text='$', link=cls.id+'_edit?id=$')
+                cls.child = cls.child(policy=mypol)
 
     def __init__(self, **kw):
         super(DbListPage, self).__init__(**kw)
@@ -155,19 +155,20 @@ class WidgetPolicy(object):
     type_widgets = {}    
     default_widget = None
 
-    def factory(self, column):
+    @classmethod
+    def factory(cls, column):
         if column.primary_key:
-            widget = self.pkey_widget
-        elif column.name in self.name_widgets:
-            widget = self.name_widgets[column.name]
+            widget = cls.pkey_widget
+        elif column.name in cls.name_widgets:
+            widget = cls.name_widgets[column.name]
         else:
-            for t in self.type_widgets:
+            for t in cls.type_widgets:
                 if isinstance(column.type, t):
-                    widget = self.type_widgets[t]
+                    widget = cls.type_widgets[t]
                     break
             else:
-                if self.default_widget:
-                    widget = self.default_widget
+                if cls.default_widget:
+                    widget = cls.default_widget
                 else:
                     raise twc.WidgetError("Cannot automatically create a widget for '%s'" % column.name)
         if widget:
@@ -221,14 +222,14 @@ class TableFormPolicy(WidgetPolicy):
     }
     
 class AutoTableForm(AutoContainer, twf.TableForm):
-    policy = TableFormPolicy()
+    policy = TableFormPolicy
 
 
 class ViewGridPolicy(WidgetPolicy):
     default_widget = twf.LabelField
 
 class AutoViewGrid(AutoContainer, twf.GridLayout):
-    policy = ViewGridPolicy()
+    policy = ViewGridPolicy
 
 
 class AutoListPageEdit(DbListPage):
