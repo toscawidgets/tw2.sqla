@@ -5,6 +5,13 @@ import transaction
 
 from tw2.sqla.utils import from_dict
 
+def table_for(entity):
+    mapper = sa.orm.class_mapper(entity)
+    if len(mapper.tables) != 1:
+        raise twc.WidgetError('Can only act on entities that map to a single table')
+    return mapper.tables[0]
+
+
 class RelatedValidator(twc.IntValidator):
     """Validator for related object
     
@@ -19,10 +26,7 @@ class RelatedValidator(twc.IntValidator):
     
     def __init__(self, entity, **kw):
         super(RelatedValidator, self).__init__(**kw)
-        mapper = sa.orm.class_mapper(entity)
-        if len(mapper.tables) != 1:
-            raise twc.WidgetError('RelatedValidator can only act on entities that map to a single table')
-        cols = list(mapper.tables[0].primary_key.columns)
+        cols = list(table_for(entity).primary_key.columns)
         if len(cols) != 1:
             raise twc.WidgetError('RelatedValidator can only act on tables that have a single primary key column')
         self.entity = entity
@@ -53,7 +57,7 @@ class DbFormPage(twf.FormPage):
     @classmethod
     def post_define(cls):
         if hasattr(cls, 'entity') and not hasattr(cls, 'title'):
-            cls.title = twc.util.name2label(cls.entity.table.name)
+            cls.title = twc.util.name2label(table_for(cls.entity).name)
 
     def fetch_data(self, req):
         self.value = req.GET and self.entity.query.filter_by(**req.GET.mixed()).first() or None
@@ -105,7 +109,7 @@ class DbListPage(twc.Page):
             cls.newlink = cls.newlink(parent=cls)
         if hasattr(cls, 'entity'):
             if not hasattr(cls, 'title'):
-                cls.title = twc.util.name2label(cls.entity.table.name)
+                cls.title = twc.util.name2label(table_for(cls.entity).name)
             if hasattr(cls, 'edit'):
                 cls.edit = cls.edit(redirect=cls._gen_compound_id(for_url=True), entity=cls.entity, id=cls.id+'_edit')
                 cls.newlink = twf.LinkField(link=cls.edit._gen_compound_id(for_url=True), text='New', value=1)
@@ -205,7 +209,7 @@ class AutoContainer(twc.Widget):
                         if isinstance(p, sa.orm.RelationshipProperty) 
                             and p.direction.name == 'MANYTOONE'
                             and len(p.local_side) == 1)
-            for c in cls.entity.table.columns:
+            for c in table_for(cls.entity).columns:
                 if cl:
                     w = getattr(cl, c.name, None)
                 if cl and w:
