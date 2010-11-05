@@ -151,13 +151,19 @@ class WidgetPolicy(object):
     """
 
     pkey_widget = None
+    fkey_widget = None
     name_widgets = {}
     type_widgets = {}    
     default_widget = None
 
     @classmethod
-    def factory(cls, column):
-        if column.primary_key:
+    def factory(cls, column, rel):
+        if rel:
+            if cls.fkey_widget:
+                return cls.fkey_widget(id=rel.key, entity=rel.mapper.class_)
+            else:
+                return None
+        elif column.primary_key:
             widget = cls.pkey_widget
         elif column.name in cls.name_widgets:
             widget = cls.name_widgets[column.name]
@@ -194,19 +200,25 @@ class AutoContainer(twc.Widget):
         if hasattr(cls, 'entity'):
             cl = getattr(cls.child, 'children', None)
             ncld = []
+            fkey = dict((p.local_side[0].name, p) 
+                        for p in sa.orm.class_mapper(cls.entity).iterate_properties 
+                        if isinstance(p, sa.orm.RelationshipProperty) 
+                            and p.direction.name == 'MANYTOONE'
+                            and len(p.local_side) == 1)
             for c in cls.entity.table.columns:
                 if cl:
                     w = getattr(cl, c.name, None)
                 if cl and w:
                     ncld.append(w)
                 else:
-                    nw = cls.policy.factory(c)
+                    nw = cls.policy.factory(c, fkey.get(c.name))
                     if nw:
                         ncld.append(nw)
             cls.child = cls.child(children=ncld)
 
 
 class TableFormPolicy(WidgetPolicy):
+    fkey_widget = DbSingleSelectField
     name_widgets = {
         'password':     twf.PasswordField,
         'email':        twf.TextField(validator=twc.EmailValidator),
@@ -226,6 +238,7 @@ class AutoTableForm(AutoContainer, twf.TableForm):
 
 
 class ViewGridPolicy(WidgetPolicy):
+    fkey_widget = twf.LabelField
     default_widget = twf.LabelField
 
 class AutoViewGrid(AutoContainer, twf.GridLayout):
