@@ -213,9 +213,13 @@ class WidgetPolicy(object):
             if not column.nullable:
                 args['validator'] = twc.Required
             if hasattr(column, 'info') and 'label' in column.info:
-                args.update(info)
+                args.update(column.info)
             widget = widget(**args)
         return widget
+
+
+class NoWidget(twc.Widget):
+    pass
 
 
 class ViewPolicy(WidgetPolicy):
@@ -279,8 +283,10 @@ class AutoContainer(twc.Widget):
             used_children = set()
             for col in table_for(cls.entity).columns:                
                 widget_name = col.name in fkey and fkey[col.name].key or col.name
-                if hasattr(orig_children, widget_name):
-                    new_children.append(getattr(orig_children, widget_name))
+                widget = getattr(orig_children, widget_name, None)
+                if widget:
+                    if not issubclass(widget, NoWidget):
+                        new_children.append(widget)
                     used_children.add(widget_name)
                 else:
                     new_widget = cls.policy.factory(col, fkey.get(col.name))
