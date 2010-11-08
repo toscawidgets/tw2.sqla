@@ -213,7 +213,7 @@ class WidgetPolicy(object):
             if not column.nullable:
                 args['validator'] = twc.Required
             if hasattr(column, 'info') and 'label' in column.info:
-                args['label'] = column.info['label']
+                args.update(info)
             widget = widget(**args)
         return widget
 
