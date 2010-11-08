@@ -250,8 +250,15 @@ class AutoContainer(twc.Widget):
     
     @classmethod
     def post_define(cls):
-        if not hasattr(cls, 'entity') and hasattr(cls, 'parent') and hasattr(cls.parent, 'entity'):
-            cls.entity = cls.parent.entity
+        if not hasattr(cls, 'entity') and hasattr(cls, 'parent') and hasattr(cls.parent, 'entity'):            
+            try:
+                prop = sa.orm.class_mapper(cls.parent.entity).get_property(cls.id)
+            except sa.exc.InvalidRequestError:
+                prop = None
+            if isinstance(prop, sa.orm.RelationshipProperty):
+                cls.entity = prop.mapper.class_
+            else:
+                cls.entity = cls.parent.entity                        
         if hasattr(cls, 'entity') and not getattr(cls, '_auto_widgets', False):
             cls._auto_widgets = True
             if hasattr(cls.child, '_orig_children'):
@@ -280,7 +287,7 @@ class AutoContainer(twc.Widget):
             for widget in orig_children:
                 if widget.id not in used_children:
                     new_children.append(widget)            
-            cls.child = cls.child(children=new_children)
+            cls.child = cls.child(children=new_children, entity=cls.entity)
 
 
 class AutoTableForm(AutoContainer, twf.TableForm):
