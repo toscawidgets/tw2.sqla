@@ -209,10 +209,12 @@ class WidgetPolicy(object):
                 else:
                     raise twc.WidgetError("Cannot automatically create a widget for '%s'" % column.name)
         if widget:
-            if column.nullable:
-                widget = widget(id=column.name)
-            else:
-                widget = widget(id=column.name, validator=twc.Required)        
+            args = {'id': column.name}            
+            if not column.nullable:
+                args['validator'] = twc.Required
+            if hasattr(column, 'info') and 'label' in column.info:
+                args['label'] = column.info['label']
+            widget = widget(**args)
         return widget
 
 
