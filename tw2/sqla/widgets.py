@@ -112,7 +112,7 @@ class DbListPage(twc.Page):
                 cls.title = twc.util.name2label(table_for(cls.entity).name)
             if hasattr(cls, 'edit'):
                 cls.edit = cls.edit(redirect=cls._gen_compound_id(for_url=True), entity=cls.entity, id=cls.id+'_edit')
-                cls.newlink = twf.LinkField(link=cls.edit._gen_compound_id(for_url=True), text='New', value=1)
+                cls.newlink = twf.LinkField(link=cls.edit._gen_compound_id(for_url=True), text='New', value=1, parent=cls)
                 class mypol(cls.child.policy):
                     pkey_widget = twf.LinkField(text='$', link=cls.id+'_edit?id=$')
                 cls.child = cls.child(policy=mypol)
