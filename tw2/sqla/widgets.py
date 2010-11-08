@@ -16,9 +16,9 @@ class RelatedValidator(twc.IntValidator):
     """Validator for related object
     
     `entity`
-        The SQLAlchemy class to use. This map to a single table with a single primary key column.
+        The SQLAlchemy class to use. This must be mapped to a single table with a single primary key column.
         It must also have the SQLAlchemy `query` property; this will be the case for Elixir classes,
-        and DeclarativeBase depending on configuration.
+        and can be specified using DeclarativeBase (and is in the TG2 default setup).
     """
     msgs = {
         'norel': 'No related object found',
@@ -115,7 +115,7 @@ class DbListPage(twc.Page):
                 cls.newlink = twf.LinkField(link=cls.edit._gen_compound_id(for_url=True), text='New', value=1, parent=cls)
                 class mypol(cls.child.policy):
                     pkey_widget = twf.LinkField(text='$', link=cls.id+'_edit?id=$')
-                cls.child = cls.child(policy=mypol)
+                cls.child = cls.child(policy=mypol, _auto_widgets=False)
 
     def __init__(self, **kw):
         super(DbListPage, self).__init__(**kw)
@@ -151,7 +151,34 @@ class DbCheckBoxList(DbSelectionField, twf.CheckBoxList):
 
 class WidgetPolicy(object):
     """
-    A policy object is used to generate widgets from SQLAlchemy columns
+    A policy object is used to generate widgets from SQLAlchemy columns. 
+    
+    In general, the widget's id is set to the name of the column, and if the
+    column is not nullable, the validator is set as required. If the desired
+    widget is None, then no widget is used for that column.
+    
+    Several parameters can be overridden to select the widget to use:
+    
+    `pkey_widget`
+        For primary key columns
+        
+    `fkey_widget`
+        For foreign key columns. In this case the widget's id is set to the
+        name of the relation, and its entity is set to the target class.
+        
+    `name_widgets`
+        A dictionary mapping column names to the desired widget. This can be 
+        used for names like "password" or "email".
+    
+    `type_widgets`
+        A dictionary mapping SQLAlchemy column types to the desired widget.
+        
+    `default_widget`
+        If the column does not match any of the other selectors, this is used.
+        If this is None then an error is raised for columns that do not match.
+
+    Alternatively, the `factory` method can be overriden to provide completely
+    customised widget selection.
     """
 
     pkey_widget = None
@@ -189,39 +216,14 @@ class WidgetPolicy(object):
         return widget
 
 
-class AutoContainer(twc.Widget):
-    """
-    An AutoContainer has its children automatically created from an SQLAlchemy entity,
-    using a widget policy.
-    """
-    entity = twc.Param('SQLAlchemy mapped class to use', request_local=False)
-    policy = twc.Param('WidgetPolicy to use')
-    
-    @classmethod
-    def post_define(cls):
-        if not hasattr(cls, 'entity') and hasattr(cls, 'parent') and hasattr(cls.parent, 'entity'):
-            cls.entity = cls.parent.entity
-        if hasattr(cls, 'entity'):
-            cl = getattr(cls.child, 'children', None)
-            ncld = []
-            fkey = dict((p.local_side[0].name, p) 
-                        for p in sa.orm.class_mapper(cls.entity).iterate_properties 
-                        if isinstance(p, sa.orm.RelationshipProperty) 
-                            and p.direction.name == 'MANYTOONE'
-                            and len(p.local_side) == 1)
-            for c in table_for(cls.entity).columns:
-                if cl:
-                    w = getattr(cl, c.name, None)
-                if cl and w:
-                    ncld.append(w)
-                else:
-                    nw = cls.policy.factory(c, fkey.get(c.name))
-                    if nw:
-                        ncld.append(nw)
-            cls.child = cls.child(children=ncld)
+class ViewPolicy(WidgetPolicy):
+    """Base WidgetPolicy for viewing data."""
+    fkey_widget = twf.LabelField
+    default_widget = twf.LabelField
 
 
-class TableFormPolicy(WidgetPolicy):
+class EditPolicy(WidgetPolicy):
+    """Base WidgetPolicy for editing data."""
     fkey_widget = DbSingleSelectField
     name_widgets = {
         'password':     twf.PasswordField,
@@ -236,17 +238,64 @@ class TableFormPolicy(WidgetPolicy):
         sat.Binary:     twf.FileField,
         sat.Boolean:    twf.CheckBox,
     }
+
+
+class AutoContainer(twc.Widget):
+    """
+    An AutoContainer has its children automatically created from an SQLAlchemy entity,
+    using a widget policy.
+    """
+    entity = twc.Param('SQLAlchemy mapped class to use', request_local=False)
+    policy = twc.Param('WidgetPolicy to use')
     
+    @classmethod
+    def post_define(cls):
+        if not hasattr(cls, 'entity') and hasattr(cls, 'parent') and hasattr(cls.parent, 'entity'):
+            cls.entity = cls.parent.entity
+        if hasattr(cls, 'entity') and not getattr(cls, '_auto_widgets', False):
+            cls._auto_widgets = True
+            if hasattr(cls.child, '_orig_children'):
+                cl = cls.child._orig_children
+            elif hasattr(cls.child, 'children'):
+                cl = cls.child.children
+                cls.child._orig_children = cl
+            else:
+                cl = []
+            ncld = []
+            fkey = dict((p.local_side[0].name, p) 
+                        for p in sa.orm.class_mapper(cls.entity).iterate_properties 
+                        if isinstance(p, sa.orm.RelationshipProperty) 
+                            and p.direction.name == 'MANYTOONE'
+                            and len(p.local_side) == 1)
+            done = {}
+            for c in table_for(cls.entity).columns:                
+                if c.name in fkey:
+                    actual_name = fkey[c.name].key
+                else:
+                    actual_name = c.name
+                w = getattr(cl, actual_name, None)
+                if w:
+                    ncld.append(w)
+                    done[actual_name] = 1
+                else:
+                    nw = cls.policy.factory(c, fkey.get(c.name))
+                    if nw:
+                        ncld.append(nw)
+            # append unmatched chilren
+            for c in cl:
+                if not done.get(c.id):
+                    ncld.append(getattr(cl, c.id))            
+            cls.child = cls.child(children=ncld)
+
+
 class AutoTableForm(AutoContainer, twf.TableForm):
-    policy = TableFormPolicy
+    policy = EditPolicy
 
-
-class ViewGridPolicy(WidgetPolicy):
-    fkey_widget = twf.LabelField
-    default_widget = twf.LabelField
+class AutoGrowingGrid(AutoContainer, twd.GrowingGridLayout):
+    policy = EditPolicy
 
 class AutoViewGrid(AutoContainer, twf.GridLayout):
-    policy = ViewGridPolicy
+    policy = ViewPolicy
 
 
 class AutoListPageEdit(DbListPage):
