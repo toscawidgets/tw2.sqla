@@ -255,43 +255,38 @@ class AutoContainer(twc.Widget):
         if hasattr(cls, 'entity') and not getattr(cls, '_auto_widgets', False):
             cls._auto_widgets = True
             if hasattr(cls.child, '_orig_children'):
-                cl = cls.child._orig_children
+                orig_children = cls.child._orig_children
             elif hasattr(cls.child, 'children'):
-                cl = cls.child.children
-                cls.child._orig_children = cl
+                orig_children = cls.child.children
+                cls.child._orig_children = orig_children
             else:
-                cl = []
-            ncld = []
+                orig_children = []
+            new_children = []
             fkey = dict((p.local_side[0].name, p) 
                         for p in sa.orm.class_mapper(cls.entity).iterate_properties 
                         if isinstance(p, sa.orm.RelationshipProperty) 
                             and p.direction.name == 'MANYTOONE'
                             and len(p.local_side) == 1)
-            done = {}
-            for c in table_for(cls.entity).columns:                
-                if c.name in fkey:
-                    actual_name = fkey[c.name].key
+            used_children = set()
+            for col in table_for(cls.entity).columns:                
+                widget_name = col.name in fkey and fkey[col.name].key or col.name
+                if hasattr(orig_children, widget_name):
+                    new_children.append(getattr(orig_children, widget_name))
+                    used_children.add(widget_name)
                 else:
-                    actual_name = c.name
-                w = getattr(cl, actual_name, None)
-                if w:
-                    ncld.append(w)
-                    done[actual_name] = 1
-                else:
-                    nw = cls.policy.factory(c, fkey.get(c.name))
-                    if nw:
-                        ncld.append(nw)
-            # append unmatched chilren
-            for c in cl:
-                if not done.get(c.id):
-                    ncld.append(getattr(cl, c.id))            
-            cls.child = cls.child(children=ncld)
+                    new_widget = cls.policy.factory(col, fkey.get(col.name))
+                    if new_widget:
+                        new_children.append(new_widget)
+            for widget in orig_children:
+                if widget.id not in used_children:
+                    new_children.append(widget)            
+            cls.child = cls.child(children=new_children)
 
 
 class AutoTableForm(AutoContainer, twf.TableForm):
     policy = EditPolicy
 
-class AutoGrowingGrid(AutoContainer, twd.GrowingGridLayout):
+class AutoGrowingGrid(twd.GrowingGridLayout, AutoContainer):
     policy = EditPolicy
 
 class AutoViewGrid(AutoContainer, twf.GridLayout):
