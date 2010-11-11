@@ -10,6 +10,7 @@ def from_dict(entity, data, session=None):
     # that's not 100% reliable, so we'll need an override
 
     mapper = sa.orm.object_mapper(entity)
+    add = False
 
     pk_props = entity.__mapper__.primary_key
     if [1 for p in pk_props if p.key in data and data[p.key]]:
@@ -22,6 +23,7 @@ def from_dict(entity, data, session=None):
         for p in pk_props:
             if p.key in data and not data[p.key]:
                 del data[p.key]
+        add = True
 
     for key, value in data.iteritems():
         if isinstance(value, dict):
@@ -50,6 +52,8 @@ def from_dict(entity, data, session=None):
             setattr(entity, key, new_attr_value)
         else:
             setattr(entity, key, value)
+    if add and session:
+        session.add(entity)
     return entity
 
 def update_or_create(cls, data, surrogate=True, session=None):
