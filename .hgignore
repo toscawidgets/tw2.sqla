@@ -4,3 +4,4 @@ glob:dist/*
 glob:tw2.sqla.egg-info/*
 glob:virtualenv
 glob:*.egg
+glob:test.db
