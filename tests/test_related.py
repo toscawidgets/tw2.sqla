@@ -2,6 +2,7 @@ import tw2.core as twc, tw2.sqla as tws, sqlalchemy as sa
 import testapi
 
 class BaseObject(object):
+    """ Contains all tests to be run over Elixir and sqlalchemy-declarative """
     def setUp(self):
         raise NotImplementedError, "Must be subclassed."
 
@@ -45,8 +46,6 @@ class BaseObject(object):
             assert(False)
         except twc.WidgetError, e:
             assert(str(e) == 'RelatedValidator can only act on tables that have a single primary key column')
-
-
 
 class TestElixir(BaseObject):
     def setUp(self):
