@@ -19,6 +19,7 @@ setup(
     zip_safe=False,
     include_package_data=True,
     test_suite = 'nose.collector',
+    tests_require = ['BeautifulSoup', 'nose', 'FormEncode', 'WebTest', 'elixir'],
     entry_points="""
         [tw2.widgets]
         # Register your widgets so they can be listed in the WidgetBrowser
