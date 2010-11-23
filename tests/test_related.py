@@ -40,7 +40,7 @@ class BaseObject(object):
         except twc.ValidationError:
             pass
 
-    def test_twopk_dec(self):
+    def test_twopk(self):
         try:
             tws.RelatedValidator(self.DBTestCls3)
             assert(False)
