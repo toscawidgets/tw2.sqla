@@ -2,3 +2,5 @@ glob:*.pyc
 glob:build/*
 glob:dist/*
 glob:tw2.sqla.egg-info/*
+glob:virtualenv
+glob:*.egg
