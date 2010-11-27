@@ -80,6 +80,31 @@ class RadioButtonT(tw2test.WidgetTest):
     expected = """
     <ul class="something" name="something" id="something">
     <li>
+        <input type="radio" name="something" value="1" id="something:0"/>
+        <label for="something:0">foo1</label>
+    </li>
+    <li>
+        <input type="radio" name="something" value="2" id="something:1"/>
+        <label for="something:1">foo2</label>
+    </li>
+    </ul>"""
+    
+    def setup(self):
+        self.widget = self.widget(entity=self.DBTestCls1)
+        return super(RadioButtonT, self).setup()
+
+class TestRadioButtonElixir(ElixirBase, RadioButtonT):
+    pass
+class TestRadioButtonSQLA(SQLABase, RadioButtonT):
+    pass
+
+class CheckBoxT(tw2test.WidgetTest):
+    widget = tws.DbCheckBoxList
+    attrs = {'css_class':'something', 'id' : 'something'}
+    params = {'checked':None}
+    expected = """
+    <ul class="something" name="something" id="something">
+    <li>
         <input type="checkbox" name="something" value="1" id="something:0"/>
         <label for="something:0">foo1</label>
     </li>
@@ -89,43 +114,32 @@ class RadioButtonT(tw2test.WidgetTest):
     </li>
     </ul>"""
 
-    
     def setup(self):
-        # TODO -- this never covers the following line in widgets.py
-        #             cls.validator = RelatedValidator(entity=cls.entity) 
-        self.params['entity'] = self.DBTestCls1
-        return super(RadioButtonT, self).setup()
+        self.widget = self.widget(entity=self.DBTestCls1)
+        return super(CheckBoxT, self).setup()
 
-class TestRadioButtonElixir(ElixirBase, RadioButtonT):
+class TestCheckBoxElixir(ElixirBase, CheckBoxT):
     pass
-class TestRadioButtonSQLA(SQLABase, RadioButtonT):
+class TestCheckBoxSQLA(SQLABase, CheckBoxT):
     pass
 
-class RadioButtonT(tw2test.WidgetTest):
-    widget = tws.DbRadioButtonList
+class SingleSelectT(tw2test.WidgetTest):
+    widget = tws.DbSingleSelectField
     attrs = {'css_class':'something', 'id' : 'something'}
     params = {'checked':None}
     expected = """
-    <ul class="something" name="something" id="something">
-    <li>
-        <input type="radio" name="something" value="1" id="something:0"/>
-        <label for="something:0">foo1</label>
-    </li>
-    <li>
-        <input type="radio" name="something" value="2" id="something:1"/>
-        <label for="something:1">foo2</label>
-    </li>
-    </ul>"""
-
+    <select class="something" name="something" id="something">
+    <option ></option>
+    <option value="1">foo1</option>
+    <option value="2">foo2</option>
+    </select>"""
     
     def setup(self):
-        # TODO -- this never covers the following line in widgets.py
-        #             cls.validator = RelatedValidator(entity=cls.entity) 
-        self.params['entity'] = self.DBTestCls1
-        return super(RadioButtonT, self).setup()
+        self.widget = self.widget(entity=self.DBTestCls1)
+        return super(SingleSelectT, self).setup()
 
-class TestRadioButtonElixir(ElixirBase, RadioButtonT):
+class TestSingleSelectElixir(ElixirBase, SingleSelectT):
     pass
-class TestRadioButtonSQLA(SQLABase, RadioButtonT):
+class TestSingleSelectSQLA(SQLABase, SingleSelectT):
     pass
 
