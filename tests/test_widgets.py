@@ -91,13 +91,13 @@ class RadioButtonT(tw2test.WidgetTest):
 
     
     def setup(self):
+        # TODO -- this never covers the following line in widgets.py
+        #             cls.validator = RelatedValidator(entity=cls.entity) 
         self.params['entity'] = self.DBTestCls1
         return super(RadioButtonT, self).setup()
 
-# TODO -- how to share the testbase attrs between these...
-#  Note.. I think that tw2test.WidgetTest never calls super(..).setUp()
-#  :(
 class TestRadioButtonElixir(ElixirBase, RadioButtonT):
     pass
 class TestRadioButtonSQLA(SQLABase, RadioButtonT):
     pass
+
