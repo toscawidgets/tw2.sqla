@@ -148,6 +148,12 @@ class DbCheckBoxList(DbSelectionField, twf.CheckBoxList):
         if getattr(cls, 'entity', None):
             cls.item_validator = RelatedValidator(entity=cls.entity)
 
+class DbRadioButtonList(DbSelectionField, twf.RadioButtonList):
+    @classmethod
+    def post_define(cls):
+        if getattr(cls, 'entity', None):
+            cls.item_validator = RelatedValidator(entity=cls.entity)
+
 
 class WidgetPolicy(object):
     """
