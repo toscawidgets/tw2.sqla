@@ -1,5 +1,11 @@
 from setuptools import setup, find_packages
 
+# Requirements to install buffet plugins and engines
+_extra_cheetah = ["Cheetah>=1.0", "TurboCheetah>=0.9.5"]
+_extra_genshi = ["Genshi >= 0.3.5"]
+_extra_kid = ["kid>=0.9.5", "TurboKid>=0.9.9"]
+_extra_mako = ["Mako >= 0.1.1"]
+
 setup(
     name='tw2.sqla',
     version='2.0a1',
@@ -19,8 +25,14 @@ setup(
     zip_safe=False,
     include_package_data=True,
     test_suite = 'nose.collector',
-    tests_require = ['BeautifulSoup', 'nose', 'FormEncode', 'WebTest', 'elixir'],
-    entry_points="""
+    tests_require = ['BeautifulSoup', 'nose', 'FormEncode', 'WebTest', 'elixir'] + _extra_cheetah + _extra_genshi + _extra_kid + _extra_mako,
+    extras_require = {
+        'cheetah': _extra_cheetah,
+        'kid': _extra_kid,
+        'genshi': _extra_genshi,
+        'mako': _extra_mako,
+    },
+    entry_poin="""
         [tw2.widgets]
         # Register your widgets so they can be listed in the WidgetBrowser
         widgets = tw2.sqla
