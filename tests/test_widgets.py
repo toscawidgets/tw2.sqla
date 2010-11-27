@@ -1,4 +1,4 @@
-import tw2.core as twc, tw2.sqla as tws, sqlalchemy as sa
+import tw2.core as twc, tw2.sqla as tws, tw2.forms as twf, sqlalchemy as sa
 import tw2.core.testbase as tw2test
 
 import testapi
@@ -142,4 +142,3 @@ class TestSingleSelectElixir(ElixirBase, SingleSelectT):
     pass
 class TestSingleSelectSQLA(SQLABase, SingleSelectT):
     pass
-
