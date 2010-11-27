@@ -93,10 +93,8 @@ class RadioButtonT(tw2test.WidgetTest):
         self.widget = self.widget(entity=self.DBTestCls1)
         return super(RadioButtonT, self).setup()
 
-class TestRadioButtonElixir(ElixirBase, RadioButtonT):
-    pass
-class TestRadioButtonSQLA(SQLABase, RadioButtonT):
-    pass
+class TestRadioButtonElixir(ElixirBase, RadioButtonT): pass
+class TestRadioButtonSQLA(SQLABase, RadioButtonT): pass
 
 class CheckBoxT(tw2test.WidgetTest):
     widget = tws.DbCheckBoxList
@@ -118,10 +116,8 @@ class CheckBoxT(tw2test.WidgetTest):
         self.widget = self.widget(entity=self.DBTestCls1)
         return super(CheckBoxT, self).setup()
 
-class TestCheckBoxElixir(ElixirBase, CheckBoxT):
-    pass
-class TestCheckBoxSQLA(SQLABase, CheckBoxT):
-    pass
+class TestCheckBoxElixir(ElixirBase, CheckBoxT): pass
+class TestCheckBoxSQLA(SQLABase, CheckBoxT): pass
 
 class SingleSelectT(tw2test.WidgetTest):
     widget = tws.DbSingleSelectField
@@ -138,7 +134,5 @@ class SingleSelectT(tw2test.WidgetTest):
         self.widget = self.widget(entity=self.DBTestCls1)
         return super(SingleSelectT, self).setup()
 
-class TestSingleSelectElixir(ElixirBase, SingleSelectT):
-    pass
-class TestSingleSelectSQLA(SQLABase, SingleSelectT):
-    pass
+class TestSingleSelectElixir(ElixirBase, SingleSelectT): pass
+class TestSingleSelectSQLA(SQLABase, SingleSelectT): pass
