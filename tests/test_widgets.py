@@ -1,13 +1,15 @@
 import tw2.core as twc, tw2.sqla as tws, tw2.forms as twf, sqlalchemy as sa
+from webob import Request
+from cStringIO import StringIO
+
+import elixir as el
+import transaction
+from sqlalchemy.ext.declarative import declarative_base
+
 import tw2.core.testbase as tw2test
-
-import testapi
-
 
 class ElixirBase(object):
     def setup(self):
-        import elixir as el
-        import transaction
         el.metadata = sa.MetaData('sqlite:///:memory:')
 
         class DBTestCls1(el.Entity):
@@ -32,12 +34,10 @@ class ElixirBase(object):
         self.DBTestCls2(id='bob')
         transaction.commit()
 
-        super(ElixirBase, self).setup()
-        testapi.request(1)
+        return super(ElixirBase, self).setup()
 
 class SQLABase(object):
     def setup(self):
-        from sqlalchemy.ext.declarative import declarative_base
         Base = declarative_base(metadata=sa.MetaData('sqlite:///:memory:'))
         Base.query = tws.transactional_session().query_property()
 
@@ -70,8 +70,7 @@ class SQLABase(object):
         session.add(self.DBTestCls2(id='bob'))
         session.commit()
 
-        super(SQLABase, self).setup()
-        testapi.request(1)
+        return super(SQLABase, self).setup()
 
 class RadioButtonT(tw2test.WidgetTest):
     widget = tws.DbRadioButtonList
@@ -136,3 +135,151 @@ class SingleSelectT(tw2test.WidgetTest):
 
 class TestSingleSelectElixir(ElixirBase, SingleSelectT): pass
 class TestSingleSelectSQLA(SQLABase, SingleSelectT): pass
+
+class TestSingleSelect(tw2test.WidgetTest):
+    widget = twf.SingleSelectField
+    attrs = {'css_class':'something', 'id' : 'something'}
+    params = {'checked':None, 'options': ['foo1', 'foo2']}
+    expected = """
+    <select class="something" name="something" id="something">
+    <option ></option>
+    <option value="foo1">foo1</option>
+    <option value="foo2">foo2</option>
+    </select>"""
+
+class TestFormPage(tw2test.WidgetTest):
+    widget = twf.FormPage
+    attrs = {
+        'child':twf.TableForm(
+            children=[
+                twf.TextField(id='field1'),
+                twf.TextField(id='field2'),
+                twf.TextField(id='field3'),]),
+        'title':'some title'
+    }
+    expected = """<html>
+<head><title>some title</title></head>
+<body id="mytestwidget:page"><h1>some title</h1><form method="post" id="mytestwidget:form" enctype="multipart/form-data">
+     <span class="error"></span>
+    <table id="mytestwidget">
+    <tr class="odd" id="mytestwidget:field1:container">
+        <th>Field1</th>
+        <td>
+            <input name="mytestwidget:field1" id="mytestwidget:field1" type="text">
+            <span id="mytestwidget:field1:error"></span>
+        </td>
+    </tr><tr class="even" id="mytestwidget:field2:container">
+        <th>Field2</th>
+        <td>
+            <input name="mytestwidget:field2" id="mytestwidget:field2" type="text">
+            <span id="mytestwidget:field2:error"></span>
+        </td>
+    </tr><tr class="odd" id="mytestwidget:field3:container">
+        <th>Field3</th>
+        <td>
+            <input name="mytestwidget:field3" id="mytestwidget:field3" type="text">
+            <span id="mytestwidget:field3:error"></span>
+        </td>
+    </tr>
+    <tr class="error"><td colspan="2">
+        <span id="mytestwidget:error"></span>
+    </td></tr>
+</table>
+    <input type="submit" id="submit" value="Save">
+</form></body>
+</html>"""
+
+    declarative = True
+
+    def test_request_get(self):
+        environ = {'REQUEST_METHOD': 'GET',
+                   }
+        req=Request(environ)
+        r = self.widget().request(req)
+        tw2test.assert_eq_xml(r.body, """<html>
+<head><title>some title</title></head>
+<body id="mytestwidget:page"><h1>some title</h1><form method="post" id="mytestwidget:form" enctype="multipart/form-data">
+     <span class="error"></span>
+    <table id="mytestwidget">
+    <tr class="odd" id="mytestwidget:field1:container">
+        <th>Field1</th>
+        <td>
+            <input name="mytestwidget:field1" id="mytestwidget:field1" type="text">
+            <span id="mytestwidget:field1:error"></span>
+        </td>
+    </tr><tr class="even" id="mytestwidget:field2:container">
+        <th>Field2</th>
+        <td>
+            <input name="mytestwidget:field2" id="mytestwidget:field2" type="text">
+            <span id="mytestwidget:field2:error"></span>
+        </td>
+    </tr><tr class="odd" id="mytestwidget:field3:container">
+        <th>Field3</th>
+        <td>
+            <input name="mytestwidget:field3" id="mytestwidget:field3" type="text">
+            <span id="mytestwidget:field3:error"></span>
+        </td>
+    </tr>
+    <tr class="error"><td colspan="2">
+        <span id="mytestwidget:error"></span>
+    </td></tr>
+</table>
+    <input type="submit" id="submit" value="Save">
+</form></body>
+</html>""")
+
+    def _test_request_post_invalid(self):
+        # i have commented this because the post is in fact
+        # valid, there are no arguments sent to the post, but the
+        # widget does not require them
+        environ = {'REQUEST_METHOD': 'POST',
+                   'wsgi.input': StringIO(''),
+
+                   }
+        req=Request(environ)
+        r = self.widget().request(req)
+        assert_eq_xml(r.body, """<html>
+<head><title>some title</title></head>
+<body id="mytestwidget:page"><h1>some title</h1><form method="post" id="mytestwidget:form" enctype="multipart/form-data">
+     <span class="error"></span>
+    <table id="mytestwidget">
+    <tr class="odd" id="mytestwidget:field1:container">
+        <th>Field1</th>
+        <td>
+            <input name="mytestwidget:field1" id="mytestwidget:field1" type="text">
+            <span id="mytestwidget:field1:error"></span>
+        </td>
+    </tr><tr class="even" id="mytestwidget:field2:container">
+        <th>Field2</th>
+        <td>
+            <input name="mytestwidget:field2" id="mytestwidget:field2" type="text">
+            <span id="mytestwidget:field2:error"></span>
+        </td>
+    </tr><tr class="odd" id="mytestwidget:field3:container">
+        <th>Field3</th>
+        <td>
+            <input name="mytestwidget:field3" id="mytestwidget:field3" type="text">
+            <span id="mytestwidget:field3:error"></span>
+        </td>
+    </tr>
+    <tr class="error"><td colspan="2">
+        <span id="mytestwidget:error"></span>
+    </td></tr>
+</table>
+    <input type="submit" id="submit" value="Save">
+</form></body>
+</html>""")
+
+    def test_request_post_valid(self):
+        environ = {'wsgi.input': StringIO(''),
+                   }
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='mytestwidget:field1=a&mytestwidget:field2=b&mytestwidget:field3=c'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        r = self.widget().request(req)
+        assert r.body == """Form posted successfully {'field2': u'b', 'field3': u'c', 'field1': u'a'}""", r.body
+
