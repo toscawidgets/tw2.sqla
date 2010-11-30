@@ -136,53 +136,33 @@ class SingleSelectT(tw2test.WidgetTest):
 class TestSingleSelectElixir(ElixirBase, SingleSelectT): pass
 class TestSingleSelectSQLA(SQLABase, SingleSelectT): pass
 
-class TestSingleSelect(tw2test.WidgetTest):
-    widget = twf.SingleSelectField
-    attrs = {'css_class':'something', 'id' : 'something'}
-    params = {'checked':None, 'options': ['foo1', 'foo2']}
-    expected = """
-    <select class="something" name="something" id="something">
-    <option ></option>
-    <option value="foo1">foo1</option>
-    <option value="foo2">foo2</option>
-    </select>"""
+class FormPageT(tw2test.WidgetTest):
+    def setup(self):
+        self.widget = self.widget(entity=self.DBTestCls1)
+        return super(FormPageT, self).setup()
 
-class TestFormPage(tw2test.WidgetTest):
-    widget = twf.FormPage
+    widget = tws.DbFormPage
     attrs = {
-        'child':twf.TableForm(
+        'child': twf.TableForm(
             children=[
-                twf.TextField(id='field1'),
-                twf.TextField(id='field2'),
-                twf.TextField(id='field3'),]),
-        'title':'some title'
+                twf.TextField(id='name'),
+            ]),
+        'title': 'some title'
     }
     expected = """<html>
 <head><title>some title</title></head>
-<body id="mytestwidget:page"><h1>some title</h1><form method="post" id="mytestwidget:form" enctype="multipart/form-data">
+<body id="dbformpage_d:page"><h1>some title</h1><form method="post" id="dbformpage_d:form" enctype="multipart/form-data">
      <span class="error"></span>
-    <table id="mytestwidget">
-    <tr class="odd" id="mytestwidget:field1:container">
-        <th>Field1</th>
+    <table id="dbformpage_d">
+    <tr class="odd" id="dbformpage_d:name:container">
+        <th>Name</th>
         <td>
-            <input name="mytestwidget:field1" id="mytestwidget:field1" type="text">
-            <span id="mytestwidget:field1:error"></span>
-        </td>
-    </tr><tr class="even" id="mytestwidget:field2:container">
-        <th>Field2</th>
-        <td>
-            <input name="mytestwidget:field2" id="mytestwidget:field2" type="text">
-            <span id="mytestwidget:field2:error"></span>
-        </td>
-    </tr><tr class="odd" id="mytestwidget:field3:container">
-        <th>Field3</th>
-        <td>
-            <input name="mytestwidget:field3" id="mytestwidget:field3" type="text">
-            <span id="mytestwidget:field3:error"></span>
+            <input name="dbformpage_d:name" id="dbformpage_d:name" type="text">
+            <span id="dbformpage_d:name:error"></span>
         </td>
     </tr>
     <tr class="error"><td colspan="2">
-        <span id="mytestwidget:error"></span>
+        <span id="dbformpage_d:error"></span>
     </td></tr>
 </table>
     <input type="submit" id="submit" value="Save">
@@ -198,30 +178,18 @@ class TestFormPage(tw2test.WidgetTest):
         r = self.widget().request(req)
         tw2test.assert_eq_xml(r.body, """<html>
 <head><title>some title</title></head>
-<body id="mytestwidget:page"><h1>some title</h1><form method="post" id="mytestwidget:form" enctype="multipart/form-data">
+<body id="dbformpage_d:page"><h1>some title</h1><form method="post" id="dbformpage_d:form" enctype="multipart/form-data">
      <span class="error"></span>
-    <table id="mytestwidget">
-    <tr class="odd" id="mytestwidget:field1:container">
-        <th>Field1</th>
+    <table id="dbformpage_d">
+    <tr class="odd" id="dbformpage_d:name:container">
+        <th>Name</th>
         <td>
-            <input name="mytestwidget:field1" id="mytestwidget:field1" type="text">
-            <span id="mytestwidget:field1:error"></span>
-        </td>
-    </tr><tr class="even" id="mytestwidget:field2:container">
-        <th>Field2</th>
-        <td>
-            <input name="mytestwidget:field2" id="mytestwidget:field2" type="text">
-            <span id="mytestwidget:field2:error"></span>
-        </td>
-    </tr><tr class="odd" id="mytestwidget:field3:container">
-        <th>Field3</th>
-        <td>
-            <input name="mytestwidget:field3" id="mytestwidget:field3" type="text">
-            <span id="mytestwidget:field3:error"></span>
+            <input name="dbformpage_d:name" id="dbformpage_d:name" type="text">
+            <span id="dbformpage_d:name:error"></span>
         </td>
     </tr>
     <tr class="error"><td colspan="2">
-        <span id="mytestwidget:error"></span>
+        <span id="dbformpage_d:error"></span>
     </td></tr>
 </table>
     <input type="submit" id="submit" value="Save">
@@ -240,46 +208,50 @@ class TestFormPage(tw2test.WidgetTest):
         r = self.widget().request(req)
         assert_eq_xml(r.body, """<html>
 <head><title>some title</title></head>
-<body id="mytestwidget:page"><h1>some title</h1><form method="post" id="mytestwidget:form" enctype="multipart/form-data">
+<body id="dbformpage_d:page"><h1>some title</h1><form method="post" id="dbformpage_d:form" enctype="multipart/form-data">
      <span class="error"></span>
-    <table id="mytestwidget">
-    <tr class="odd" id="mytestwidget:field1:container">
-        <th>Field1</th>
+    <table id="dbformpage_d">
+    <tr class="odd" id="dbformpage_d:name:container">
+        <th>Name</th>
         <td>
-            <input name="mytestwidget:field1" id="mytestwidget:field1" type="text">
-            <span id="mytestwidget:field1:error"></span>
-        </td>
-    </tr><tr class="even" id="mytestwidget:field2:container">
-        <th>Field2</th>
-        <td>
-            <input name="mytestwidget:field2" id="mytestwidget:field2" type="text">
-            <span id="mytestwidget:field2:error"></span>
-        </td>
-    </tr><tr class="odd" id="mytestwidget:field3:container">
-        <th>Field3</th>
-        <td>
-            <input name="mytestwidget:field3" id="mytestwidget:field3" type="text">
-            <span id="mytestwidget:field3:error"></span>
+            <input name="dbformpage_d:name" id="dbformpage_d:name" type="text">
+            <span id="dbformpage_d:name:error"></span>
         </td>
     </tr>
     <tr class="error"><td colspan="2">
-        <span id="mytestwidget:error"></span>
+        <span id="dbformpage_d:error"></span>
     </td></tr>
 </table>
     <input type="submit" id="submit" value="Save">
 </form></body>
 </html>""")
 
+
+class TestFormPageElixir(ElixirBase, FormPageT):
     def test_request_post_valid(self):
-        environ = {'wsgi.input': StringIO(''),
-                   }
+        environ = {'wsgi.input': StringIO('')}
         req=Request(environ)
         req.method = 'POST'
-        req.body='mytestwidget:field1=a&mytestwidget:field2=b&mytestwidget:field3=c'
+        req.body='dbformpage_d:name=a'
         req.environ['CONTENT_LENGTH'] = str(len(req.body))
         req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
 
         self.mw.config.debug = True
         r = self.widget().request(req)
-        assert r.body == """Form posted successfully {'field2': u'b', 'field3': u'c', 'field1': u'a'}""", r.body
+        assert r.body == """Form posted successfully {'name': u'a'}""", r.body
 
+class TestFormPageSQLA(SQLABase, FormPageT):
+    def test_neither_pylons_nor_elixir(self):
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='dbformpage_d:name=a'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        try:
+            r = self.widget().request(req)
+            assert False
+        except NotImplementedError, e:
+            assert(str(e) == 'Neither elixir nor pylons')

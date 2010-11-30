@@ -86,7 +86,7 @@ class DbFormPage(twf.FormPage):
             v = from_dict(v, data, session=session)
             transaction.commit()
         else:
-            raise UnimplementedError, "Neither elixir nor pylons"
+            raise NotImplementedError, "Neither elixir nor pylons"
 
         if hasattr(cls, 'redirect'):
             return webob.Response(request=req, status=302, location=cls.redirect)
