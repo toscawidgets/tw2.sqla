@@ -242,6 +242,9 @@ class TestFormPageElixir(ElixirBase, FormPageT):
 
 class TestFormPageSQLA(SQLABase, FormPageT):
     def test_neither_pylons_nor_elixir(self):
+        raise NotImplementedError("Gotta write this test.")
+
+    def test_no_DBSession(self):
         environ = {'wsgi.input': StringIO('')}
         req=Request(environ)
         req.method = 'POST'
@@ -253,8 +256,9 @@ class TestFormPageSQLA(SQLABase, FormPageT):
         try:
             r = self.widget().request(req)
             assert False
-        except NotImplementedError, e:
-            assert(str(e) == 'Neither elixir nor pylons')
+        except KeyError, e:
+            msg = '\'pylons config must contain a DBSession\''
+            assert(str(e) == msg)
 
     def test_request_post_valid(self):
         import pylons
