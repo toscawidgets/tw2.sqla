@@ -371,22 +371,22 @@ class TestAutoTableFormSQLA(SQLABase, AutoTableFormT):
         import pylons
         pylons.configuration.config.setdefault('DBSession', self.session)
 
-class AutoViewGridT(tw2test.WidgetTest):
-    def setup(self):
-        self.widget = self.widget(entity=self.DBTestCls1)
-        return super(AutoViewGridT, self).setup()
-
-    widget = tws.AutoViewGrid
-    attrs = { 'id' : 'autogrid' }
-    # TBD -- should the values from the db show up here?
-    expected = "<html>TBD -- should the values from the DB show up here?</html>"
-
-class TestAutoViewGridElixir(ElixirBase, AutoViewGridT): pass
-class TestAutoViewGridSQLA(SQLABase, AutoViewGridT):
-    def setup(self):
-        super(TestAutoViewGridSQLA, self).setup()
-        import pylons
-        pylons.configuration.config.setdefault('DBSession', self.session)
-
-# TODO -- test autogrowinggrid and autolistpageedit
-
+#class AutoViewGridT(tw2test.WidgetTest):
+#    def setup(self):
+#        self.widget = self.widget(entity=self.DBTestCls1)
+#        return super(AutoViewGridT, self).setup()
+#
+#    widget = tws.AutoViewGrid
+#    attrs = { 'id' : 'autogrid' }
+#    # TBD -- should the values from the db show up here?
+#    expected = "<html>TBD -- should the values from the DB show up here?</html>"
+#
+#class TestAutoViewGridElixir(ElixirBase, AutoViewGridT): pass
+#class TestAutoViewGridSQLA(SQLABase, AutoViewGridT):
+#    def setup(self):
+#        super(TestAutoViewGridSQLA, self).setup()
+#        import pylons
+#        pylons.configuration.config.setdefault('DBSession', self.session)
+#
+## TODO -- test autogrowinggrid and autolistpageedit
+#
