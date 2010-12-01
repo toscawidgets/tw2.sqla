@@ -261,7 +261,6 @@ class TestFormPageSQLA(SQLABase, FormPageT):
             r = self.widget().request(req)
             assert False
         except NotImplementedError, e:
-            msg = 'Neither elixir nor pylons'
             assert(str(e) == 'Neither elixir nor pylons')
         finally:
             sys.modules['pylons'] = tmp
