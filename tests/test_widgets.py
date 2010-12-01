@@ -255,3 +255,17 @@ class TestFormPageSQLA(SQLABase, FormPageT):
             assert False
         except NotImplementedError, e:
             assert(str(e) == 'Neither elixir nor pylons')
+
+    def test_request_post_valid(self):
+        import pylons
+        pylons.configuration.config.setdefault('DBSession', self.session)
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='dbformpage_d:name=a'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        r = self.widget().request(req)
+        assert r.body == """Form posted successfully {'name': u'a'}""", r.body
