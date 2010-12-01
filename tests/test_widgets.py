@@ -242,7 +242,29 @@ class TestFormPageElixir(ElixirBase, FormPageT):
 
 class TestFormPageSQLA(SQLABase, FormPageT):
     def test_neither_pylons_nor_elixir(self):
-        raise NotImplementedError("Gotta write this test.")
+        import sys
+      
+        # Temporarily hide pylons from the importer
+        import pylons 
+        tmp = sys.modules['pylons']
+        sys.modules['pylons'] = None
+
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='dbformpage_d:name=a'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        try:
+            r = self.widget().request(req)
+            assert False
+        except NotImplementedError, e:
+            msg = 'Neither elixir nor pylons'
+            assert(str(e) == 'Neither elixir nor pylons')
+        finally:
+            sys.modules['pylons'] = tmp
 
     def test_no_DBSession(self):
         environ = {'wsgi.input': StringIO('')}
