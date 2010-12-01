@@ -198,6 +198,18 @@ class FormPageT(tw2test.WidgetTest):
     <input type="submit" id="submit" value="Save">
 </form></body>
 </html>""")
+    
+    def test_request_post_redirect(self):
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='dbformpage_d:name=a'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        r = self.widget(redirect="/foo").request(req)
+        assert( r.status_int == 302 and r.location=="/foo" )
 
     def test_request_get(self):
         environ = {'REQUEST_METHOD': 'GET',}
@@ -252,21 +264,7 @@ class FormPageT(tw2test.WidgetTest):
     <input type="submit" id="submit" value="Save">
 </form></body>
 </html>""")
-
-
-class TestFormPageElixir(ElixirBase, FormPageT):
-    def test_request_post_redirect(self):
-        environ = {'wsgi.input': StringIO('')}
-        req=Request(environ)
-        req.method = 'POST'
-        req.body='dbformpage_d:name=a'
-        req.environ['CONTENT_LENGTH'] = str(len(req.body))
-        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
-
-        self.mw.config.debug = True
-        r = self.widget(redirect="/foo").request(req)
-        assert( r.status_int == 302 and r.location=="/foo" )
-
+    
     def test_request_post_valid(self):
         environ = {'wsgi.input': StringIO('')}
         req=Request(environ)
@@ -279,7 +277,16 @@ class TestFormPageElixir(ElixirBase, FormPageT):
         r = self.widget().request(req)
         assert r.body == """Form posted successfully {'name': u'a'}""", r.body
 
+
+
+class TestFormPageElixir(ElixirBase, FormPageT): pass
+
 class TestFormPageSQLA(SQLABase, FormPageT):
+    def setup(self):
+        super(TestFormPageSQLA, self).setup()
+        import pylons
+        pylons.configuration.config.setdefault('DBSession', self.session)
+
     def test_neither_pylons_nor_elixir(self):
         import sys
       
@@ -305,6 +312,14 @@ class TestFormPageSQLA(SQLABase, FormPageT):
             sys.modules['pylons'] = tmp
 
     def test_no_DBSession(self):
+        # Temporarily remove the pylons configuration
+        import sys
+        tmp = {}
+        for m in sys.modules.keys():
+            if 'pylons' in m.lower():
+                tmp[m] = sys.modules[m]
+                del sys.modules[m]
+
         environ = {'wsgi.input': StringIO('')}
         req=Request(environ)
         req.method = 'POST'
@@ -319,32 +334,7 @@ class TestFormPageSQLA(SQLABase, FormPageT):
         except KeyError, e:
             msg = '\'pylons config must contain a DBSession\''
             assert(str(e) == msg)
-
-    def test_request_post_redirect(self):
-        import pylons
-        pylons.configuration.config.setdefault('DBSession', self.session)
-        environ = {'wsgi.input': StringIO('')}
-        req=Request(environ)
-        req.method = 'POST'
-        req.body='dbformpage_d:name=a'
-        req.environ['CONTENT_LENGTH'] = str(len(req.body))
-        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
-
-        self.mw.config.debug = True
-        r = self.widget(redirect="/foo").request(req)
-        assert( r.status_int == 302 and r.location=="/foo" )
-
-    def test_request_post_valid(self):
-        import pylons
-        pylons.configuration.config.setdefault('DBSession', self.session)
-        environ = {'wsgi.input': StringIO('')}
-        req=Request(environ)
-        req.method = 'POST'
-        req.body='dbformpage_d:name=a'
-        req.environ['CONTENT_LENGTH'] = str(len(req.body))
-        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
-
-        self.mw.config.debug = True
-        r = self.widget().request(req)
-        assert r.body == """Form posted successfully {'name': u'a'}""", r.body
-
+        finally:
+            # Restore pylons
+            for k, v in tmp.iteritems():
+                sys.modules[k] = v
