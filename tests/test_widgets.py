@@ -338,3 +338,55 @@ class TestFormPageSQLA(SQLABase, FormPageT):
             # Restore pylons
             for k, v in tmp.iteritems():
                 sys.modules[k] = v
+
+class AutoTableFormT(tw2test.WidgetTest):
+    def setup(self):
+        self.widget = self.widget(entity=self.DBTestCls1)
+        return super(AutoTableFormT, self).setup()
+
+    widget = tws.AutoTableForm
+    attrs = { 'id' : 'foo_form' }
+    expected = """
+<form method="post" id="foo_form:form" enctype="multipart/form-data">
+     <span class="error"></span>
+    <table id="foo_form">
+    <tr class="odd" id="foo_form:name:container">
+        <th>Name</th>
+        <td>
+            <input name="foo_form:name" id="foo_form:name" type="text">
+            <span id="foo_form:name:error"></span>
+        </td>
+    </tr>
+    <tr class="error"><td colspan="2">
+        <span id="foo_form:error"></span>
+    </td></tr>
+</table>
+    <input type="submit" id="submit" value="Save">
+</form>"""
+
+class TestAutoTableFormElixir(ElixirBase, AutoTableFormT): pass
+class TestAutoTableFormSQLA(SQLABase, AutoTableFormT):
+    def setup(self):
+        super(TestAutoTableFormSQLA, self).setup()
+        import pylons
+        pylons.configuration.config.setdefault('DBSession', self.session)
+
+class AutoViewGridT(tw2test.WidgetTest):
+    def setup(self):
+        self.widget = self.widget(entity=self.DBTestCls1)
+        return super(AutoViewGridT, self).setup()
+
+    widget = tws.AutoViewGrid
+    attrs = { 'id' : 'autogrid' }
+    # TBD -- should the values from the db show up here?
+    expected = "<html>TBD -- should the values from the DB show up here?</html>"
+
+class TestAutoViewGridElixir(ElixirBase, AutoViewGridT): pass
+class TestAutoViewGridSQLA(SQLABase, AutoViewGridT):
+    def setup(self):
+        super(TestAutoViewGridSQLA, self).setup()
+        import pylons
+        pylons.configuration.config.setdefault('DBSession', self.session)
+
+# TODO -- test autogrowinggrid and autolistpageedit
+
