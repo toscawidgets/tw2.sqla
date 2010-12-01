@@ -170,10 +170,37 @@ class FormPageT(tw2test.WidgetTest):
 </html>"""
 
     declarative = True
+    def test_request_get_edit(self):
+        # TODO -- this never actually tests line 68 of tw2.sqla.widgets
+        environ = {
+            'REQUEST_METHOD': 'GET',
+            'QUERY_STRING' : 'id=1'
+        }
+        req=Request(environ)
+        self.mw.config.debug = True
+        r = self.widget().request(req)
+        tw2test.assert_eq_xml(r.body, """<html>
+<head><title>some title</title></head>
+<body id="dbformpage_d:page"><h1>some title</h1><form method="post" id="dbformpage_d:form" enctype="multipart/form-data">
+     <span class="error"></span>
+    <table id="dbformpage_d">
+    <tr class="odd" id="dbformpage_d:name:container">
+        <th>Name</th>
+        <td>
+            <input name="dbformpage_d:name" value="foo1" id="dbformpage_d:name" type="text">
+            <span id="dbformpage_d:name:error"></span>
+        </td>
+    </tr>
+    <tr class="error"><td colspan="2">
+        <span id="dbformpage_d:error"></span>
+    </td></tr>
+</table>
+    <input type="submit" id="submit" value="Save">
+</form></body>
+</html>""")
 
     def test_request_get(self):
-        environ = {'REQUEST_METHOD': 'GET',
-                   }
+        environ = {'REQUEST_METHOD': 'GET',}
         req=Request(environ)
         r = self.widget().request(req)
         tw2test.assert_eq_xml(r.body, """<html>
@@ -228,6 +255,18 @@ class FormPageT(tw2test.WidgetTest):
 
 
 class TestFormPageElixir(ElixirBase, FormPageT):
+    def test_request_post_redirect(self):
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='dbformpage_d:name=a'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        r = self.widget(redirect="/foo").request(req)
+        assert( r.status_int == 302 and r.location=="/foo" )
+
     def test_request_post_valid(self):
         environ = {'wsgi.input': StringIO('')}
         req=Request(environ)
@@ -281,6 +320,20 @@ class TestFormPageSQLA(SQLABase, FormPageT):
             msg = '\'pylons config must contain a DBSession\''
             assert(str(e) == msg)
 
+    def test_request_post_redirect(self):
+        import pylons
+        pylons.configuration.config.setdefault('DBSession', self.session)
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='dbformpage_d:name=a'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        r = self.widget(redirect="/foo").request(req)
+        assert( r.status_int == 302 and r.location=="/foo" )
+
     def test_request_post_valid(self):
         import pylons
         pylons.configuration.config.setdefault('DBSession', self.session)
@@ -294,3 +347,4 @@ class TestFormPageSQLA(SQLABase, FormPageT):
         self.mw.config.debug = True
         r = self.widget().request(req)
         assert r.body == """Form posted successfully {'name': u'a'}""", r.body
+
