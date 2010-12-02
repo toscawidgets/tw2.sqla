@@ -130,6 +130,18 @@ class BaseObject(object):
         except Exception, e:
             assert(str(e) == 'Cannot send mixed (dict/non dict) data ' +
                              'to list relationships in from_dict data.')
+    
+    def test_update_or_create_exception(self):
+        d = {
+            'id' : 55,
+            'name' : 'failboat'
+        }
+        try:
+            e = twsu.update_or_create(self.DBTestCls1(), d, self.session)
+            assert(False)
+        except Exception, e:
+            assert(str(e) == 'cannot create with pk')
+
 
 
 class TestSQLA(BaseObject):
