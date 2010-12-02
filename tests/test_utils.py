@@ -144,6 +144,35 @@ class BaseObject(object):
 
 
 
+class TestElixir(BaseObject):
+    def setUp(self):
+        import elixir as el
+        el.metadata = sa.MetaData('sqlite:///:memory:')
+
+        class DBTestCls1(el.Entity):
+            name = el.Field(el.String)
+
+        class DBTestCls2(el.Entity):
+            nick = el.Field(el.String)
+            other = el.ManyToOne(DBTestCls1)
+
+        DBTestCls1.others = el.OneToMany(DBTestCls2)
+        
+        self.DBTestCls1 = DBTestCls1
+        self.DBTestCls2 = DBTestCls2
+
+        el.setup_all()
+        el.metadata.create_all()
+        foo = self.DBTestCls1(id=1, name='foo')
+        bob = self.DBTestCls2(id=1, nick='bob', other=foo)
+        george = self.DBTestCls2(id=2, nick='george')
+
+        import transaction
+        transaction.commit()
+
+        testapi.setup()
+
+
 class TestSQLA(BaseObject):
     def setUp(self):
         from sqlalchemy.ext.declarative import declarative_base
