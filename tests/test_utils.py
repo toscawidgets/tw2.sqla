@@ -48,6 +48,21 @@ class BaseObject(object):
         assert( e.nick == 'bazaar' )
         assert( e in e.other.others )
     
+    def test_from_dict_old_many_to_one_by_dict_recall(self):
+        assert( self.DBTestCls2.query.first().nick == 'bob' )
+        d = {
+            'nick' : 'updated',
+            'other' : {
+                'id' : 1
+            }
+        }
+       
+        e = twsu.from_dict(self.DBTestCls2.query.first(), d, getattr(self, 'session', None))
+        import transaction
+        transaction.commit()
+        assert( self.DBTestCls2.query.first().nick == 'updated' )
+        assert( self.DBTestCls1.query.first().others[0].nick == 'updated' )
+
     def test_from_dict_old_many_to_one_by_dict(self):
         d = {
             'id' : '',
