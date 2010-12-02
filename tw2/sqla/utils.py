@@ -57,7 +57,7 @@ def from_dict(entity, data, session=None):
     session.flush()
     return entity
 
-def update_or_create(cls, data, surrogate=True, session=None):
+def update_or_create(cls, data, session=None):
     """
     Adapted from elixir.entity
     """
@@ -69,17 +69,10 @@ def update_or_create(cls, data, surrogate=True, session=None):
         pk_tuple = tuple([data[prop.key] for prop in pk_props])
         record = cls.query.get(pk_tuple)
         if record is None:
-            add = True
-            if surrogate:
-                raise Exception("cannot create surrogate with pk")
-            else:
-                record = cls()
+            raise Exception("cannot create with pk")
     else:
         add = True
-        if surrogate:
-            record = cls()
-        else:
-            raise Exception("cannot create non surrogate without pk")
+        record = cls()
     record = from_dict(record, data, session=session)
     if add:
         session.add(record)
