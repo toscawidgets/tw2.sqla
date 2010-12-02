@@ -22,7 +22,7 @@ class BaseObject(object):
     def test_from_dict_empty(self):
         d = {}
         e = twsu.from_dict(self.DBTestCls1(), d, getattr(self, 'session', None))
-        assert( e.id == None )
+        assert( e.id == 2 )
         assert( e.name == None )
         assert( e.others == [] )
 
@@ -32,8 +32,6 @@ class BaseObject(object):
             'name' : 'bazaar',
         }
         e = twsu.from_dict(self.DBTestCls1(), d, getattr(self, 'session', None))
-        if hasattr(self, 'session'):
-            self.session.commit()
         assert( e.id == 2 )
         assert( e.name == 'bazaar' )
         assert( len(e.others) == 0 )
@@ -46,12 +44,26 @@ class BaseObject(object):
         }
        
         e = twsu.from_dict(self.DBTestCls2(), d, getattr(self, 'session', None))
-        if hasattr(self, 'session'):
-            self.session.commit()
         assert( e.id == 3 )
         assert( e.nick == 'bazaar' )
         assert( e in e.other.others )
     
+    def test_from_dict_old_many_to_one_by_dict(self):
+        d = {
+            'id' : '',
+            'nick' : 'bazaar',
+            'other' : {
+                'id' : 1,
+                'name' : 'foo'
+            }
+        }
+       
+        e = twsu.from_dict(self.DBTestCls2(), d, getattr(self, 'session', None))
+        assert( e.id == 3 )
+        assert( e.nick == 'bazaar' )
+        assert( e.other.id == 1 )
+        assert( e.other.name == 'foo' )
+
     def test_from_dict_new_many_to_one_by_dict(self):
         d = {
             'id' : '',
@@ -62,8 +74,6 @@ class BaseObject(object):
         }
        
         e = twsu.from_dict(self.DBTestCls2(), d, getattr(self, 'session', None))
-        if hasattr(self, 'session'):
-            self.session.commit()
         assert( e.id == 3 )
         assert( e.nick == 'bazaar' )
         assert( e in e.other.others )
@@ -81,21 +91,38 @@ class BaseObject(object):
         }
        
         e = twsu.from_dict(self.DBTestCls1(), d, getattr(self, 'session', None))
-        if hasattr(self, 'session'):
-            self.session.commit()
         assert( e.id == 2 )
         assert( e.name == 'qatar' )
         assert( e.others[0].nick == 'blang' )
         assert( e.others[0].id == 3 )
         assert( e.others[1].nick == 'blong' )
         assert( e.others[1].id == 4 )
+    
+    def test_from_dict_mixed_list(self):
+        d = {
+            'id' : '',
+            'name' : 'qatar',
+            'others' : [
+                { 'nick' : 'blang' },
+                'foo',
+            ]
+        }
+      
+        try:
+            e = twsu.from_dict(self.DBTestCls1(), d,
+                               getattr(self, 'session', None))
+            assert(False)
+        except Exception, e:
+            assert(str(e) == 'Cannot send mixed (dict/non dict) data ' +
+                             'to list relationships in from_dict data.')
 
 
 class TestSQLA(BaseObject):
     def setUp(self):
         from sqlalchemy.ext.declarative import declarative_base
+        self.session = tws.transactional_session()
         Base = declarative_base(metadata=sa.MetaData('sqlite:///:memory:'))
-        Base.query = tws.transactional_session().query_property()
+        Base.query = self.session.query_property()
 
         class DBTestCls1(Base):
             __tablename__ = 'Test'
@@ -107,23 +134,23 @@ class TestSQLA(BaseObject):
             nick = sa.Column(sa.String)
             other_id = sa.Column(sa.Integer, sa.ForeignKey('Test.id'))
             other = sa.orm.relation(DBTestCls1, backref=sa.orm.backref('others'))
-        self.DBTestCls1 = DBTestCls1
-        self.DBTestCls2 = DBTestCls2
     
         Base.metadata.create_all()
+        
+        self.DBTestCls1 = DBTestCls1
+        self.DBTestCls2 = DBTestCls2
 
-        session = sa.orm.sessionmaker()()
-        self.session = session
         foo = self.DBTestCls1(id=1, name='foo')
-        session.add(foo)
-        session.commit()
+        self.session.add(foo)
 
         bob = self.DBTestCls2(id=1, nick='bob')
         bob.other = foo
-        session.add(bob)
+        self.session.add(bob)
         george = self.DBTestCls2(id=2, nick='george')
-        session.add(george)
-        session.commit()
+        self.session.add(george)
+
+        import transaction
+        transaction.commit()
 
         testapi.setup()
 
