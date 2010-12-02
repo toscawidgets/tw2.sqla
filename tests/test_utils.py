@@ -1,4 +1,5 @@
 import tw2.core as twc, tw2.sqla as tws, sqlalchemy as sa
+import transaction
 import tw2.sqla.utils as twsu
 import testapi
 
@@ -58,8 +59,6 @@ class BaseObject(object):
         }
        
         e = twsu.from_dict(self.DBTestCls2.query.first(), d, getattr(self, 'session', None))
-        import transaction
-        transaction.commit()
         assert( self.DBTestCls2.query.first().nick == 'updated' )
         assert( self.DBTestCls1.query.first().others[0].nick == 'updated' )
 
@@ -143,35 +142,36 @@ class BaseObject(object):
             assert(str(e) == 'cannot create with pk')
 
 
-
-class TestElixir(BaseObject):
-    def setUp(self):
-        import elixir as el
-        el.metadata = sa.MetaData('sqlite:///:memory:')
-
-        class DBTestCls1(el.Entity):
-            name = el.Field(el.String)
-
-        class DBTestCls2(el.Entity):
-            nick = el.Field(el.String)
-            other = el.ManyToOne(DBTestCls1)
-
-        DBTestCls1.others = el.OneToMany(DBTestCls2)
-        
-        self.DBTestCls1 = DBTestCls1
-        self.DBTestCls2 = DBTestCls2
-
-        el.setup_all()
-        el.metadata.create_all()
-        foo = self.DBTestCls1(id=1, name='foo')
-        bob = self.DBTestCls2(id=1, nick='bob', other=foo)
-        george = self.DBTestCls2(id=2, nick='george')
-
-        import transaction
-        transaction.commit()
-
-        testapi.setup()
-
+##
+## From a design standpoint, it would be nice to make the tw2.sqla.utils
+## functions persistance-layer agnostic.
+##
+#class TestElixir(BaseObject):
+#    def setUp(self):
+#        import elixir as el
+#        el.metadata = sa.MetaData('sqlite:///:memory:')
+#
+#        class DBTestCls1(el.Entity):
+#            name = el.Field(el.String)
+#
+#        class DBTestCls2(el.Entity):
+#            nick = el.Field(el.String)
+#            other = el.ManyToOne(DBTestCls1)
+#
+#        DBTestCls1.others = el.OneToMany(DBTestCls2)
+#        
+#        self.DBTestCls1 = DBTestCls1
+#        self.DBTestCls2 = DBTestCls2
+#
+#        el.setup_all()
+#        el.metadata.create_all()
+#        foo = self.DBTestCls1(id=1, name='foo')
+#        bob = self.DBTestCls2(id=1, nick='bob', other=foo)
+#        george = self.DBTestCls2(id=2, nick='george')
+#
+#        transaction.commit()
+#
+#        testapi.setup()
 
 class TestSQLA(BaseObject):
     def setUp(self):
@@ -205,8 +205,6 @@ class TestSQLA(BaseObject):
         george = self.DBTestCls2(id=2, nick='george')
         self.session.add(george)
 
-        import transaction
         transaction.commit()
 
         testapi.setup()
-
