@@ -287,6 +287,10 @@ class AutoContainer(twc.Widget):
                             and p.direction.name == 'MANYTOONE'
                             and len(p.local_side) == 1)
             used_children = set()
+
+            ## Note from RJB to PAJ -->
+            ##   elixir keeps onetomany relationships in its `columns` but sa
+            ##   does not which makes the TestAutoTableFormSQLA test fail.
             for col in table_for(cls.entity).columns:                
                 widget_name = col.name in fkey and fkey[col.name].key or col.name
                 widget = getattr(orig_children, widget_name, None)
