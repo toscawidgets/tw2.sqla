@@ -38,7 +38,7 @@ class BaseObject(object):
         assert( e.name == 'bazaar' )
         assert( len(e.others) == 0 )
 
-    def test_from_dict_new_many_to_one(self):
+    def test_from_dict_new_many_to_one_by_id(self):
         d = {
             'id' : '',
             'nick' : 'bazaar',
@@ -51,6 +51,24 @@ class BaseObject(object):
         assert( e.id == 2 )
         assert( e.nick == 'bazaar' )
         assert( e in e.other.others )
+    
+    def test_from_dict_new_many_to_one_by_dict(self):
+        d = {
+            'id' : '',
+            'nick' : 'bazaar',
+            'other' : {
+                'name' : 'blamaz'
+            }
+        }
+       
+        e = twsu.from_dict(self.DBTestCls2(), d, getattr(self, 'session', None))
+        if hasattr(self, 'session'):
+            self.session.commit()
+        assert( e.id == 2 )
+        assert( e.nick == 'bazaar' )
+        assert( e in e.other.others )
+        assert( e.other.name == 'blamaz' )
+        assert( e.other.id == 2 )
 
     def test_from_dict_new_one_to_many(self):
         # TODO...
