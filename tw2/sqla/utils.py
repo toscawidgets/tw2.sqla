@@ -54,6 +54,7 @@ def from_dict(entity, data, session=None):
             setattr(entity, key, value)
     if add and session:
         session.add(entity)
+    session.flush()
     return entity
 
 def update_or_create(cls, data, surrogate=True, session=None):
