@@ -70,9 +70,25 @@ class BaseObject(object):
         assert( e.other.name == 'blamaz' )
         assert( e.other.id == 2 ) 
 
-    def test_from_dict_new_one_to_many(self):
-        # TODO...
-        pass
+    def test_from_dict_new_one_to_many_by_dict(self):
+        d = {
+            'id' : '',
+            'name' : 'qatar',
+            'others' : [
+                { 'nick' : 'blang' },
+                { 'nick' : 'blong' },
+            ]
+        }
+       
+        e = twsu.from_dict(self.DBTestCls1(), d, getattr(self, 'session', None))
+        if hasattr(self, 'session'):
+            self.session.commit()
+        assert( e.id == 2 )
+        assert( e.name == 'qatar' )
+        assert( e.others[0].nick == 'blang' )
+        assert( e.others[0].id == 3 )
+        assert( e.others[1].nick == 'blong' )
+        assert( e.others[1].id == 4 )
 
 
 class TestSQLA(BaseObject):
