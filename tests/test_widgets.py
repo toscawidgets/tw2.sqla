@@ -38,8 +38,9 @@ class ElixirBase(object):
 
 class SQLABase(object):
     def setup(self):
+        self.session = tws.transactional_session()
         Base = declarative_base(metadata=sa.MetaData('sqlite:///:memory:'))
-        Base.query = tws.transactional_session().query_property()
+        Base.query = self.session.query_property()
 
         class DBTestCls1(Base):
             __tablename__ = 'Test'
@@ -63,12 +64,10 @@ class SQLABase(object):
     
         Base.metadata.create_all()
 
-        session = sa.orm.sessionmaker()()
-        self.session = session
-        session.add(self.DBTestCls1(id=1, name='foo1'))
-        session.add(self.DBTestCls1(id=2, name='foo2'))
-        session.add(self.DBTestCls2(id='bob'))
-        session.commit()
+        self.session.add(self.DBTestCls1(id=1, name='foo1'))
+        self.session.add(self.DBTestCls1(id=2, name='foo2'))
+        self.session.add(self.DBTestCls2(id='bob'))
+        transaction.commit()
 
         return super(SQLABase, self).setup()
 
