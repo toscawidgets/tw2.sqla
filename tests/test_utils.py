@@ -48,7 +48,7 @@ class BaseObject(object):
         e = twsu.from_dict(self.DBTestCls2(), d, getattr(self, 'session', None))
         if hasattr(self, 'session'):
             self.session.commit()
-        assert( e.id == 2 )
+        assert( e.id == 3 )
         assert( e.nick == 'bazaar' )
         assert( e in e.other.others )
     
@@ -64,11 +64,11 @@ class BaseObject(object):
         e = twsu.from_dict(self.DBTestCls2(), d, getattr(self, 'session', None))
         if hasattr(self, 'session'):
             self.session.commit()
-        assert( e.id == 2 )
+        assert( e.id == 3 )
         assert( e.nick == 'bazaar' )
         assert( e in e.other.others )
         assert( e.other.name == 'blamaz' )
-        assert( e.other.id == 2 )
+        assert( e.other.id == 2 ) 
 
     def test_from_dict_new_one_to_many(self):
         # TODO...
@@ -105,6 +105,8 @@ class TestSQLA(BaseObject):
         bob = self.DBTestCls2(id=1, nick='bob')
         bob.other = foo
         session.add(bob)
+        george = self.DBTestCls2(id=2, nick='george')
+        session.add(george)
         session.commit()
 
         testapi.setup()
