@@ -47,6 +47,16 @@ class BaseObject(object):
         except twc.WidgetError, e:
             assert(str(e) == 'RelatedValidator can only act on tables that have a single primary key column')
 
+    def test_nonent(self):
+        vld = tws.RelatedValidator(self.DBTestCls2)
+        t1 = vld.to_python('bob')
+        try:
+            vld.from_python(u'bob')
+            assert(False)
+        except twc.ValidationError, e:
+            assert(str(e) == 'from_python not passed instance of self.entity but instead "bob" of type "<type \'unicode\'>".')
+            
+
 class TestElixir(BaseObject):
     def setUp(self):
         import elixir as el
