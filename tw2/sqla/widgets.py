@@ -46,6 +46,12 @@ class RelatedValidator(twc.IntValidator):
         return value
 
     def from_python(self, value):
+        if not value:
+            return value
+        if not isinstance(value, self.entity):
+            raise twc.ValidationError(
+                'from_python not passed instance of self.entity but ' +
+                'instead "%s" of type "%s".' % (str(value), str(type(value))))
         return value and unicode(sa.orm.object_mapper(value).primary_key_from_instance(value)[0])
 
 
