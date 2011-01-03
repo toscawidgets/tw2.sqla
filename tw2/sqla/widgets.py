@@ -76,14 +76,15 @@ class DbFormPage(twf.FormPage):
             v = cls.entity()
 
         session = None
-        try:
-            import pylons
-            if not 'DBSession' in pylons.configuration.config:
-                raise KeyError, 'pylons config must contain a DBSession'
-            session = pylons.configuration.config['DBSession']
-        except ImportError:
-            pass
-
+        if not hasattr(v, 'from_dict'):
+            try:
+                import pylons
+                if not 'DBSession' in pylons.configuration.config:
+                    raise KeyError, 'pylons config must contain a DBSession'
+                session = pylons.configuration.config['DBSession']
+            except ImportError:
+                pass
+        
         if not session and not hasattr(v, 'from_dict'):
             raise NotImplementedError, "Neither elixir nor pylons"
 
