@@ -13,6 +13,8 @@ class BaseObject(object):
             'id' : 1,
         }
         e = twsu.from_dict(self.DBTestCls1(), d, getattr(self, 'session', None))
+        if hasattr(self, 'session'):
+            self.session.flush()
         assert( e.id == 1 )
         assert( e.name == 'foo' )
         assert( len(e.others) == 1 )
@@ -23,6 +25,8 @@ class BaseObject(object):
     def test_from_dict_empty(self):
         d = {}
         e = twsu.from_dict(self.DBTestCls1(), d, getattr(self, 'session', None))
+        if hasattr(self, 'session'):
+            self.session.flush()
         assert( e.id == 2 )
         assert( e.name == None )
         assert( e.others == [] )
@@ -33,6 +37,8 @@ class BaseObject(object):
             'name' : 'bazaar',
         }
         e = twsu.from_dict(self.DBTestCls1(), d, getattr(self, 'session', None))
+        if hasattr(self, 'session'):
+            self.session.flush()
         assert( e.id == 2 )
         assert( e.name == 'bazaar' )
         assert( len(e.others) == 0 )
@@ -43,8 +49,9 @@ class BaseObject(object):
             'nick' : 'bazaar',
             'other_id' : 1,
         }
-       
         e = twsu.from_dict(self.DBTestCls2(), d, getattr(self, 'session', None))
+        if hasattr(self, 'session'):
+            self.session.flush()
         assert( e.id == 3 )
         assert( e.nick == 'bazaar' )
         assert( e in e.other.others )
@@ -58,7 +65,10 @@ class BaseObject(object):
             }
         }
        
-        e = twsu.from_dict(self.DBTestCls2.query.first(), d, getattr(self, 'session', None))
+        e = twsu.from_dict(self.DBTestCls2.query.first(), d,
+                           getattr(self, 'session', None))
+        if hasattr(self, 'session'):
+            self.session.flush()
         assert( self.DBTestCls2.query.first().nick == 'updated' )
         assert( self.DBTestCls1.query.first().others[0].nick == 'updated' )
 
@@ -73,6 +83,8 @@ class BaseObject(object):
         }
        
         e = twsu.from_dict(self.DBTestCls2(), d, getattr(self, 'session', None))
+        if hasattr(self, 'session'):
+            self.session.flush()
         assert( e.id == 3 )
         assert( e.nick == 'bazaar' )
         assert( e.other.id == 1 )
@@ -88,6 +100,8 @@ class BaseObject(object):
         }
        
         e = twsu.from_dict(self.DBTestCls2(), d, getattr(self, 'session', None))
+        if hasattr(self, 'session'):
+            self.session.flush()
         assert( e.id == 3 )
         assert( e.nick == 'bazaar' )
         assert( e in e.other.others )
@@ -105,6 +119,8 @@ class BaseObject(object):
         }
        
         e = twsu.from_dict(self.DBTestCls1(), d, getattr(self, 'session', None))
+        if hasattr(self, 'session'):
+            self.session.flush()
         assert( e.id == 2 )
         assert( e.name == 'qatar' )
         assert( e.others[0].nick == 'blang' )
