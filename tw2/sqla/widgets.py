@@ -75,24 +75,20 @@ class DbFormPage(twf.FormPage):
         else:
             v = cls.entity()
 
-        pylons = None
+        session = None
         try:
             import pylons
-        except Exception:
-            pass
-
-        if hasattr(v, 'from_dict'):
-            # In the case of elixir
-            v.from_dict(data)
-        elif pylons:
-            # TBD Is this really a good enough test that we're running pylons?
             if not 'DBSession' in pylons.configuration.config:
                 raise KeyError, 'pylons config must contain a DBSession'
             session = pylons.configuration.config['DBSession']
-            v = from_dict(v, data, session=session)
-            transaction.commit()
-        else:
+        except ImportError:
+            pass
+
+        if not session and not hasattr(v, 'from_dict'):
             raise NotImplementedError, "Neither elixir nor pylons"
+
+        v = from_dict(v, data, session=session)
+        transaction.commit()
 
         if hasattr(cls, 'redirect'):
             return webob.Response(request=req, status=302, location=cls.redirect)

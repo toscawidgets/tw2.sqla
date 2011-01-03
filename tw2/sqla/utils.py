@@ -6,13 +6,14 @@ def from_dict(entity, data, session=None):
     structure.
     Adapted from elixir.entity
     """
+
     # surrogate can be guessed from autoincrement/sequence but I guess
     # that's not 100% reliable, so we'll need an override
 
     mapper = sa.orm.object_mapper(entity)
     add = False
 
-    pk_props = entity.__mapper__.primary_key
+    pk_props = mapper.primary_key
     if [1 for p in pk_props if p.key in data and data[p.key]]:
         # If all of our primary keys are present and non-empty, then load.
         kw = dict([(p.key, data[p.key]) for p in pk_props])
@@ -24,6 +25,11 @@ def from_dict(entity, data, session=None):
             if p.key in data and not data[p.key]:
                 del data[p.key]
         add = True
+    
+    if hasattr(entity, 'from_dict'):
+        # If `entity` is an Elixir entity, then we can just use their method
+        entity.from_dict(data)
+        return entity
 
     for key, value in data.iteritems():
         if isinstance(value, dict):
@@ -60,6 +66,10 @@ def update_or_create(cls, data, session=None):
     """
     Adapted from elixir.entity
     """
+    
+    if hasattr(cls, 'update_or_create'):
+        cls.update_or_create(data)
+        return cls
 
     pk_props = cls.__mapper__.primary_key
     add = False
