@@ -74,7 +74,7 @@ def update_or_create(cls, data, session=None):
     pk_props = cls.__mapper__.primary_key
     add = False
     # if all pk are present
-    if not [1 for p in pk_props if data.get(p.key) is None]:
+    if not [1 for p in pk_props if not data.get(p.key)]:
         pk_tuple = tuple([data[prop.key] for prop in pk_props])
         record = cls.query.get(pk_tuple)
         if record is None:
