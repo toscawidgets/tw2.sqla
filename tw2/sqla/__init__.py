@@ -4,3 +4,4 @@ from widgets import (
     DbListPage, AutoTableForm, AutoViewGrid, AutoGrowingGrid, AutoListPageEdit,
     NoWidget)
 import utils
+import widgets
