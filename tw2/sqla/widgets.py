@@ -73,7 +73,7 @@ class DbFormPage(twf.FormPage):
     @classmethod
     def post_define(cls):
         if hasattr(cls, 'entity') and not hasattr(cls, 'title'):
-            cls.title = twc.util.name2label(table_for(cls.entity).name)
+            cls.title = twc.util.name2label(cls.entity.__name__)
 
     def fetch_data(self, req):
         self.value = req.GET and self.entity.query.filter_by(**req.GET.mixed()).first() or None
@@ -122,7 +122,7 @@ class DbListPage(twc.Page):
             cls.newlink = cls.newlink(parent=cls)
         if hasattr(cls, 'entity'):
             if not hasattr(cls, 'title'):
-                cls.title = twc.util.name2label(table_for(cls.entity).name)
+                cls.title = twc.util.name2label(cls.entity.__name__)
             if hasattr(cls, 'edit'):
                 cls.edit = cls.edit(redirect=cls._gen_compound_id(for_url=True), entity=cls.entity, id=cls.id+'_edit')
                 cls.newlink = twf.LinkField(link=cls.edit._gen_compound_id(for_url=True), text='New', value=1, parent=cls)
