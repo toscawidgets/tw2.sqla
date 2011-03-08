@@ -14,34 +14,34 @@ class ElixirBase(object):
         el.metadata = sa.MetaData('sqlite:///:memory:')
         el.session = tws.transactional_session()
 
-        class DBTestCls1(el.Entity):
+        class DbTestCls1(el.Entity):
             name = el.Field(el.String)
             def __unicode__(self):
                 return self.name
 
-        class DBTestCls2(el.Entity):
+        class DbTestCls2(el.Entity):
             nick = el.Field(el.String)
             other_id = el.Field(el.Integer)
-            other = el.ManyToOne(DBTestCls1, field=other_id, backref='others')
+            other = el.ManyToOne(DbTestCls1, field=other_id, backref='others')
             def __unicode__(self):
                 return self.nick
         
-        class DBTestCls3(el.Entity):
+        class DbTestCls3(el.Entity):
             id1 = el.Field(el.Integer, primary_key=True)
             id2 = el.Field(el.Integer, primary_key=True)
         
-        self.DBTestCls1 = DBTestCls1
-        self.DBTestCls2 = DBTestCls2
-        self.DBTestCls3 = DBTestCls3
+        self.DbTestCls1 = DbTestCls1
+        self.DbTestCls2 = DbTestCls2
+        self.DbTestCls3 = DbTestCls3
     
         el.setup_all()
         el.metadata.create_all()
 
-        self.DBTestCls1(id=1, name='foo1')
-        self.DBTestCls1(id=2, name='foo2')
-        self.DBTestCls2(id=1, nick='bob1')
-        self.DBTestCls2(id=2, nick='bob2')
-        self.DBTestCls2(id=3, nick='bob3')
+        self.DbTestCls1(id=1, name='foo1')
+        self.DbTestCls1(id=2, name='foo2')
+        self.DbTestCls2(id=1, nick='bob1')
+        self.DbTestCls2(id=2, nick='bob2')
+        self.DbTestCls2(id=3, nick='bob3')
         transaction.commit()
 
         return super(ElixirBase, self).setup()
@@ -52,36 +52,36 @@ class SQLABase(object):
         Base = declarative_base(metadata=sa.MetaData('sqlite:///:memory:'))
         Base.query = self.session.query_property()
 
-        class DBTestCls1(Base):
+        class DbTestCls1(Base):
             __tablename__ = 'Test'
             id = sa.Column(sa.Integer, primary_key=True)
             name = sa.Column(sa.String(50))
             def __unicode__(self):
                 return self.name
-        class DBTestCls2(Base):
+        class DbTestCls2(Base):
             __tablename__ = 'Test2'
             id = sa.Column(sa.Integer, primary_key=True)
             nick = sa.Column(sa.String(50))
             other_id = sa.Column(sa.Integer, sa.ForeignKey('Test.id'))
-            other = sa.orm.relation(DBTestCls1, backref=sa.orm.backref('others'))
+            other = sa.orm.relation(DbTestCls1, backref=sa.orm.backref('others'))
             def __unicode__(self):
                 return self.nick
-        class DBTestCls3(Base):
+        class DbTestCls3(Base):
             __tablename__ = 'Test3'
             id1 = sa.Column(sa.Integer, primary_key=True)
             id2 = sa.Column(sa.Integer, primary_key=True)
 
-        self.DBTestCls1 = DBTestCls1
-        self.DBTestCls2 = DBTestCls2
-        self.DBTestCls3 = DBTestCls3
+        self.DbTestCls1 = DbTestCls1
+        self.DbTestCls2 = DbTestCls2
+        self.DbTestCls3 = DbTestCls3
     
         Base.metadata.create_all()
 
-        self.session.add(self.DBTestCls1(id=1, name='foo1'))
-        self.session.add(self.DBTestCls1(id=2, name='foo2'))
-        self.session.add(self.DBTestCls2(id=1, nick='bob1'))
-        self.session.add(self.DBTestCls2(id=2, nick='bob2'))
-        self.session.add(self.DBTestCls2(id=3, nick='bob3'))
+        self.session.add(self.DbTestCls1(id=1, name='foo1'))
+        self.session.add(self.DbTestCls1(id=2, name='foo2'))
+        self.session.add(self.DbTestCls2(id=1, nick='bob1'))
+        self.session.add(self.DbTestCls2(id=2, nick='bob2'))
+        self.session.add(self.DbTestCls2(id=3, nick='bob3'))
         transaction.commit()
 
         return super(SQLABase, self).setup()
@@ -103,7 +103,7 @@ class RadioButtonT(tw2test.WidgetTest):
     </ul>"""
     
     def setup(self):
-        self.widget = self.widget(entity=self.DBTestCls1)
+        self.widget = self.widget(entity=self.DbTestCls1)
         return super(RadioButtonT, self).setup()
 
 class TestRadioButtonElixir(ElixirBase, RadioButtonT): pass
@@ -126,7 +126,7 @@ class CheckBoxT(tw2test.WidgetTest):
     </ul>"""
 
     def setup(self):
-        self.widget = self.widget(entity=self.DBTestCls1)
+        self.widget = self.widget(entity=self.DbTestCls1)
         return super(CheckBoxT, self).setup()
 
 class TestCheckBoxElixir(ElixirBase, CheckBoxT): pass
@@ -144,15 +144,97 @@ class SingleSelectT(tw2test.WidgetTest):
     </select>"""
     
     def setup(self):
-        self.widget = self.widget(entity=self.DBTestCls1)
+        self.widget = self.widget(entity=self.DbTestCls1)
         return super(SingleSelectT, self).setup()
 
 class TestSingleSelectElixir(ElixirBase, SingleSelectT): pass
 class TestSingleSelectSQLA(SQLABase, SingleSelectT): pass
 
+class ListPageT(tw2test.WidgetTest):
+    def setup(self):
+        self.widget = self.widget(entity=self.DbTestCls1)
+        return super(ListPageT, self).setup()
+
+    widget = tws.DbListPage
+    attrs = {
+        'child': twf.GridLayout(
+            children=[
+                twf.LabelField(id='name'),
+                # TODO -- test this with label=None, diff between elixir and sqla
+                twf.LinkField(id='id', link='foo?id=$',
+                              text='Edit', label='Edit'),
+            ]),
+        'newlink' : twf.LinkField(link='cls1', text='New', value=1)
+    }
+
+    # This is kind of non-sensical.  A DbListPage with no call to fetch_data?
+    expected = """<html>
+<head><title>Db Test Cls1</title></head>
+<body id="dblistpage_d:page">
+<h1>Db Test Cls1</h1>
+    <table id="dblistpage_d">
+    <tr><th>Name</th><th>Edit</th></tr>
+    <tr class="error"><td colspan="0" id="dblistpage_d:error">
+    </td></tr>
+</table>
+<a href="cls1">New</a>
+</body>
+</html>"""
+
+    declarative = True
+    def test_request_get(self):
+        # This makes much more sense.
+        environ = {
+            'REQUEST_METHOD': 'GET',
+        }
+        req=Request(environ)
+        self.mw.config.debug = True
+        r = self.widget().request(req)
+        tw2test.assert_eq_xml(r.body, """
+<html>
+<head><title>Db Test Cls1</title></head>
+    <body id="dblistpage_d:page"><h1>Db Test Cls1</h1>
+            <table id="dblistpage_d">
+                <tr><th>Name</th><th>Edit</th></tr>
+                <tr id="dblistpage_d:0" class="odd">
+                <td>
+                    <span>foo1<input type="hidden" name="dblistpage_d:0:name" value="foo1" id="dblistpage_d:0:name"/></span>
+                </td>
+                <td>
+                    <a href="foo?id=1" id="dblistpage_d:0:id">Edit</a>
+                </td>
+                <td>
+                </td>
+            </tr>
+            <tr id="dblistpage_d:1" class="even">
+                <td>
+                    <span>foo2<input type="hidden" name="dblistpage_d:1:name" value="foo2" id="dblistpage_d:1:name"/></span>
+                </td>
+                <td>
+                    <a href="foo?id=2" id="dblistpage_d:1:id">Edit</a>
+                </td>
+                <td>
+                </td>
+            </tr>
+            <tr class="error"><td colspan="2" id="dblistpage_d:error"></td></tr>
+        </table>
+        <a href="cls1">New</a>
+</body>
+</html>""")
+ 
+
+
+class TestListPageElixir(ElixirBase, ListPageT): pass
+
+class TestListPageSQLA(SQLABase, ListPageT):
+    def setup(self):
+        super(TestListPageSQLA, self).setup()
+        import pylons
+        pylons.configuration.config.setdefault('DBSession', self.session)
+
 class FormPageT(tw2test.WidgetTest):
     def setup(self):
-        self.widget = self.widget(entity=self.DBTestCls1)
+        self.widget = self.widget(entity=self.DbTestCls1)
         return super(FormPageT, self).setup()
 
     widget = tws.DbFormPage
@@ -212,7 +294,8 @@ class FormPageT(tw2test.WidgetTest):
     <input type="submit" id="submit" value="Save">
 </form></body>
 </html>""")
-    
+ 
+   
     def test_request_post_redirect(self):
         environ = {'wsgi.input': StringIO('')}
         req=Request(environ)
@@ -288,12 +371,8 @@ class FormPageT(tw2test.WidgetTest):
         req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
 
         self.mw.config.debug = True
-        for ele in self.DBTestCls1.query.all():
-            print ele
         r = self.widget().request(req)
         assert r.body == """Form posted successfully {'name': u'a'}""", r.body
-
-
 
 class TestFormPageElixir(ElixirBase, FormPageT): pass
 
@@ -354,9 +433,10 @@ class TestFormPageSQLA(SQLABase, FormPageT):
             # Restore pylons
             for k, v in tmp.iteritems():
                 sys.modules[k] = v
+
 class AutoTableFormT1(tw2test.WidgetTest):
     def setup(self):
-        self.widget = self.widget(entity=self.DBTestCls1)
+        self.widget = self.widget(entity=self.DbTestCls1)
         return super(AutoTableFormT1, self).setup()
 
     widget = tws.AutoTableForm
@@ -400,7 +480,7 @@ class TestAutoTableForm1SQLA(SQLABase, AutoTableFormT1):
 
 class AutoTableFormT2(tw2test.WidgetTest):
     def setup(self):
-        self.widget = self.widget(entity=self.DBTestCls2)
+        self.widget = self.widget(entity=self.DbTestCls2)
         return super(AutoTableFormT2, self).setup()
 
     widget = tws.AutoTableForm
@@ -445,7 +525,7 @@ class TestAutoTableForm2SQLA(SQLABase, AutoTableFormT2):
 
 class AutoViewGridT(tw2test.WidgetTest):
     def setup(self):
-        self.widget = self.widget(entity=self.DBTestCls1)
+        self.widget = self.widget(entity=self.DbTestCls1)
         return super(AutoViewGridT, self).setup()
 
     widget = tws.AutoViewGrid
@@ -466,7 +546,7 @@ class TestAutoViewGridSQLA(SQLABase, AutoViewGridT):
 
 class AutoGrowingGridT(tw2test.WidgetTest):
     def setup(self):
-        self.widget = self.widget(entity=self.DBTestCls1)
+        self.widget = self.widget(entity=self.DbTestCls1)
         return super(AutoGrowingGridT, self).setup()
 
     widget = tws.AutoGrowingGrid
@@ -515,7 +595,7 @@ class TestAutoGrowingGridSQLA(SQLABase, AutoGrowingGridT):
 
 class AutoGrowingGridAsChildT(tw2test.WidgetTest):
     def setup(self):
-        self.widget = self.widget(entity=self.DBTestCls1)
+        self.widget = self.widget(entity=self.DbTestCls1)
         return super(AutoGrowingGridAsChildT, self).setup()
 
     widget = tws.DbFormPage
@@ -567,7 +647,7 @@ class TestAutoGrowingGridAsChildSQLA(SQLABase, AutoGrowingGridAsChildT):
 
 class AutoGrowingGridAsChildWithRelationshipT(tw2test.WidgetTest):
     def setup(self):
-        self.widget = self.widget(entity=self.DBTestCls2)
+        self.widget = self.widget(entity=self.DbTestCls2)
         return super(AutoGrowingGridAsChildWithRelationshipT, self).setup()
 
     widget = twf.TableForm
