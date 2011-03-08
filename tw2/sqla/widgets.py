@@ -13,6 +13,14 @@ def table_for(entity):
         raise twc.WidgetError('Can only act on entities that map to a single table')
     return mapper.tables[0]
 
+def is_manytoone(prop):
+    return isinstance(prop, sa.orm.RelationshipProperty) and \
+            prop.direction.name == 'MANYTOONE'
+
+def is_onetomany(prop):
+    return isinstance(prop, sa.orm.RelationshipProperty) and \
+            prop.direction.name == 'ONETOMANY'
+
 
 class RelatedValidator(twc.IntValidator):
     """Validator for related object
@@ -172,8 +180,12 @@ class WidgetPolicy(object):
     
     `pkey_widget`
         For primary key properties
-        
-    `fkey_widget`
+     
+    `onetomany_widget`
+        For foreign key properties. In this case the widget's id is set to the
+        name of the relation, and its entity is set to the target class.
+    
+    `manytoone_widget`
         For foreign key properties. In this case the widget's id is set to the
         name of the relation, and its entity is set to the target class.
         
@@ -193,25 +205,23 @@ class WidgetPolicy(object):
     """
 
     pkey_widget = None
-    fkey_widget = None
+    onetomany_widget = None
+    manytoone_widget = None
     name_widgets = {}
     type_widgets = {}    
     default_widget = None
 
     @classmethod
-    def factory(cls, prop, rel):
+    def factory(cls, prop):
         widget = None
-        if rel:
-            if cls.fkey_widget:
-                return cls.fkey_widget(id=rel.key, entity=rel.mapper.class_)
-            else:
-                return None
+        if is_onetomany(prop):
+            widget = cls.onetomany_widget(id=prop.key,entity=prop.mapper.class_)
         elif sum([c.primary_key for c in getattr(prop, 'columns', [])]):
             widget = cls.pkey_widget
+        elif is_manytoone(prop):
+            widget = cls.manytoone_widget(id=prop.key,entity=prop.mapper.class_)
         elif prop.key in cls.name_widgets:
             widget = cls.name_widgets[prop.key]
-        elif isinstance(prop, sa.orm.properties.RelationshipProperty):
-            pass
         else:
             for t, c in product(cls.type_widgets,
                                 getattr(prop, 'columns', [])):
@@ -239,13 +249,15 @@ class NoWidget(twc.Widget):
 
 class ViewPolicy(WidgetPolicy):
     """Base WidgetPolicy for viewing data."""
-    fkey_widget = twf.LabelField
+    onetomany_widget = twf.LabelField
+    manytoone_widget = twf.LabelField # TODO -- actually set this to something sensible
     default_widget = twf.LabelField
 
 
 class EditPolicy(WidgetPolicy):
     """Base WidgetPolicy for editing data."""
-    fkey_widget = DbSingleSelectField
+    onetomany_widget = DbSingleSelectField
+    manytoone_widget = DbSingleSelectField # TODO -- actually set this to something sensible
     name_widgets = {
         'password':     twf.PasswordField,
         'email':        twf.TextField(validator=twc.EmailValidator),
@@ -292,21 +304,27 @@ class AutoContainer(twc.Widget):
             new_children = []
             fkey = dict((p.local_side[0].name, p) 
                         for p in sa.orm.class_mapper(cls.entity).iterate_properties 
-                        if isinstance(p, sa.orm.RelationshipProperty))
+                        if is_manytoone(p))
             used_children = set()
 
             for prop in sa.orm.class_mapper(cls.entity).iterate_properties:
-                # TODO -- replace fkey_widget with onetomany_widget and manytoone_widget
-                if isinstance(prop, sa.orm.RelationshipProperty) and prop.direction.name == "MANYTOONE":
+                if is_manytoone(prop):
                     continue
-                widget_name = prop.key in fkey and fkey[prop.key].key or prop.key
+                
+                # Swap ids and objs
+                prop = fkey.get(prop.key, prop)
+
+                widget_name = prop.key
+                if isinstance(prop, sa.orm.RelationshipProperty):
+                    widget_name = prop.local_side[0].name
+                
                 widget = getattr(orig_children, widget_name, None)
                 if widget:
                     if not issubclass(widget, NoWidget):
                         new_children.append(widget)
                     used_children.add(widget_name)
                 else:
-                    new_widget = cls.policy.factory(prop, fkey.get(prop.key))
+                    new_widget = cls.policy.factory(prop)
                     if new_widget:
                         new_children.append(new_widget)
             
