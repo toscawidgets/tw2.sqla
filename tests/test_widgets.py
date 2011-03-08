@@ -434,6 +434,28 @@ class TestFormPageSQLA(SQLABase, FormPageT):
             for k, v in tmp.iteritems():
                 sys.modules[k] = v
 
+class AutoListPageEditT(tw2test.WidgetTest):
+    def setup(self):
+        self.widget = self.widget(entity=self.DbTestCls1)
+        return super(AutoTableFormT1, self).setup()
+    attrs = {
+        '_no_autoid' : True,
+        'child' : tws.AutoViewGrid,
+        'edit' : tws.DbFormPage(
+            _no_autoid = True,
+            child = tws.AutoTableForm
+        )
+    }
+    expected = ""
+
+class TestAutoListPageElixir(ElixirBase, AutoListPageT): pass
+class TestAutoListPageSQLA(SQLABase, AutoListPageT):
+    def setup(self):
+        super(TestAutoListPageSQLA, self).setup()
+        import pylons
+        pylons.configuration.config.setdefault('DBSession', self.session)
+
+
 class AutoTableFormT1(tw2test.WidgetTest):
     def setup(self):
         self.widget = self.widget(entity=self.DbTestCls1)
