@@ -294,6 +294,8 @@ class AutoContainer(twc.Widget):
             ## Note from RJB to PAJ -->
             ##   elixir keeps onetomany relationships in its `columns` but sa
             ##   does not which makes the TestAutoTableFormSQLA test fail.
+            ## TODO -- we should use mapper_for(cls.entity).iterate_properties
+            ##         instead of columns.  See `tw2.jit.widgets.sqla`
             for col in table_for(cls.entity).columns:                
                 widget_name = col.name in fkey and fkey[col.name].key or col.name
                 widget = getattr(orig_children, widget_name, None)
