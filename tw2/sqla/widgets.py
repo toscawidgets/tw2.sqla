@@ -3,6 +3,8 @@ import sqlalchemy.types as sat, tw2.dynforms as twd
 from zope.sqlalchemy import ZopeTransactionExtension
 import transaction
 
+from itertools import product
+
 from tw2.sqla.utils import from_dict
 
 def table_for(entity):
@@ -160,31 +162,31 @@ class DbRadioButtonList(DbSelectionField, twf.RadioButtonList):
 
 class WidgetPolicy(object):
     """
-    A policy object is used to generate widgets from SQLAlchemy columns. 
+    A policy object is used to generate widgets from SQLAlchemy properties. 
     
-    In general, the widget's id is set to the name of the column, and if the
-    column is not nullable, the validator is set as required. If the desired
-    widget is None, then no widget is used for that column.
+    In general, the widget's id is set to the name of the property, and if the
+    property is not nullable, the validator is set as required. If the desired
+    widget is None, then no widget is used for that property.
     
     Several parameters can be overridden to select the widget to use:
     
     `pkey_widget`
-        For primary key columns
+        For primary key properties
         
     `fkey_widget`
-        For foreign key columns. In this case the widget's id is set to the
+        For foreign key properties. In this case the widget's id is set to the
         name of the relation, and its entity is set to the target class.
         
     `name_widgets`
-        A dictionary mapping column names to the desired widget. This can be 
+        A dictionary mapping property names to the desired widget. This can be 
         used for names like "password" or "email".
     
     `type_widgets`
-        A dictionary mapping SQLAlchemy column types to the desired widget.
+        A dictionary mapping SQLAlchemy property types to the desired widget.
         
     `default_widget`
-        If the column does not match any of the other selectors, this is used.
-        If this is None then an error is raised for columns that do not match.
+        If the property does not match any of the other selectors, this is used.
+        If this is None then an error is raised for properties that do not match.
 
     Alternatively, the `factory` method can be overriden to provide completely
     customised widget selection.
@@ -197,32 +199,36 @@ class WidgetPolicy(object):
     default_widget = None
 
     @classmethod
-    def factory(cls, column, rel):
+    def factory(cls, prop, rel):
+        widget = None
         if rel:
             if cls.fkey_widget:
                 return cls.fkey_widget(id=rel.key, entity=rel.mapper.class_)
             else:
                 return None
-        elif column.primary_key:
+        elif sum([c.primary_key for c in getattr(prop, 'columns', [])]):
             widget = cls.pkey_widget
-        elif column.name in cls.name_widgets:
-            widget = cls.name_widgets[column.name]
+        elif prop.key in cls.name_widgets:
+            widget = cls.name_widgets[prop.key]
+        elif isinstance(prop, sa.orm.properties.RelationshipProperty):
+            pass
         else:
-            for t in cls.type_widgets:
-                if isinstance(column.type, t):
+            for t, c in product(cls.type_widgets,
+                                getattr(prop, 'columns', [])):
+                if isinstance(c.type, t):
                     widget = cls.type_widgets[t]
                     break
             else:
                 if cls.default_widget:
                     widget = cls.default_widget
                 else:
-                    raise twc.WidgetError("Cannot automatically create a widget for '%s'" % column.name)
+                    raise twc.WidgetError("Cannot automatically create a widget for '%s'" % prop.key)
         if widget:
-            args = {'id': column.name}            
-            if not column.nullable:
+            args = {'id': prop.key}            
+            if not sum([c.nullable for c in getattr(prop, 'columns', [])]):
                 args['validator'] = twc.Required
-            if hasattr(column, 'info') and 'label' in column.info:
-                args.update(column.info)
+            if hasattr(prop, 'info') and 'label' in prop.info:
+                args.update(prop.info)
             widget = widget(**args)
         return widget
 
@@ -286,27 +292,25 @@ class AutoContainer(twc.Widget):
             new_children = []
             fkey = dict((p.local_side[0].name, p) 
                         for p in sa.orm.class_mapper(cls.entity).iterate_properties 
-                        if isinstance(p, sa.orm.RelationshipProperty) 
-                            and p.direction.name == 'MANYTOONE'
-                            and len(p.local_side) == 1)
+                        if isinstance(p, sa.orm.RelationshipProperty))
             used_children = set()
 
-            ## Note from RJB to PAJ -->
-            ##   elixir keeps onetomany relationships in its `columns` but sa
-            ##   does not which makes the TestAutoTableFormSQLA test fail.
-            ## TODO -- we should use mapper_for(cls.entity).iterate_properties
-            ##         instead of columns.  See `tw2.jit.widgets.sqla`
-            for col in table_for(cls.entity).columns:                
-                widget_name = col.name in fkey and fkey[col.name].key or col.name
+            for prop in sa.orm.class_mapper(cls.entity).iterate_properties:
+                # TODO -- replace fkey_widget with onetomany_widget and manytoone_widget
+                if isinstance(prop, sa.orm.RelationshipProperty) and prop.direction.name == "MANYTOONE":
+                    continue
+                widget_name = prop.key in fkey and fkey[prop.key].key or prop.key
                 widget = getattr(orig_children, widget_name, None)
                 if widget:
                     if not issubclass(widget, NoWidget):
                         new_children.append(widget)
                     used_children.add(widget_name)
                 else:
-                    new_widget = cls.policy.factory(col, fkey.get(col.name))
+                    new_widget = cls.policy.factory(prop, fkey.get(prop.key))
                     if new_widget:
                         new_children.append(new_widget)
+            
+            # TODO -- simplify this
             for widget in orig_children:
                 if widget.id not in used_children:
                     new_children.append(widget)            
