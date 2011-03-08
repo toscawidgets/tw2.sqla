@@ -68,8 +68,8 @@ def update_or_create(cls, data, session=None):
     """
     
     if hasattr(cls, 'update_or_create'):
-        cls.update_or_create(data)
-        return cls
+        e = cls.update_or_create(data)
+        return e
 
     pk_props = cls.__mapper__.primary_key
     add = False
