@@ -443,184 +443,182 @@ class TestAutoTableForm2SQLA(SQLABase, AutoTableFormT2):
         pylons.configuration.config.setdefault('DBSession', self.session)
 
 
-#class AutoViewGridT(tw2test.WidgetTest):
-#    def setup(self):
-#        self.widget = self.widget(entity=self.DBTestCls1)
-#        return super(AutoViewGridT, self).setup()
-#
-#    widget = tws.AutoViewGrid
-#    attrs = { 'id' : 'autogrid' }
-#    # TBD -- should the values from the db show up here?
-#    expected = """
-#    <table id='autogrid'>
-#    <tr><th>Name</th><th>Others</th></tr>
-#    <tr class="error"><td colspan="0" id="autogrid:error"></td></tr>
-#    </table>"""
-#
-#class TestAutoViewGridElixir(ElixirBase, AutoViewGridT): pass
-#class TestAutoViewGridSQLA(SQLABase, AutoViewGridT):
-#    def setup(self):
-#        super(TestAutoViewGridSQLA, self).setup()
-#        import pylons
-#        pylons.configuration.config.setdefault('DBSession', self.session)
-#
-#class AutoGrowingGridT(tw2test.WidgetTest):
-#    def setup(self):
-#        self.widget = self.widget(entity=self.DBTestCls1)
-#        return super(AutoGrowingGridT, self).setup()
-#
-#    widget = tws.AutoGrowingGrid
-#    attrs = { 'id' : 'autogrid' }
-#    # TBD -- should the values from the db show up here?
-#    expected = """
-#    <table id="autogrid">
-#        <tr>
-#            <th>Name</th><th>Others</th><th></th>
-#            <td><input style="display:none" type="image" id="autogrid:undo" src="/resources/tw2.dynforms.widgets/static/undo.png" alt="Undo" onclick="twd_grow_undo(this); return false;"></td>
-#        </tr>
-#        <tr style="display:none;" id="autogrid:0" class="odd">
-#        <td>
-#            <input name="autogrid:0:name" id="autogrid:0:name" onchange="twd_grow_add(this);" type="text">
-#        </td><td>
-#        <select onchange="twd_grow_add(this);" id="autogrid:0:others" name="autogrid:0:others">
-#        <option></option><option value="1">bob1</option><option value="2">bob2</option><option value="3">bob3</option>
-#        </select>
-#        </td><td>
-#            <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" name="autogrid:0:del" id="autogrid:0:del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image">
-#        </td>
-#        <td>
-#        </td>
-#    </tr><tr id="autogrid:1" class="even">
-#        <td>
-#            <input name="autogrid:1:name" id="autogrid:1:name" onchange="twd_grow_add(this);" type="text">
-#        </td><td>
-#        <select onchange="twd_grow_add(this);" id="autogrid:1:others" name="autogrid:1:others">
-#        <option></option><option value="1">bob1</option><option value="2">bob2</option><option value="3">bob3</option>
-#        </select>
-#        </td><td>
-#            <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" name="autogrid:1:del" id="autogrid:1:del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image">
-#        </td>
-#        <td>
-#        </td>
-#    </tr>
-#    </table>"""
-#
-#class TestAutoGrowingGridElixir(ElixirBase, AutoGrowingGridT): pass
-#class TestAutoGrowingGridSQLA(SQLABase, AutoGrowingGridT):
-#    def setup(self):
-#        super(TestAutoGrowingGridSQLA, self).setup()
-#        import pylons
-#        pylons.configuration.config.setdefault('DBSession', self.session)
-#
-#
-#class AutoGrowingGridAsChildT(tw2test.WidgetTest):
-#    def setup(self):
-#        self.widget = self.widget(entity=self.DBTestCls1)
-#        return super(AutoGrowingGridAsChildT, self).setup()
-#
-#    widget = tws.DbFormPage
-#    attrs = { 'id' : 'autogrid', 'title' : 'Test',
-#              'child' : tws.AutoGrowingGrid}
-#    # TBD -- should the values from the db show up here?
-#    expected = """
-#    <html><head><title>Test</title></head>
-#    <body id="autogrid:page"><h1>Test</h1>
-#    <table id="autogrid">
-#        <tr>
-#            <th>Name</th><th>Others</th><th></th>
-#            <td><input style="display:none" type="image" id="autogrid:undo" src="/resources/tw2.dynforms.widgets/static/undo.png" alt="Undo" onclick="twd_grow_undo(this); return false;"></td>
-#        </tr>
-#        <tr style="display:none;" id="autogrid:0" class="odd">
-#        <td>
-#            <input name="autogrid:0:name" id="autogrid:0:name" onchange="twd_grow_add(this);" type="text">
-#        </td><td>
-#            <select onchange="twd_grow_add(this);" id="autogrid:0:others" name="autogrid:0:others">
-#            <option></option><option value="1">bob1</option><option value="2">bob2</option><option value="3">bob3</option>
-#            </select>
-#        </td><td>
-#            <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" name="autogrid:0:del" id="autogrid:0:del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image">
-#        </td>
-#        <td>
-#        </td>
-#    </tr><tr id="autogrid:1" class="even">
-#        <td>
-#            <input name="autogrid:1:name" id="autogrid:1:name" onchange="twd_grow_add(this);" type="text">
-#        </td><td>
-#            <select onchange="twd_grow_add(this);" id="autogrid:1:others" name="autogrid:1:others">
-#            <option></option><option value="1">bob1</option><option value="2">bob2</option><option value="3">bob3</option>
-#            </select>
-#        </td><td>
-#            <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" name="autogrid:1:del" id="autogrid:1:del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image">
-#        </td>
-#        <td>
-#        </td>
-#    </tr>
-#    </table></body></html>"""
-#
-#class TestAutoGrowingGridAsChildElixir(ElixirBase, AutoGrowingGridAsChildT):
-#    pass
-#class TestAutoGrowingGridAsChildSQLA(SQLABase, AutoGrowingGridAsChildT):
-#    def setup(self):
-#        super(TestAutoGrowingGridAsChildSQLA, self).setup()
-#        import pylons
-#        pylons.configuration.config.setdefault('DBSession', self.session)
-#
-#class AutoGrowingGridAsChildWithRelationshipT(tw2test.WidgetTest):
-#    def setup(self):
-#        self.widget = self.widget(entity=self.DBTestCls2)
-#        return super(AutoGrowingGridAsChildWithRelationshipT, self).setup()
-#
-#    widget = twf.TableForm
-#    attrs = { 'title' : 'Test',
-#              'child' : tws.AutoGrowingGrid(id='others')}
-#    # TBD -- should the values from the db show up here?
-#    expected = """
-#    <form method="post" id="others:form" enctype="multipart/form-data">
-#    <span class="error"></span>
-#    <table id="others">
-#        <tr>
-#            <th>Nick</th><th>Other</th><th></th>
-#            <td><input style="display:none" type="image" id="others:undo" src="/resources/tw2.dynforms.widgets/static/undo.png" alt="Undo" onclick="twd_grow_undo(this); return false;"></td>
-#        </tr>
-#        <tr style="display:none;" id="others:0" class="odd">
-#        <td>
-#        <input name="others:0:nick" id="others:0:nick" onchange="twd_grow_add(this);" type="text">
-#        </td>
-#        <td>
-#        <select onchange="twd_grow_add(this);" id="others:0:other" name="others:0:other">
-#        <option></option><option value="1">foo1</option><option value="2">foo2</option>
-#</select>
-#        </td><td>
-#            <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" name="others:0:del" id="others:0:del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image">
-#        </td>
-#        <td>
-#        </td>
-#    </tr><tr id="others:1" class="even">
-#        <td>
-#        <input name="others:1:nick" id="others:1:nick" onchange="twd_grow_add(this);" type="text">
-#        </td>
-#        <td>
-#        <select onchange="twd_grow_add(this);" id="others:1:other" name="others:1:other">
-#        <option></option><option value="1">foo1</option><option value="2">foo2</option>
-#</select>
-#        </td><td>
-#            <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" name="others:1:del" id="others:1:del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image">
-#        </td>
-#        <td>
-#        </td>
-#    </tr>
-#    </table>
-#    <input type="submit" id="submit" value="Save">
-#    </form>"""
-## NOTE -- TODO
-##  This test tests the inverse of the relationships tested above
-##  but fails in the opposite way.  Elixir fails, but SQLA succeeds.
-#class TestAutoGrowingGridAsChildWithRelationshipElixir(
-#    ElixirBase, AutoGrowingGridAsChildWithRelationshipT):
-#    pass
-#class TestAutoGrowingGridAsChildWithRelationshipSQLA(
-#    SQLABase, AutoGrowingGridAsChildWithRelationshipT):
-#    def setup(self):
-#        super(TestAutoGrowingGridAsChildWithRelationshipSQLA, self).setup()
-#        import pylons
-#        pylons.configuration.config.setdefault('DBSession', self.session)
+class AutoViewGridT(tw2test.WidgetTest):
+    def setup(self):
+        self.widget = self.widget(entity=self.DBTestCls1)
+        return super(AutoViewGridT, self).setup()
+
+    widget = tws.AutoViewGrid
+    attrs = { 'id' : 'autogrid' }
+    # TBD -- should the values from the db show up here?
+    expected = """
+    <table id='autogrid'>
+    <tr><th>Name</th><th>Others</th></tr>
+    <tr class="error"><td colspan="0" id="autogrid:error"></td></tr>
+    </table>"""
+
+class TestAutoViewGridElixir(ElixirBase, AutoViewGridT): pass
+class TestAutoViewGridSQLA(SQLABase, AutoViewGridT):
+    def setup(self):
+        super(TestAutoViewGridSQLA, self).setup()
+        import pylons
+        pylons.configuration.config.setdefault('DBSession', self.session)
+
+class AutoGrowingGridT(tw2test.WidgetTest):
+    def setup(self):
+        self.widget = self.widget(entity=self.DBTestCls1)
+        return super(AutoGrowingGridT, self).setup()
+
+    widget = tws.AutoGrowingGrid
+    attrs = { 'id' : 'autogrid' }
+    # TBD -- should the values from the db show up here?
+    expected = """
+    <table id="autogrid">
+        <tr>
+            <th>Name</th><th>Others</th><th></th>
+            <td><input style="display:none" type="image" id="autogrid:undo" src="/resources/tw2.dynforms.widgets/static/undo.png" alt="Undo" onclick="twd_grow_undo(this); return false;"></td>
+        </tr>
+        <tr style="display:none;" id="autogrid:0" class="odd">
+        <td>
+            <input name="autogrid:0:name" id="autogrid:0:name" onchange="twd_grow_add(this);" type="text">
+        </td><td>
+        <select onchange="twd_grow_add(this);" id="autogrid:0:others" name="autogrid:0:others">
+        <option></option><option value="1">bob1</option><option value="2">bob2</option><option value="3">bob3</option>
+        </select>
+        </td><td>
+            <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" name="autogrid:0:del" id="autogrid:0:del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image">
+        </td>
+        <td>
+        </td>
+    </tr><tr id="autogrid:1" class="even">
+        <td>
+            <input name="autogrid:1:name" id="autogrid:1:name" onchange="twd_grow_add(this);" type="text">
+        </td><td>
+        <select onchange="twd_grow_add(this);" id="autogrid:1:others" name="autogrid:1:others">
+        <option></option><option value="1">bob1</option><option value="2">bob2</option><option value="3">bob3</option>
+        </select>
+        </td><td>
+            <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" name="autogrid:1:del" id="autogrid:1:del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image">
+        </td>
+        <td>
+        </td>
+    </tr>
+    </table>"""
+
+class TestAutoGrowingGridElixir(ElixirBase, AutoGrowingGridT): pass
+class TestAutoGrowingGridSQLA(SQLABase, AutoGrowingGridT):
+    def setup(self):
+        super(TestAutoGrowingGridSQLA, self).setup()
+        import pylons
+        pylons.configuration.config.setdefault('DBSession', self.session)
+
+
+class AutoGrowingGridAsChildT(tw2test.WidgetTest):
+    def setup(self):
+        self.widget = self.widget(entity=self.DBTestCls1)
+        return super(AutoGrowingGridAsChildT, self).setup()
+
+    widget = tws.DbFormPage
+    attrs = { 'id' : 'autogrid', 'title' : 'Test',
+              'child' : tws.AutoGrowingGrid}
+    # TBD -- should the values from the db show up here?
+    expected = """
+    <html><head><title>Test</title></head>
+    <body id="autogrid:page"><h1>Test</h1>
+    <table id="autogrid">
+        <tr>
+            <th>Name</th><th>Others</th><th></th>
+            <td><input style="display:none" type="image" id="autogrid:undo" src="/resources/tw2.dynforms.widgets/static/undo.png" alt="Undo" onclick="twd_grow_undo(this); return false;"></td>
+        </tr>
+        <tr style="display:none;" id="autogrid:0" class="odd">
+        <td>
+            <input name="autogrid:0:name" id="autogrid:0:name" onchange="twd_grow_add(this);" type="text">
+        </td><td>
+            <select onchange="twd_grow_add(this);" id="autogrid:0:others" name="autogrid:0:others">
+            <option></option><option value="1">bob1</option><option value="2">bob2</option><option value="3">bob3</option>
+            </select>
+        </td><td>
+            <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" name="autogrid:0:del" id="autogrid:0:del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image">
+        </td>
+        <td>
+        </td>
+    </tr><tr id="autogrid:1" class="even">
+        <td>
+            <input name="autogrid:1:name" id="autogrid:1:name" onchange="twd_grow_add(this);" type="text">
+        </td><td>
+            <select onchange="twd_grow_add(this);" id="autogrid:1:others" name="autogrid:1:others">
+            <option></option><option value="1">bob1</option><option value="2">bob2</option><option value="3">bob3</option>
+            </select>
+        </td><td>
+            <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" name="autogrid:1:del" id="autogrid:1:del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image">
+        </td>
+        <td>
+        </td>
+    </tr>
+    </table></body></html>"""
+
+class TestAutoGrowingGridAsChildElixir(ElixirBase, AutoGrowingGridAsChildT):
+    pass
+class TestAutoGrowingGridAsChildSQLA(SQLABase, AutoGrowingGridAsChildT):
+    def setup(self):
+        super(TestAutoGrowingGridAsChildSQLA, self).setup()
+        import pylons
+        pylons.configuration.config.setdefault('DBSession', self.session)
+
+class AutoGrowingGridAsChildWithRelationshipT(tw2test.WidgetTest):
+    def setup(self):
+        self.widget = self.widget(entity=self.DBTestCls2)
+        return super(AutoGrowingGridAsChildWithRelationshipT, self).setup()
+
+    widget = twf.TableForm
+    attrs = { 'title' : 'Test',
+              'child' : tws.AutoGrowingGrid(id='others')}
+    # TBD -- should the values from the db show up here?
+    expected = """
+    <form method="post" id="others:form" enctype="multipart/form-data">
+    <span class="error"></span>
+    <table id="others">
+        <tr>
+            <th>Nick</th><th>Other</th><th></th>
+            <td><input style="display:none" type="image" id="others:undo" src="/resources/tw2.dynforms.widgets/static/undo.png" alt="Undo" onclick="twd_grow_undo(this); return false;"></td>
+        </tr>
+        <tr style="display:none;" id="others:0" class="odd">
+        <td>
+        <input name="others:0:nick" id="others:0:nick" onchange="twd_grow_add(this);" type="text">
+        </td>
+        <td>
+        <select onchange="twd_grow_add(this);" id="others:0:other" name="others:0:other">
+        <option></option><option value="1">foo1</option><option value="2">foo2</option>
+</select>
+        </td><td>
+            <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" name="others:0:del" id="others:0:del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image">
+        </td>
+        <td>
+        </td>
+    </tr><tr id="others:1" class="even">
+        <td>
+        <input name="others:1:nick" id="others:1:nick" onchange="twd_grow_add(this);" type="text">
+        </td>
+        <td>
+        <select onchange="twd_grow_add(this);" id="others:1:other" name="others:1:other">
+        <option></option><option value="1">foo1</option><option value="2">foo2</option>
+</select>
+        </td><td>
+            <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" name="others:1:del" id="others:1:del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image">
+        </td>
+        <td>
+        </td>
+    </tr>
+    </table>
+    <input type="submit" id="submit" value="Save">
+    </form>"""
+
+class TestAutoGrowingGridAsChildWithRelationshipElixir(
+    ElixirBase, AutoGrowingGridAsChildWithRelationshipT):
+    pass
+class TestAutoGrowingGridAsChildWithRelationshipSQLA(
+    SQLABase, AutoGrowingGridAsChildWithRelationshipT):
+    def setup(self):
+        super(TestAutoGrowingGridAsChildWithRelationshipSQLA, self).setup()
+        import pylons
+        pylons.configuration.config.setdefault('DBSession', self.session)
