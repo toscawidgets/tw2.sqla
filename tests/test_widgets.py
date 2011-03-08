@@ -21,7 +21,7 @@ class ElixirBase(object):
 
         class DBTestCls2(el.Entity):
             nick = el.Field(el.String)
-            other_id = el.Field(el.Integer, colname='other')
+            other_id = el.Field(el.Integer)
             other = el.ManyToOne(DBTestCls1, field=other_id, backref='others')
             def __unicode__(self):
                 return self.nick
@@ -373,7 +373,7 @@ class AutoTableFormT1(tw2test.WidgetTest):
         </td>
         </tr>
      <tr class="even"  id="foo_form:others:container">
-        <th>Other</th>
+        <th>Others</th>
         <td >
             <select name="foo_form:others" id="foo_form:others">
              <option ></option>
