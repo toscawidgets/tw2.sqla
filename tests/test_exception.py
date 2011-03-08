@@ -11,10 +11,9 @@ class BaseObject(object):
     def test_multiple_tables(self):
         try:
             tws.widgets.table_for(self.DBTestCls1)
+            assert(False)
         except Exception, e:
             assert(str(e) == 'Can only act on entities that map to a single table')
-        else:
-            assert(False)
 
 # TODO -- How can we test this with Elixir?
 
