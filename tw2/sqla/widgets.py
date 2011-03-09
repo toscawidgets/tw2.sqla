@@ -249,15 +249,17 @@ class NoWidget(twc.Widget):
 
 class ViewPolicy(WidgetPolicy):
     """Base WidgetPolicy for viewing data."""
-    onetomany_widget = twf.LabelField
-    manytoone_widget = twf.LabelField # TODO -- actually set this to something sensible
+    # One to many is the `real` problem
+    onetomany_widget = twf.LabelField # TODO -- actually set this to something sensible
+    manytoone_widget = twf.LabelField
     default_widget = twf.LabelField
 
 
 class EditPolicy(WidgetPolicy):
     """Base WidgetPolicy for editing data."""
+    # TODO -- actually set this to something sensible
     onetomany_widget = DbSingleSelectField
-    manytoone_widget = DbSingleSelectField # TODO -- actually set this to something sensible
+    manytoone_widget = DbSingleSelectField
     name_widgets = {
         'password':     twf.PasswordField,
         'email':        twf.TextField(validator=twc.EmailValidator),
