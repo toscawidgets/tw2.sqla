@@ -434,19 +434,72 @@ class TestFormPageSQLA(SQLABase, FormPageT):
             for k, v in tmp.iteritems():
                 sys.modules[k] = v
 
-class AutoListPageEditT(tw2test.WidgetTest):
+class AutoListPageT(tw2test.WidgetTest):
     def setup(self):
         self.widget = self.widget(entity=self.DbTestCls1)
-        return super(AutoTableFormT1, self).setup()
-    attrs = {
-        '_no_autoid' : True,
-        'child' : tws.AutoViewGrid,
-        'edit' : tws.DbFormPage(
-            _no_autoid = True,
-            child = tws.AutoTableForm
-        )
-    }
-    expected = ""
+        return super(AutoListPageT, self).setup()
+
+
+    widget = tws.AutoListPage
+   
+    # Doesn't make much sense... an AutoList widget with fetch_data not called?
+    expected = """
+    <html>
+    <head><title>Db Test Cls1</title></head>
+    <body id="autolistpage_d:page">
+    <h1>Db Test Cls1</h1>
+    <table id="autolistpage_d">
+        <tr><th>Name</th><th>Others</th></tr>
+        <tr class="error"><td colspan="0" id="autolistpage_d:error">
+        </td></tr>
+    </table>
+    </body>
+    </html> 
+    """
+
+### TODO -- reenable this
+##    declarative = True
+#    def test_request_get(self):
+#        # This makes much more sense.
+#        environ = {
+#            'REQUEST_METHOD': 'GET',
+#        }
+#        req=Request(environ)
+#        self.mw.config.debug = True
+#        r = self.widget().request(req)
+#        tw2test.assert_eq_xml(r.body, """
+#<html>
+#<head><title>Db Test Cls1</title></head>
+#    <body id="dblistpage_d:page"><h1>Db Test Cls1</h1>
+#            <table id="dblistpage_d">
+#                <tr><th>Name</th><th>Edit</th></tr>
+#                <tr id="dblistpage_d:0" class="odd">
+#                <td>
+#                    <span>foo1<input type="hidden" name="dblistpage_d:0:name" value="foo1" id="dblistpage_d:0:name"/></span>
+#                </td>
+#                <td>
+#                    <a href="foo?id=1" id="dblistpage_d:0:id">Edit</a>
+#                </td>
+#                <td>
+#                </td>
+#            </tr>
+#            <tr id="dblistpage_d:1" class="even">
+#                <td>
+#                    <span>foo2<input type="hidden" name="dblistpage_d:1:name" value="foo2" id="dblistpage_d:1:name"/></span>
+#                </td>
+#                <td>
+#                    <a href="foo?id=2" id="dblistpage_d:1:id">Edit</a>
+#                </td>
+#                <td>
+#                </td>
+#            </tr>
+#            <tr class="error"><td colspan="2" id="dblistpage_d:error"></td></tr>
+#        </table>
+#        <a href="cls1">New</a>
+#</body>
+#</html>""")
+
+
 
 class TestAutoListPageElixir(ElixirBase, AutoListPageT): pass
 class TestAutoListPageSQLA(SQLABase, AutoListPageT):
@@ -455,6 +508,7 @@ class TestAutoListPageSQLA(SQLABase, AutoListPageT):
         import pylons
         pylons.configuration.config.setdefault('DBSession', self.session)
 
+# TODO -- do AutoListPageEDIT here
 
 class AutoTableFormT1(tw2test.WidgetTest):
     def setup(self):
@@ -552,12 +606,13 @@ class AutoViewGridT(tw2test.WidgetTest):
 
     widget = tws.AutoViewGrid
     attrs = { 'id' : 'autogrid' }
-    # TBD -- should the values from the db show up here?
+    
     expected = """
     <table id='autogrid'>
     <tr><th>Name</th><th>Others</th></tr>
     <tr class="error"><td colspan="0" id="autogrid:error"></td></tr>
     </table>"""
+
 
 class TestAutoViewGridElixir(ElixirBase, AutoViewGridT): pass
 class TestAutoViewGridSQLA(SQLABase, AutoViewGridT):
