@@ -37,11 +37,13 @@ class ElixirBase(object):
         el.setup_all()
         el.metadata.create_all()
 
-        self.DbTestCls1(id=1, name='foo1')
+        foo1 = self.DbTestCls1(id=1, name='foo1')
         self.DbTestCls1(id=2, name='foo2')
         self.DbTestCls2(id=1, nick='bob1')
         self.DbTestCls2(id=2, nick='bob2')
-        self.DbTestCls2(id=3, nick='bob3')
+        bob3 = self.DbTestCls2(id=3, nick='bob3')
+        foo1.others.append(bob3)
+        assert(self.DbTestCls1.query.first().others[0] == bob3)
         transaction.commit()
 
         return super(ElixirBase, self).setup()
@@ -77,11 +79,15 @@ class SQLABase(object):
     
         Base.metadata.create_all()
 
-        self.session.add(self.DbTestCls1(id=1, name='foo1'))
+        foo1 = self.DbTestCls1(id=1, name='foo1')
+        self.session.add(foo1)
         self.session.add(self.DbTestCls1(id=2, name='foo2'))
         self.session.add(self.DbTestCls2(id=1, nick='bob1'))
         self.session.add(self.DbTestCls2(id=2, nick='bob2'))
-        self.session.add(self.DbTestCls2(id=3, nick='bob3'))
+        bob3 = self.DbTestCls2(id=3, nick='bob3')
+        foo1.others.append(bob3)
+        self.session.add(bob3)
+        assert(self.DbTestCls1.query.first().others[0] == bob3)
         transaction.commit()
 
         return super(SQLABase, self).setup()
