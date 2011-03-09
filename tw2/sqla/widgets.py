@@ -345,10 +345,12 @@ class AutoViewGrid(AutoContainer, twf.GridLayout):
     policy = ViewPolicy
 
 
-class AutoListPageEdit(DbListPage):
+class AutoListPage(DbListPage):
     _no_autoid = True
     class child(AutoViewGrid):
         pass
+
+class AutoListPageEdit(AutoListPage):
     class edit(DbFormPage):
         _no_autoid = True
         child = AutoTableForm
