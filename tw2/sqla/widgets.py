@@ -171,7 +171,7 @@ class DbCheckBoxTable(DbSelectionField, twf.CheckBoxTable):
     @classmethod
     def post_define(cls):
         if getattr(cls, 'entity', None):
-            cls.item_validator = tw2.sqla.RelatedValidator(entity=cls.entity)
+            cls.item_validator = RelatedValidator(entity=cls.entity)
 
 
 class WidgetPolicy(object):
@@ -256,7 +256,13 @@ class NoWidget(twc.Widget):
 class ViewPolicy(WidgetPolicy):
     """Base WidgetPolicy for viewing data."""
     # One to many is the `real` problem
-    onetomany_widget = twf.LabelField # TODO -- actually set this to something sensible
+
+    # TODO -- need to define a BaseLayout solution with a
+    # series of comma separated LabelFields as a DB-aware
+    # solution.  Seriously, look in `apply` -- the problem
+    # is solved there
+
+    onetomany_widget = twf.LabelField
     manytoone_widget = twf.LabelField
     default_widget = twf.LabelField
 
