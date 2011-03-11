@@ -221,10 +221,18 @@ class WidgetPolicy(object):
     def factory(cls, prop):
         widget = None
         if is_onetomany(prop):
+            if not cls.onetomany_widget:
+                raise twc.WidgetError(
+                    "Cannot automatically create a widget " +
+                    "for one-to-many relation '%s'" % prop.key)
             widget = cls.onetomany_widget(id=prop.key,entity=prop.mapper.class_)
         elif sum([c.primary_key for c in getattr(prop, 'columns', [])]):
             widget = cls.pkey_widget
         elif is_manytoone(prop):
+            if not cls.manytoone_widget:
+                raise twc.WidgetError(
+                    "Cannot automatically create a widget " +
+                    "for many-to-one relation '%s'" % prop.key)
             widget = cls.manytoone_widget(id=prop.key,entity=prop.mapper.class_)
         elif prop.key in cls.name_widgets:
             widget = cls.name_widgets[prop.key]
@@ -235,10 +243,12 @@ class WidgetPolicy(object):
                     widget = cls.type_widgets[t]
                     break
             else:
-                if cls.default_widget:
-                    widget = cls.default_widget
-                else:
-                    raise twc.WidgetError("Cannot automatically create a widget for '%s'" % prop.key)
+                if not cls.default_widget:
+                    raise twc.WidgetError(
+                        "Cannot automatically create a widget " +
+                        "for '%s'" % prop.key)
+                widget = cls.default_widget
+
         if widget:
             args = {'id': prop.key}            
             if not sum([c.nullable for c in getattr(prop, 'columns', [])]):
@@ -247,10 +257,10 @@ class WidgetPolicy(object):
                 args.update(prop.info)
             widget = widget(**args)
 
-        # TODO - to be determined.  Why is this line necessary?
-        # Without it, some tests fail that shouldn't.
-        widget and widget.display()
-        
+            # TODO - to be determined.  Why is this line necessary?
+            # Without it, some tests fail that shouldn't.
+            widget.display()
+
         return widget
 
 
@@ -359,7 +369,7 @@ class AutoGrowingGrid(twd.GrowingGridLayout, AutoContainer):
 class AutoViewGrid(AutoContainer, twf.GridLayout):
     policy = ViewPolicy
 
-## This is assigned here and not above because of a circular dep.
+# This is assigned here and not above because of a circular dep.
 ViewPolicy.onetomany_widget = AutoViewGrid
 
 class AutoListPage(DbListPage):
