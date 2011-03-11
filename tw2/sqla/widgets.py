@@ -246,6 +246,11 @@ class WidgetPolicy(object):
             if hasattr(prop, 'info') and 'label' in prop.info:
                 args.update(prop.info)
             widget = widget(**args)
+
+        # TODO - to be determined.  Why is this line necessary?
+        # Without it, some tests fail that shouldn't.
+        widget and widget.display()
+        
         return widget
 
 
@@ -255,16 +260,12 @@ class NoWidget(twc.Widget):
 
 class ViewPolicy(WidgetPolicy):
     """Base WidgetPolicy for viewing data."""
-    # One to many is the `real` problem
-
-    # TODO -- need to define a BaseLayout solution with a
-    # series of comma separated LabelFields as a DB-aware
-    # solution.  Seriously, look in `apply` -- the problem
-    # is solved there
-
-    onetomany_widget = twf.LabelField
     manytoone_widget = twf.LabelField
     default_widget = twf.LabelField
+
+    ## This gets assigned further down in the file.  It must, because of an
+    ## otherwise circular dependency.  
+    #onetomany_widget = AutoViewGrid
 
 
 class EditPolicy(WidgetPolicy):
@@ -358,6 +359,8 @@ class AutoGrowingGrid(twd.GrowingGridLayout, AutoContainer):
 class AutoViewGrid(AutoContainer, twf.GridLayout):
     policy = ViewPolicy
 
+## This is assigned here and not above because of a circular dep.
+ViewPolicy.onetomany_widget = AutoViewGrid
 
 class AutoListPage(DbListPage):
     _no_autoid = True
