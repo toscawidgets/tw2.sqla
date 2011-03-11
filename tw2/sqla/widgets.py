@@ -253,6 +253,9 @@ class WidgetPolicy(object):
             args = {'id': prop.key}            
             if not sum([c.nullable for c in getattr(prop, 'columns', [])]):
                 args['validator'] = twc.Required
+
+            # TODO -- under what circumstances will this run?
+            # Can someone produce a test case?
             if hasattr(prop, 'info') and 'label' in prop.info:
                 args.update(prop.info)
             widget = widget(**args)
