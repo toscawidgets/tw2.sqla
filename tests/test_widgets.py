@@ -464,8 +464,77 @@ class AutoListPageT(tw2test.WidgetTest):
     """
 
     declarative = True
+    def test_exception_manytoone(self):
+        class WackPolicy(tws.widgets.WidgetPolicy):
+            pass
+        props = filter(
+            lambda x : x.key == 'other',
+            sa.orm.class_mapper(self.DbTestCls2).iterate_properties)
+        assert(len(props) == 1)
+        try:
+            w = WackPolicy.factory(props[0])
+            assert(False)
+        except twc.WidgetError, e:
+            assert(str(e) == "Cannot automatically create a widget " +
+                   "for many-to-one relation 'other'")
+
+            
+    def test_exception_onetomany(self):
+        class WackPolicy(tws.widgets.WidgetPolicy):
+            pass
+        props = filter(
+            lambda x : x.key == 'others',
+            sa.orm.class_mapper(self.DbTestCls1).iterate_properties)
+        assert(len(props) == 1)
+        try:
+            w = WackPolicy.factory(props[0])
+            assert(False)
+        except twc.WidgetError, e:
+            assert(str(e) == "Cannot automatically create a widget " +
+                   "for one-to-many relation 'others'")
+
+    def test_exception_default(self):
+        class WackPolicy(tws.widgets.WidgetPolicy):
+            pass
+        props = filter(
+            lambda x : x.key == 'name',
+            sa.orm.class_mapper(self.DbTestCls1).iterate_properties)
+        assert(len(props) == 1)
+        try:
+            w = WackPolicy.factory(props[0])
+            assert(False)
+        except twc.WidgetError, e:
+            assert(str(e) == "Cannot automatically create a widget for 'name'")
+
+    def test_name_widgets(self):
+        class AwesomePolicy(tws.widgets.WidgetPolicy):
+            name_widgets = { 'name' : twf.LabelField, }
+
+        props = filter(
+            lambda x : x.key == 'name',
+            sa.orm.class_mapper(self.DbTestCls1).iterate_properties)
+        assert(len(props) == 1)
+        try:
+            w = AwesomePolicy.factory(props[0])
+        except twc.WidgetError, e:
+            assert(False)
+
+    def test_info_on_prop(self):
+        class AwesomePolicy(tws.widgets.WidgetPolicy):
+            name_widgets = { 'name' : twf.LabelField, }
+
+        props = filter(
+            lambda x : x.key == 'name',
+            sa.orm.class_mapper(self.DbTestCls1).iterate_properties)
+        assert(len(props) == 1)
+        try:
+            w = AwesomePolicy.factory(props[0])
+        except twc.WidgetError, e:
+            assert(False)
+
+
     def test_request_get(self):
-        # This makes much more sense.
+        """ Good lookin' """
         environ = {
             'REQUEST_METHOD': 'GET',
         }
