@@ -1,4 +1,5 @@
 glob:*.pyc
+glob:*.swp
 glob:build/*
 glob:dist/*
 glob:tw2.sqla.egg-info/*
