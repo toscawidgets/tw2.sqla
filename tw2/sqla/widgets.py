@@ -352,10 +352,8 @@ class AutoContainer(twc.Widget):
                     if new_widget:
                         new_children.append(new_widget)
             
-            # TODO -- simplify this
-            for widget in orig_children:
-                if widget.id not in used_children:
-                    new_children.append(widget)            
+            newchildren.extend(
+                [w for w in orig_children if w.id not in used_children])
             cls.child = cls.child(children=new_children, entity=cls.entity)
 
 
