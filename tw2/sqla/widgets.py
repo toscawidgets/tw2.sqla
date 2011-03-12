@@ -316,6 +316,7 @@ class AutoContainer(twc.Widget):
                 cls.entity = prop.mapper.class_
             else:
                 cls.entity = cls.parent.entity                        
+
         if hasattr(cls, 'entity') and not getattr(cls, '_auto_widgets', False):
             cls._auto_widgets = True
             if hasattr(cls.child, '_orig_children'):
@@ -325,6 +326,7 @@ class AutoContainer(twc.Widget):
                 cls.child._orig_children = orig_children
             else:
                 orig_children = []
+
             new_children = []
             fkey = dict((p.local_side[0].name, p) 
                         for p in sa.orm.class_mapper(cls.entity).iterate_properties 
@@ -352,7 +354,7 @@ class AutoContainer(twc.Widget):
                     if new_widget:
                         new_children.append(new_widget)
             
-            newchildren.extend(
+            new_children.extend(
                 [w for w in orig_children if w.id not in used_children])
             cls.child = cls.child(children=new_children, entity=cls.entity)
 
