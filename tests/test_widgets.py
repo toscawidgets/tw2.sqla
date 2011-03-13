@@ -138,6 +138,33 @@ class CheckBoxT(tw2test.WidgetTest):
 class TestCheckBoxElixir(ElixirBase, CheckBoxT): pass
 class TestCheckBoxSQLA(SQLABase, CheckBoxT): pass
 
+class CheckBoxTableT(tw2test.WidgetTest):
+    widget = tws.DbCheckBoxTable
+    attrs = {'css_class':'something', 'id' : 'something'}
+    params = {'checked':None}
+    expected = """
+    <table class="something" id="something" name="something"><tbody>
+    <tr>
+        <td>
+            <input type="checkbox" name="something" value="1" id="something:0">
+            <label for="something:0">foo1</label>
+        </td>
+    </tr><tr>
+        <td>
+            <input type="checkbox" name="something" value="2" id="something:1">
+            <label for="something:1">foo2</label>
+        </td>
+    </tr>
+    </tbody></table> 
+    """
+
+    def setup(self):
+        self.widget = self.widget(entity=self.DbTestCls1)
+        return super(CheckBoxTableT, self).setup()
+
+class TestCheckBoxTableElixir(ElixirBase, CheckBoxTableT): pass
+class TestCheckBoxTableSQLA(SQLABase, CheckBoxTableT): pass
+
 class SingleSelectT(tw2test.WidgetTest):
     widget = tws.DbSingleSelectField
     attrs = {'css_class':'something', 'id' : 'something'}
