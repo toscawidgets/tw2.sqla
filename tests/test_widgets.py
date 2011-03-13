@@ -532,6 +532,58 @@ class AutoListPageT(tw2test.WidgetTest):
         except twc.WidgetError, e:
             assert(False)
 
+    def test_orig_children(self):
+        """ Tests overriding properties (`orig_children`) """
+        
+        class SomeListPage(tws.DbListPage):
+            _no_autoid = True
+            entity = self.DbTestCls1
+            
+            class child(tws.widgets.AutoViewGrid):
+                name = twf.InputField(type='text')
+
+        environ = {
+            'REQUEST_METHOD': 'GET',
+        }
+        req=Request(environ)
+        self.mw.config.debug = True
+        r = SomeListPage.request(req)
+        tw2test.assert_eq_xml(r.body, """
+<html><head><title>Db Test Cls1</title></head><body><h1>Db Test Cls1</h1>
+<table>
+    <tr><th>Name</th><th>Others</th></tr>
+    <tr id="0" class="odd">
+    <td>
+        <input type="text" name="0:name" value="foo1" id="0:name"/>
+    </td>
+    <td>
+        <table id="0:others">
+    <tr><th>Nick</th><th>Other</th></tr>
+    <tr id="0:others:0" class="odd">
+    <td>
+        <span>bob3<input name="0:others:0:nick" type="hidden" id="0:others:0:nick" value="bob3"></span>
+    </td>
+    <td>
+        <span>foo1<input name="0:others:0:other" type="hidden" id="0:others:0:other" value="foo1"></span>
+    </td><td></td></tr>
+    <tr class="error"><td colspan="1" id="0:others:error">
+    </td></tr>
+</table>
+    </td><td></td></tr>
+<tr id="1" class="even">
+    <td>
+        <input type="text" name="1:name" value="foo2" id="1:name"/>
+    </td><td>
+        <table id="1:others">
+    <tr><th>Nick</th><th>Other</th></tr>
+    <tr class="error"><td colspan="0" id="1:others:error">
+    </td></tr></table>
+    </td><td></td>
+    </tr>
+    <tr class="error"><td colspan="2" id=":error">
+    </td></tr></table></body></html>""")
+        
+
 
     def test_request_get(self):
         """ Good lookin' """
