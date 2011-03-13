@@ -309,8 +309,7 @@ class AutoContainer(twc.Widget):
             if hasattr(cls.child, '_orig_children'):
                 orig_children = cls.child._orig_children
             elif hasattr(cls.child, 'children'):
-                orig_children = cls.child.children
-                cls.child._orig_children = orig_children
+                orig_children = cls.child._orig_children = cls.child.children
             else:
                 orig_children = []
             
