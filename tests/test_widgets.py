@@ -342,8 +342,9 @@ class FormPageT(tw2test.WidgetTest):
         assert( r.status_int == 302 and r.location=="/foo" )
 
     def test_request_get(self):
-        environ = {'REQUEST_METHOD': 'GET',}
+        environ = {'REQUEST_METHOD': 'GET', 'QUERY_STRING' :'name=foo2'}
         req=Request(environ)
+        assert(req.GET)
         r = self.widget().request(req)
         tw2test.assert_eq_xml(r.body, """<html>
 <head><title>some title</title></head>
@@ -353,7 +354,7 @@ class FormPageT(tw2test.WidgetTest):
     <tr class="odd" id="dbformpage_d:name:container">
         <th>Name</th>
         <td>
-            <input name="dbformpage_d:name" id="dbformpage_d:name" type="text">
+            <input name="dbformpage_d:name" value="foo2" id="dbformpage_d:name" type="text">
             <span id="dbformpage_d:name:error"></span>
         </td>
     </tr>
