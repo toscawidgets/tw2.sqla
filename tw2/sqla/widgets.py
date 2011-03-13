@@ -306,15 +306,12 @@ class AutoContainer(twc.Widget):
 
         if hasattr(cls, 'entity') and not getattr(cls, '_auto_widgets', False):
             cls._auto_widgets = True
-            orig_children = []
-            if hasattr(cls.child, 'children'):
-                orig_children = cls.child.children
-            
-            new_children = []
             fkey = dict((p.local_side[0].name, p) 
                         for p in sa.orm.class_mapper(cls.entity).iterate_properties 
                         if is_manytoone(p))
+            new_children = []
             used_children = set()
+            orig_children = getattr(cls.child, 'children', [])
 
             for prop in sa.orm.class_mapper(cls.entity).iterate_properties:
                 if is_manytoone(prop):
