@@ -306,12 +306,9 @@ class AutoContainer(twc.Widget):
 
         if hasattr(cls, 'entity') and not getattr(cls, '_auto_widgets', False):
             cls._auto_widgets = True
-            if hasattr(cls.child, '_orig_children'):
-                orig_children = cls.child._orig_children
-            elif hasattr(cls.child, 'children'):
-                orig_children = cls.child._orig_children = cls.child.children
-            else:
-                orig_children = []
+            orig_children = []
+            if hasattr(cls.child, 'children'):
+                orig_children = cls.child.children
             
             new_children = []
             fkey = dict((p.local_side[0].name, p) 
