@@ -80,10 +80,7 @@ class DbFormPage(twf.FormPage):
 
     @classmethod
     def validated_request(cls, req, data):
-        if req.GET:
-            v = cls.entity.query.filter_by(**req.GET.mixed()).first()
-        else:
-            v = cls.entity()
+        v = cls.entity()
 
         session = None
         if not hasattr(v, 'from_dict'):
