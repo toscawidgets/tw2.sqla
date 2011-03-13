@@ -326,7 +326,7 @@ class AutoContainer(twc.Widget):
                 cls.child._orig_children = orig_children
             else:
                 orig_children = []
-
+            
             new_children = []
             fkey = dict((p.local_side[0].name, p) 
                         for p in sa.orm.class_mapper(cls.entity).iterate_properties 
@@ -336,15 +336,16 @@ class AutoContainer(twc.Widget):
             for prop in sa.orm.class_mapper(cls.entity).iterate_properties:
                 if is_manytoone(prop):
                     continue
-                
+
                 # Swap ids and objs
                 prop = fkey.get(prop.key, prop)
 
                 widget_name = prop.key
                 if isinstance(prop, sa.orm.RelationshipProperty):
                     widget_name = prop.local_side[0].name
-                
-                widget = getattr(orig_children, widget_name, None)
+
+                matches = [w for w in orig_children if w.key == widget_name]
+                widget = len(matches) and matches[0] or None
                 if widget:
                     if not issubclass(widget, NoWidget):
                         new_children.append(widget)
@@ -354,8 +355,11 @@ class AutoContainer(twc.Widget):
                     if new_widget:
                         new_children.append(new_widget)
             
-            new_children.extend(
-                [w for w in orig_children if w.id not in used_children])
+            def child_filter(w):
+                return w.key not in used_children and \
+                       w.key not in [W.key for W in new_children]
+
+            new_children.extend(filter(child_filter, orig_children))
             cls.child = cls.child(children=new_children, entity=cls.entity)
 
 
