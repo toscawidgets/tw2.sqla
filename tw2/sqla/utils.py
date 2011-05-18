@@ -7,9 +7,6 @@ def from_dict(entity, data, session=None):
     Adapted from elixir.entity
     """
 
-    # surrogate can be guessed from autoincrement/sequence but I guess
-    # that's not 100% reliable, so we'll need an override
-
     mapper = sa.orm.object_mapper(entity)
     add = False
 
@@ -28,7 +25,24 @@ def from_dict(entity, data, session=None):
 
     if hasattr(entity, 'from_dict'):
         # If `entity` is an Elixir entity, then we can just use their method
+
+        # We *do* however have to delete the temporary object auto-created by
+        # elixir since we can't (politely) force users to disable save_on_init
+        # like so
+
+        ## elixir.options_defaults['mapper_options'] = {'save_on_init': False}
+
+        # Save the temporary entity
+        old_ent = entity
+
+        # Use elixir's own .from_dict
         entity.from_dict(data)
+
+        # If we were modifying a record, then remove the temporarily created one
+        if not add:
+            import elixir
+            elixir.session.delete(old_ent)
+
         return entity
 
     for key, value in data.iteritems():
