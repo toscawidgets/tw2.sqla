@@ -438,6 +438,23 @@ class FormPageT(tw2test.WidgetTest):
         r = self.widget().request(req)
         assert(self.DbTestCls1.query.count() == 2)
 
+    def test_request_post_content_update(self):
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='dbformpage_d:name=b&dbformpage_d:id=1'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        original = self.DbTestCls1.query.filter(self.DbTestCls1.id==1).one()
+        assert(original.name == 'foo1')
+        r = self.widget().request(req)
+        updated = self.DbTestCls1.query.filter(self.DbTestCls1.id==1)
+        assert(updated.count() == 1)
+        updated = updated.one()
+        assert(updated.name == 'b')
+
 class TestFormPageElixir(ElixirBase, FormPageT): pass
 
 class TestFormPageSQLA(SQLABase, FormPageT):
