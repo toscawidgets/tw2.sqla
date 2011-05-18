@@ -13,6 +13,7 @@ def from_dict(entity, data, session=None):
     pk_props = mapper.primary_key
     if [1 for p in pk_props if p.key in data and data[p.key]]:
         # If all of our primary keys are present and non-empty, then load.
+        old_data = dict([(p.key, getattr(entity, p.key)) for p in pk_props])
         kw = dict([(p.key, data[p.key]) for p in pk_props])
         entity = entity.query.filter_by(**kw).one()
     else:
@@ -32,15 +33,14 @@ def from_dict(entity, data, session=None):
 
         ## elixir.options_defaults['mapper_options'] = {'save_on_init': False}
 
-        # Save the temporary entity
-        old_ent = entity
-
-        # Use elixir's own .from_dict
+        # Use elixir's own .from_dict(...)
         entity.from_dict(data)
 
-        # If we were modifying a record, then remove the temporarily created one
         if not add:
+            # If we were modifying a record, then
+            # remove the temporarily created one.
             import elixir
+            old_ent = entity.query.filter_by(**old_data).one()
             elixir.session.delete(old_ent)
 
         return entity

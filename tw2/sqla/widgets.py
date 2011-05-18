@@ -80,7 +80,19 @@ class DbFormPage(twf.FormPage):
 
     @classmethod
     def validated_request(cls, req, data):
+        # Instantiate an object of type `cls.entity`.
         v = cls.entity()
+
+        if hasattr(v, 'flush'):
+            # This is ridiculous but necessary to get elixir and sqlalchemy to
+            # place nice together.  Elixir automatically adds the above entity
+            # `v` to the session whereas sqlalchemy does not (by default).
+
+            # In order that we have access to the primary key of the fake temp
+            # object, we need to do a flush now otherwise we can't identify it
+            # and remove it.
+
+            v.flush()
 
         session = None
         if not hasattr(v, 'from_dict'):
