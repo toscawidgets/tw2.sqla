@@ -24,7 +24,7 @@ def is_onetomany(prop):
 
 class RelatedValidator(twc.IntValidator):
     """Validator for related object
-    
+
     `entity`
         The SQLAlchemy class to use. This must be mapped to a single table with a single primary key column.
         It must also have the SQLAlchemy `query` property; this will be the case for Elixir classes,
@@ -33,7 +33,7 @@ class RelatedValidator(twc.IntValidator):
     msgs = {
         'norel': 'No related object found',
     }
-    
+
     def __init__(self, entity, **kw):
         super(RelatedValidator, self).__init__(**kw)
         cols = list(table_for(entity).primary_key.columns)
@@ -41,7 +41,7 @@ class RelatedValidator(twc.IntValidator):
             raise twc.WidgetError('RelatedValidator can only act on tables that have a single primary key column')
         self.entity = entity
         self.primary_key = cols[0]
-        
+
     def to_python(self, value):
         if not value:
             return None
@@ -91,7 +91,7 @@ class DbFormPage(twf.FormPage):
                 session = pylons.configuration.config['DBSession']
             except ImportError:
                 pass
-        
+
         if not session and not hasattr(v, 'from_dict'):
             raise NotImplementedError, "Neither elixir nor pylons"
 
@@ -109,7 +109,7 @@ class DbListPage(twc.Page):
     newlink = twc.Param('New item widget', default=None)
     template = 'tw2.sqla.templates.dblistpage'
     _no_autoid = True
-    
+
     def fetch_data(self, req):
         self.value = self.entity.query.all()
 
@@ -137,7 +137,7 @@ class DbSelectionField(twf.SelectionField):
 
     def prepare(self):
         self.options = [(x.id, unicode(x)) for x in self.entity.query.all()]
-        super(DbSelectionField, self).prepare()    
+        super(DbSelectionField, self).prepare()
 
 
 class DbSingleSelectField(DbSelectionField, twf.SingleSelectField):
@@ -145,7 +145,7 @@ class DbSingleSelectField(DbSelectionField, twf.SingleSelectField):
     def post_define(cls):
         if getattr(cls, 'entity', None):
             cls.validator = RelatedValidator(entity=cls.entity)
-    
+
 class DbCheckBoxList(DbSelectionField, twf.CheckBoxList):
     @classmethod
     def post_define(cls):
@@ -167,32 +167,32 @@ class DbCheckBoxTable(DbSelectionField, twf.CheckBoxTable):
 
 class WidgetPolicy(object):
     """
-    A policy object is used to generate widgets from SQLAlchemy properties. 
-    
+    A policy object is used to generate widgets from SQLAlchemy properties.
+
     In general, the widget's id is set to the name of the property, and if the
     property is not nullable, the validator is set as required. If the desired
     widget is None, then no widget is used for that property.
-    
+
     Several parameters can be overridden to select the widget to use:
-    
+
     `pkey_widget`
         For primary key properties
-     
+
     `onetomany_widget`
         For foreign key properties. In this case the widget's id is set to the
         name of the relation, and its entity is set to the target class.
-    
+
     `manytoone_widget`
         For foreign key properties. In this case the widget's id is set to the
         name of the relation, and its entity is set to the target class.
-        
+
     `name_widgets`
-        A dictionary mapping property names to the desired widget. This can be 
+        A dictionary mapping property names to the desired widget. This can be
         used for names like "password" or "email".
-    
+
     `type_widgets`
         A dictionary mapping SQLAlchemy property types to the desired widget.
-        
+
     `default_widget`
         If the property does not match any of the other selectors, this is used.
         If this is None then an error is raised for properties that do not match.
@@ -205,7 +205,7 @@ class WidgetPolicy(object):
     onetomany_widget = None
     manytoone_widget = None
     name_widgets = {}
-    type_widgets = {}    
+    type_widgets = {}
     default_widget = None
 
     @classmethod
@@ -241,10 +241,10 @@ class WidgetPolicy(object):
                 widget = cls.default_widget
 
         if widget:
-            args = {'id': prop.key}            
+            args = {'id': prop.key}
             if not sum([c.nullable for c in getattr(prop, 'columns', [])]):
                 args['validator'] = twc.Required
-            
+
             widget = widget(**args)
 
             # TODO - to be determined.  Why is this line necessary?
@@ -264,7 +264,7 @@ class ViewPolicy(WidgetPolicy):
     default_widget = twf.LabelField
 
     ## This gets assigned further down in the file.  It must, because of an
-    ## otherwise circular dependency.  
+    ## otherwise circular dependency.
     #onetomany_widget = AutoViewGrid
 
 
@@ -295,16 +295,16 @@ class AutoContainer(twc.Widget):
     """
     entity = twc.Param('SQLAlchemy mapped class to use', request_local=False)
     policy = twc.Param('WidgetPolicy to use')
-    
+
     @classmethod
     def post_define(cls):
-        if not hasattr(cls, 'entity') and hasattr(cls, 'parent') and hasattr(cls.parent, 'entity'):            
-            cls.entity = cls.parent.entity                        
+        if not hasattr(cls, 'entity') and hasattr(cls, 'parent') and hasattr(cls.parent, 'entity'):
+            cls.entity = cls.parent.entity
 
         if hasattr(cls, 'entity') and not getattr(cls, '_auto_widgets', False):
             cls._auto_widgets = True
-            fkey = dict((p.local_side[0].name, p) 
-                        for p in sa.orm.class_mapper(cls.entity).iterate_properties 
+            fkey = dict((p.local_side[0].name, p)
+                        for p in sa.orm.class_mapper(cls.entity).iterate_properties
                         if is_manytoone(p))
             new_children = []
             used_children = set()
@@ -331,7 +331,7 @@ class AutoContainer(twc.Widget):
                     new_widget = cls.policy.factory(prop)
                     if new_widget:
                         new_children.append(new_widget)
-            
+
             def child_filter(w):
                 return w.key not in used_children and \
                        w.key not in [W.key for W in new_children]

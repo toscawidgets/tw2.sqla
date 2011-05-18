@@ -25,7 +25,7 @@ def from_dict(entity, data, session=None):
             if p.key in data and not data[p.key]:
                 del data[p.key]
         add = True
-    
+
     if hasattr(entity, 'from_dict'):
         # If `entity` is an Elixir entity, then we can just use their method
         entity.from_dict(data)
@@ -66,7 +66,7 @@ def update_or_create(cls, data, session=None):
     """
     Adapted from elixir.entity
     """
-    
+
     if hasattr(cls, 'update_or_create'):
         e = cls.update_or_create(data)
         return e
