@@ -32,8 +32,11 @@ def from_dict(entity, data, session=None):
 
         ## elixir.options_defaults['mapper_options'] = {'save_on_init': False}
 
+        # Get the primary key attribute
+        pk = pk_props[0].key
+
         # Save the temporary entity
-        old_ent = entity
+        old_ent_id = getattr(entity, pk)
 
         # Use elixir's own .from_dict
         entity.from_dict(data)
@@ -41,6 +44,8 @@ def from_dict(entity, data, session=None):
         # If we were modifying a record, then remove the temporarily created one
         if not add:
             import elixir
+            q = elixir.session.query
+            old_ent = q.filter(getattr(type(entity), pk) == old_ent_id).one()
             elixir.session.delete(old_ent)
 
         return entity
