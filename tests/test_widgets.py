@@ -25,15 +25,15 @@ class ElixirBase(object):
             other = el.ManyToOne(DbTestCls1, field=other_id, backref='others')
             def __unicode__(self):
                 return self.nick
-        
+
         class DbTestCls3(el.Entity):
             id1 = el.Field(el.Integer, primary_key=True)
             id2 = el.Field(el.Integer, primary_key=True)
-        
+
         self.DbTestCls1 = DbTestCls1
         self.DbTestCls2 = DbTestCls2
         self.DbTestCls3 = DbTestCls3
-    
+
         el.setup_all()
         el.metadata.create_all()
 
@@ -76,7 +76,7 @@ class SQLABase(object):
         self.DbTestCls1 = DbTestCls1
         self.DbTestCls2 = DbTestCls2
         self.DbTestCls3 = DbTestCls3
-    
+
         Base.metadata.create_all()
 
         foo1 = self.DbTestCls1(id=1, name='foo1')
@@ -107,7 +107,7 @@ class RadioButtonT(tw2test.WidgetTest):
         <label for="something:1">foo2</label>
     </li>
     </ul>"""
-    
+
     def setup(self):
         self.widget = self.widget(entity=self.DbTestCls1)
         return super(RadioButtonT, self).setup()
@@ -155,7 +155,7 @@ class CheckBoxTableT(tw2test.WidgetTest):
             <label for="something:1">foo2</label>
         </td>
     </tr>
-    </tbody></table> 
+    </tbody></table>
     """
 
     def setup(self):
@@ -175,7 +175,7 @@ class SingleSelectT(tw2test.WidgetTest):
     <option value="1">foo1</option>
     <option value="2">foo2</option>
     </select>"""
-    
+
     def setup(self):
         self.widget = self.widget(entity=self.DbTestCls1)
         return super(SingleSelectT, self).setup()
@@ -254,7 +254,7 @@ class ListPageT(tw2test.WidgetTest):
         <a href="cls1">New</a>
 </body>
 </html>""")
- 
+
 
 
 class TestListPageElixir(ElixirBase, ListPageT): pass
@@ -274,6 +274,7 @@ class FormPageT(tw2test.WidgetTest):
     attrs = {
         'child': twf.TableForm(
             children=[
+                twf.HiddenField(id='id'),
                 twf.TextField(id='name'),
             ]),
         'title': 'some title'
@@ -291,6 +292,7 @@ class FormPageT(tw2test.WidgetTest):
         </td>
     </tr>
     <tr class="error"><td colspan="2">
+        <input type="hidden" name="dbformpage_d:id" id="dbformpage_d:id"/>
         <span id="dbformpage_d:error"></span>
     </td></tr>
 </table>
@@ -321,14 +323,15 @@ class FormPageT(tw2test.WidgetTest):
         </td>
     </tr>
     <tr class="error"><td colspan="2">
+        <input type="hidden" name="dbformpage_d:id" value="1" id="dbformpage_d:id"/>
         <span id="dbformpage_d:error"></span>
     </td></tr>
 </table>
     <input type="submit" id="submit" value="Save">
 </form></body>
 </html>""")
- 
-   
+
+
     def test_request_post_redirect(self):
         environ = {'wsgi.input': StringIO('')}
         req=Request(environ)
@@ -359,6 +362,7 @@ class FormPageT(tw2test.WidgetTest):
         </td>
     </tr>
     <tr class="error"><td colspan="2">
+        <input type="hidden" name="dbformpage_d:id" value="2" id="dbformpage_d:id"/>
         <span id="dbformpage_d:error"></span>
     </td></tr>
 </table>
@@ -395,7 +399,7 @@ class FormPageT(tw2test.WidgetTest):
     <input type="submit" id="submit" value="Save">
 </form></body>
 </html>""")
-    
+
     def test_request_post_valid(self):
         environ = {'wsgi.input': StringIO('')}
         req=Request(environ)
@@ -408,6 +412,32 @@ class FormPageT(tw2test.WidgetTest):
         r = self.widget().request(req)
         assert r.body == """Form posted successfully {'name': u'a'}""", r.body
 
+    def test_request_post_counts_new(self):
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='dbformpage_d:name=a'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        assert(self.DbTestCls1.query.count() == 2)
+        r = self.widget().request(req)
+        assert(self.DbTestCls1.query.count() == 3)
+
+    def test_request_post_counts_update(self):
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='dbformpage_d:name=b&dbformpage_d:id=1'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        assert(self.DbTestCls1.query.count() == 2)
+        r = self.widget().request(req)
+        assert(self.DbTestCls1.query.count() == 2)
+
 class TestFormPageElixir(ElixirBase, FormPageT): pass
 
 class TestFormPageSQLA(SQLABase, FormPageT):
@@ -418,9 +448,9 @@ class TestFormPageSQLA(SQLABase, FormPageT):
 
     def test_neither_pylons_nor_elixir(self):
         import sys
-      
+
         # Temporarily hide pylons from the importer
-        import pylons 
+        import pylons
         tmp = sys.modules['pylons']
         sys.modules['pylons'] = None
 
@@ -475,7 +505,7 @@ class AutoListPageT(tw2test.WidgetTest):
 
 
     widget = tws.AutoListPage
-   
+
     # Doesn't make much sense... an AutoList widget with fetch_data not called?
     expected = """
     <html>
@@ -488,7 +518,7 @@ class AutoListPageT(tw2test.WidgetTest):
         </td></tr>
     </table>
     </body>
-    </html> 
+    </html>
     """
 
     declarative = True
@@ -506,7 +536,7 @@ class AutoListPageT(tw2test.WidgetTest):
             assert(str(e) == "Cannot automatically create a widget " +
                    "for many-to-one relation 'other'")
 
-            
+
     def test_exception_onetomany(self):
         class WackPolicy(tws.widgets.WidgetPolicy):
             pass
@@ -562,11 +592,11 @@ class AutoListPageT(tw2test.WidgetTest):
 
     def test_orig_children(self):
         """ Tests overriding properties (`orig_children`) """
-        
+
         class SomeListPage(tws.DbListPage):
             _no_autoid = True
             entity = self.DbTestCls1
-            
+
             class child(tws.widgets.AutoViewGrid):
                 name = twf.InputField(type='text')
 
@@ -610,7 +640,7 @@ class AutoListPageT(tw2test.WidgetTest):
     </tr>
     <tr class="error"><td colspan="2" id=":error">
     </td></tr></table></body></html>""")
-        
+
 
 
     def test_request_get(self):
@@ -777,7 +807,7 @@ class AutoViewGridT(tw2test.WidgetTest):
 
     widget = tws.AutoViewGrid
     attrs = { 'id' : 'autogrid' }
-    
+
     expected = """
     <table id='autogrid'>
     <tr><th>Name</th><th>Others</th></tr>
