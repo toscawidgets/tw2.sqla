@@ -1,4 +1,4 @@
-import tw2.core as twc, tw2.sqla as tws, sqlalchemy as sa, elixir as el, webtest, webob as wo, threading, os
+import tw2.core as twc, tw2.sqla as tws, sqlalchemy as sa, elixir as el, webtest, webob as wo, threading, os, random
 
 #import testapi
 
@@ -6,8 +6,10 @@ class TestTransactions(object):
     def setup(self):
         #testapi.setup()
         # Note: we can't use :memory: from two threads
-        if os.path.exists('test.db'):
+        try:
             os.unlink('test.db')
+        except:
+            pass
         el.metadata = sa.MetaData('sqlite:///test.db')
         el.session = tws.transactional_session()
         class Test(el.Entity):

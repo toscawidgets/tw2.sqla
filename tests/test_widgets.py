@@ -97,7 +97,7 @@ class RadioButtonT(tw2test.WidgetTest):
     attrs = {'css_class':'something', 'id' : 'something'}
     params = {'checked':None}
     expected = """
-    <ul class="something" name="something" id="something">
+    <ul class="something" id="something">
     <li>
         <input type="radio" name="something" value="1" id="something:0"/>
         <label for="something:0">foo1</label>
@@ -120,7 +120,7 @@ class CheckBoxT(tw2test.WidgetTest):
     attrs = {'css_class':'something', 'id' : 'something'}
     params = {'checked':None}
     expected = """
-    <ul class="something" name="something" id="something">
+    <ul class="something" id="something">
     <li>
         <input type="checkbox" name="something" value="1" id="something:0"/>
         <label for="something:0">foo1</label>
@@ -143,7 +143,7 @@ class CheckBoxTableT(tw2test.WidgetTest):
     attrs = {'css_class':'something', 'id' : 'something'}
     params = {'checked':None}
     expected = """
-    <table class="something" id="something" name="something"><tbody>
+    <table class="something" id="something"><tbody>
     <tr>
         <td>
             <input type="checkbox" name="something" value="1" id="something:0">
