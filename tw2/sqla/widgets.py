@@ -45,6 +45,11 @@ class RelatedValidator(twc.IntValidator):
     def to_python(self, value):
         if not value:
             return None
+
+        # How could this happen (that we are already to_python'd)?
+        if isinstance(value, self.entity):
+            return value
+
         if isinstance(self.primary_key.type, sa.types.Integer):
             try:
                 value = int(value)
