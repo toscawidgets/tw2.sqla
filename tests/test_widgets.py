@@ -463,13 +463,9 @@ class TestFormPageSQLA(SQLABase, FormPageT):
         import pylons
         pylons.configuration.config.setdefault('DBSession', self.session)
 
-    def test_neither_pylons_nor_elixir(self):
-        import sys
-
-        # Temporarily hide pylons from the importer
-        import pylons
-        tmp = sys.modules['pylons']
-        sys.modules['pylons'] = None
+    def test_no_query_property(self):
+        old_prop = self.widget.entity.query
+        self.widget.entity.query = None
 
         environ = {'wsgi.input': StringIO('')}
         req=Request(environ)
@@ -482,38 +478,12 @@ class TestFormPageSQLA(SQLABase, FormPageT):
         try:
             r = self.widget().request(req)
             assert False
-        except NotImplementedError, e:
-            assert(str(e) == 'Neither elixir nor pylons')
+        except AttributeError, e:
+            print e
+            assert(str(e) == 'entity has no query_property()')
         finally:
-            sys.modules['pylons'] = tmp
+            self.widget.entity.query = old_prop
 
-    def test_no_DBSession(self):
-        # Temporarily remove the pylons configuration
-        import sys
-        tmp = {}
-        for m in sys.modules.keys():
-            if 'pylons' in m.lower():
-                tmp[m] = sys.modules[m]
-                del sys.modules[m]
-
-        environ = {'wsgi.input': StringIO('')}
-        req=Request(environ)
-        req.method = 'POST'
-        req.body='dbformpage_d:name=a'
-        req.environ['CONTENT_LENGTH'] = str(len(req.body))
-        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
-
-        self.mw.config.debug = True
-        try:
-            r = self.widget().request(req)
-            assert False
-        except KeyError, e:
-            msg = '\'pylons config must contain a DBSession\''
-            assert(str(e) == msg)
-        finally:
-            # Restore pylons
-            for k, v in tmp.iteritems():
-                sys.modules[k] = v
 
 class AutoListPageT(tw2test.WidgetTest):
     def setup(self):

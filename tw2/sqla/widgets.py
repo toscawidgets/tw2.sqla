@@ -97,15 +97,9 @@ class DbFormPage(twf.FormPage):
         session = None
         if not hasattr(v, 'from_dict'):
             try:
-                import pylons
-                if not 'DBSession' in pylons.configuration.config:
-                    raise KeyError, 'pylons config must contain a DBSession'
-                session = pylons.configuration.config['DBSession']
-            except ImportError:
-                pass
-
-        if not session and not hasattr(v, 'from_dict'):
-            raise NotImplementedError, "Neither elixir nor pylons"
+                session = cls.entity.query.session
+            except AttributeError as e:
+                raise AttributeError("entity has no query_property()")
 
         v = from_dict(v, data, session=session)
         transaction.commit()
