@@ -3,7 +3,15 @@ import sqlalchemy.types as sat, tw2.dynforms as twd
 from zope.sqlalchemy import ZopeTransactionExtension
 import transaction
 
-from itertools import product
+
+try:
+    from itertools import product
+except ImportError:
+    # Python 2.5 support
+    def product(x, y):
+        for i in x:
+            for j in y:
+                yield (i,j)
 
 from tw2.sqla.utils import from_dict
 
