@@ -134,7 +134,9 @@ class BaseObject(object):
             ]
         }
        
-        e = twsu.from_dict(self.DBTestCls1(), d)
+        x = self.DBTestCls1()
+        self.session.add(x)
+        e = twsu.from_dict(x, d)
         if hasattr(self, 'session'):
             self.session.flush()
         print e.id
@@ -165,12 +167,18 @@ class BaseObject(object):
                              'to list relationships in from_dict data.')
    
     def test_from_dict_prm_tamp_mto(self):
-        # DBTestCls2 has a ManyToOne relation to DBTestCls1
         # When updating a DBTestCls2 object, it should only be possible to modify
         # a DBTestCls1 object that is related to that object.
         prev_name = self.DBTestCls1.query.get(1).name
         twsu.from_dict(self.DBTestCls2.query.get(2), {'other': {'id':1, 'name':prev_name+'_fred'}})
         assert(self.DBTestCls1.query.get(1).name == prev_name)
+
+    def test_from_dict_prm_tamp_otm(self):
+        # When updating a DBTestCls1 object, it should only be possible to modify
+        # a DBTestCls2 object that is related to that object.
+        prev_nick = self.DBTestCls2.query.get(1).nick
+        twsu.from_dict(self.DBTestCls1(), {'others': [{'id':1, 'nick':prev_nick+'_fred'}]})
+        assert(self.DBTestCls2.query.get(1).nick == prev_nick)
 
     def test_update_or_create(self):
         d = { 'name' : 'winboat' }

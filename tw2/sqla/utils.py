@@ -22,20 +22,30 @@ def from_dict(entity, data):
             from_dict(record, value)
         elif isinstance(value, list) and \
              value and isinstance(value[0], dict):
-
-            rel_class = mapper.get_property(key).mapper.class_
-            new_attr_value = []
-            for row in value:
-                if not isinstance(row, dict):
-                    raise Exception(
-                            'Cannot send mixed (dict/non dict) data '
-                            'to list relationships in from_dict data.')
-                record = update_or_create(rel_class, row)
-                new_attr_value.append(record)
-            setattr(entity, key, new_attr_value)
+            from_list(mapper.get_property(key).mapper.class_, getattr(entity, key), value)
         else:
             setattr(entity, key, value)
     return entity
+
+
+def from_list(entity, objects, data):
+    mapper = sa.orm.class_mapper(entity)    
+    pkey_fields = [f.key for f in mapper.primary_key]
+    obj_map = dict((mapper.primary_key_from_instance(o), o) for o in objects)
+    for row in data:
+        if not isinstance(row, dict):
+            raise Exception(
+                    'Cannot send mixed (dict/non dict) data '
+                    'to list relationships in from_dict data.')
+        pkey = tuple(row.get(f) for f in pkey_fields)
+        obj = obj_map.pop(pkey, None)
+        if not obj:
+            obj = entity()
+            objects.append(obj)
+        from_dict(obj, row)
+    for d in obj_map.values():
+        objects.remove(d)
+
 
 def update_or_create(cls, data):
     """
