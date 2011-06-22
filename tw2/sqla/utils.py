@@ -15,9 +15,11 @@ def from_dict(entity, data):
 
     for key, value in data.iteritems():
         if isinstance(value, dict):
-            rel_class = mapper.get_property(key).mapper.class_
-            record = update_or_create(rel_class, value)
-            setattr(entity, key, record)
+            record = getattr(entity, key)
+            if not record:
+                record = mapper.get_property(key).mapper.class_()
+                setattr(entity, key, record)
+            from_dict(record, value)
         elif isinstance(value, list) and \
              value and isinstance(value[0], dict):
 

@@ -88,17 +88,17 @@ class BaseObject(object):
             'id' : None,
             'nick' : 'bazaar',
             'other' : {
-                'id' : 1,
                 'name' : 'foo'
             }
         }
        
-        e = twsu.from_dict(self.DBTestCls2(), d)
+        x = self.DBTestCls2()
+        self.session.add(x)
+        e = twsu.from_dict(x, d)
         if hasattr(self, 'session'):
             self.session.flush()
         assert( e.id == 3 )
         assert( e.nick == 'bazaar' )
-        assert( e.other.id == 1 )
         assert( e.other.name == 'foo' )
 
     def test_from_dict_new_many_to_one_by_dict(self):
@@ -110,7 +110,9 @@ class BaseObject(object):
             }
         }
        
-        e = twsu.from_dict(self.DBTestCls2(), d)
+        x = self.DBTestCls2()
+        self.session.add(x)
+        e = twsu.from_dict(x, d)
         if hasattr(self, 'session'):
             self.session.flush()
         print e.id
@@ -162,6 +164,14 @@ class BaseObject(object):
             assert(str(e) == 'Cannot send mixed (dict/non dict) data ' +
                              'to list relationships in from_dict data.')
    
+    def test_from_dict_prm_tamp_mto(self):
+        # DBTestCls2 has a ManyToOne relation to DBTestCls1
+        # When updating a DBTestCls2 object, it should only be possible to modify
+        # a DBTestCls1 object that is related to that object.
+        prev_name = self.DBTestCls1.query.get(1).name
+        twsu.from_dict(self.DBTestCls2.query.get(2), {'other': {'id':1, 'name':prev_name+'_fred'}})
+        assert(self.DBTestCls1.query.get(1).name == prev_name)
+
     def test_update_or_create(self):
         d = { 'name' : 'winboat' }
         e = twsu.update_or_create(self.DBTestCls1, d)
