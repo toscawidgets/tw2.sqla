@@ -94,6 +94,7 @@ class SQLABase(object):
 
 class RadioButtonT(tw2test.WidgetTest):
     widget = tws.DbRadioButtonList
+    declarative = True
     attrs = {'css_class':'something', 'id' : 'something'}
     params = {'checked':None}
     expected = """
@@ -108,6 +109,10 @@ class RadioButtonT(tw2test.WidgetTest):
     </li>
     </ul>"""
 
+    def test_validation(self):
+        value = self.widget.validate({'something':'1'})
+        assert(value is self.DbTestCls1.query.get(1))
+
     def setup(self):
         self.widget = self.widget(entity=self.DbTestCls1)
         return super(RadioButtonT, self).setup()
@@ -118,6 +123,7 @@ class TestRadioButtonSQLA(SQLABase, RadioButtonT): pass
 class CheckBoxT(tw2test.WidgetTest):
     widget = tws.DbCheckBoxList
     attrs = {'css_class':'something', 'id' : 'something'}
+    declarative = True
     params = {'checked':None}
     expected = """
     <ul class="something" id="something">
@@ -131,6 +137,10 @@ class CheckBoxT(tw2test.WidgetTest):
     </li>
     </ul>"""
 
+    def test_validation(self):
+        value = self.widget.validate({'something':'1'})
+        assert(value == [self.DbTestCls1.query.get(1)])
+
     def setup(self):
         self.widget = self.widget(entity=self.DbTestCls1)
         return super(CheckBoxT, self).setup()
@@ -141,6 +151,7 @@ class TestCheckBoxSQLA(SQLABase, CheckBoxT): pass
 class CheckBoxTableT(tw2test.WidgetTest):
     widget = tws.DbCheckBoxTable
     attrs = {'css_class':'something', 'id' : 'something'}
+    declarative = True
     params = {'checked':None}
     expected = """
     <table class="something" id="something"><tbody>
@@ -158,6 +169,10 @@ class CheckBoxTableT(tw2test.WidgetTest):
     </tbody></table>
     """
 
+    def test_validation(self):
+        value = self.widget.validate({'something':'1'})
+        assert(value == [self.DbTestCls1.query.get(1)])
+
     def setup(self):
         self.widget = self.widget(entity=self.DbTestCls1)
         return super(CheckBoxTableT, self).setup()
@@ -168,6 +183,7 @@ class TestCheckBoxTableSQLA(SQLABase, CheckBoxTableT): pass
 class SingleSelectT(tw2test.WidgetTest):
     widget = tws.DbSingleSelectField
     attrs = {'css_class':'something', 'id' : 'something'}
+    declarative = True
     params = {'checked':None}
     expected = """
     <select class="something" name="something" id="something">
@@ -175,6 +191,10 @@ class SingleSelectT(tw2test.WidgetTest):
     <option value="1">foo1</option>
     <option value="2">foo2</option>
     </select>"""
+
+    def test_validation(self):
+        value = self.widget.validate({'something':'1'})
+        assert(value is self.DbTestCls1.query.get(1))
 
     def setup(self):
         self.widget = self.widget(entity=self.DbTestCls1)

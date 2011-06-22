@@ -126,6 +126,7 @@ class DbSelectionField(twf.SelectionField):
     entity = twc.Param('SQLAlchemy mapped class to use', request_local=False)
 
     def prepare(self):
+        # avoid hardcoded id
         self.options = [(x.id, unicode(x)) for x in self.entity.query.all()]
         super(DbSelectionField, self).prepare()
 
@@ -146,7 +147,7 @@ class DbRadioButtonList(DbSelectionField, twf.RadioButtonList):
     @classmethod
     def post_define(cls):
         if getattr(cls, 'entity', None):
-            cls.item_validator = RelatedValidator(entity=cls.entity)
+            cls.validator = RelatedValidator(entity=cls.entity)
 
 class DbCheckBoxTable(DbSelectionField, twf.CheckBoxTable):
     @classmethod
@@ -234,12 +235,7 @@ class WidgetPolicy(object):
             args = {'id': prop.key}
             if not sum([c.nullable for c in getattr(prop, 'columns', [])]):
                 args['validator'] = twc.Required
-
             widget = widget(**args)
-
-            # TODO - to be determined.  Why is this line necessary?
-            # Without it, some tests fail that shouldn't.
-            widget.display()
 
         return widget
 
