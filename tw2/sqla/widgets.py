@@ -14,12 +14,6 @@ except ImportError:
                 yield (i,j)
 
 
-def table_for(entity):
-    mapper = sa.orm.class_mapper(entity)
-    if len(mapper.tables) != 1:
-        raise twc.WidgetError('Can only act on entities that map to a single table')
-    return mapper.tables[0]
-
 def is_manytoone(prop):
     return isinstance(prop, sa.orm.RelationshipProperty) and \
             prop.direction.name == 'MANYTOONE'
@@ -43,7 +37,7 @@ class RelatedValidator(twc.IntValidator):
 
     def __init__(self, entity, **kw):
         super(RelatedValidator, self).__init__(**kw)
-        cols = list(table_for(entity).primary_key.columns)
+        cols = sa.orm.class_mapper(entity).primary_key
         if len(cols) != 1:
             raise twc.WidgetError('RelatedValidator can only act on tables that have a single primary key column')
         self.entity = entity

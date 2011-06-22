@@ -8,12 +8,6 @@ class BaseObject(object):
     def setUp(self):
         raise NotImplementedError, "Must be subclassed."
 
-    def test_multiple_tables(self):
-        try:
-            tws.widgets.table_for(self.DBTestCls1)
-            assert(False)
-        except Exception, e:
-            assert(str(e) == 'Can only act on entities that map to a single table')
 
 # TODO -- How can we test this with Elixir?
 
