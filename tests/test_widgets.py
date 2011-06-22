@@ -410,7 +410,7 @@ class FormPageT(tw2test.WidgetTest):
 
         self.mw.config.debug = True
         r = self.widget().request(req)
-        assert r.body == """Form posted successfully {'name': u'a'}""", r.body
+        assert r.body == """Form posted successfully {'id': None, 'name': u'a'}""", r.body
 
     def test_request_post_counts_new(self):
         environ = {'wsgi.input': StringIO('')}

@@ -1,34 +1,40 @@
 import sqlalchemy as sa
 
-def from_dict(entity, data):
+def from_dict(obj, data):
     """
-    Update a mapped class with data from a JSON-style nested dict/list
+    Update a mapped object with data from a JSON-style nested dict/list
     structure.
-    Adapted from elixir.entity
+
+    To protect against parameter tampering attacks, primary key fields are 
+    never overwritten.
     """
 
-    mapper = sa.orm.object_mapper(entity)
-
-    pk_props = mapper.primary_key
-    for p in pk_props:
-        data.pop(p.key, None)
+    mapper = sa.orm.object_mapper(obj)
+    pk_props = set(p.key for p in mapper.primary_key)
 
     for key, value in data.iteritems():
         if isinstance(value, dict):
-            record = getattr(entity, key)
+            record = getattr(obj, key)
             if not record:
                 record = mapper.get_property(key).mapper.class_()
-                setattr(entity, key, record)
+                setattr(obj, key, record)
             from_dict(record, value)
         elif isinstance(value, list) and \
              value and isinstance(value[0], dict):
-            from_list(mapper.get_property(key).mapper.class_, getattr(entity, key), value)
-        else:
-            setattr(entity, key, value)
-    return entity
+            from_list(mapper.get_property(key).mapper.class_, getattr(obj, key), value)
+        elif key not in pk_props:
+            setattr(obj, key, value)
+    return obj
 
 
 def from_list(entity, objects, data):
+    """
+    Update a list of mapped objects with data from a JSON-style nested dict/list
+    structure.
+    
+    To protect against parameter tampering attacks, if the primary key field(s) 
+    for a row do not exactly match an existing object then a new object is created.
+    """
     mapper = sa.orm.class_mapper(entity)    
     pkey_fields = [f.key for f in mapper.primary_key]
     obj_map = dict((mapper.primary_key_from_instance(o), o) for o in objects)
@@ -48,9 +54,6 @@ def from_list(entity, objects, data):
 
 
 def update_or_create(cls, data):
-    """
-    Adapted from elixir.entity
-    """
 
     try:
         session = cls.query.session
@@ -65,9 +68,8 @@ def update_or_create(cls, data):
         if record is None:
             raise Exception("cannot create with pk")
     else:
-        add = True        
         record = cls()
         session.add(record)
-        
+
     record = from_dict(record, data)
     return record
