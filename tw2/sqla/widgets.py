@@ -1,7 +1,7 @@
 import tw2.core as twc, tw2.forms as twf, webob, sqlalchemy as sa, sys
 import sqlalchemy.types as sat, tw2.dynforms as twd
 from zope.sqlalchemy import ZopeTransactionExtension
-import transaction
+import transaction, utils
 
 
 try:
@@ -13,7 +13,6 @@ except ImportError:
             for j in y:
                 yield (i,j)
 
-from tw2.sqla.utils import from_dict
 
 def table_for(entity):
     mapper = sa.orm.class_mapper(entity)
@@ -93,30 +92,12 @@ class DbFormPage(twf.FormPage):
 
     @classmethod
     def validated_request(cls, req, data):
-        # Instantiate an object of type `cls.entity`.
-        v = cls.entity()
-
-        if hasattr(v, 'flush'):
-            # This is ridiculous but necessary to get elixir and sqlalchemy to
-            # place nice together.  Elixir automatically adds the above entity
-            # `v` to the session whereas sqlalchemy does not (by default).
-
-            # In order that we have access to the primary key of the fake temp
-            # object, we need to do a flush now otherwise we can't identify it
-            # and remove it.
-
-            v.flush()
-
-        session = None
-        if not hasattr(v, 'from_dict'):
-            try:
-                session = cls.entity.query.session
-            except AttributeError as e:
-                raise AttributeError("entity has no query_property()")
-
-        v = from_dict(v, data, session=session)
+        try:
+            session = cls.entity.query.session
+        except AttributeError:
+            raise AttributeError("entity has no query_property()")
+        utils.update_or_create(cls.entity, data, session)
         transaction.commit()
-
         if hasattr(cls, 'redirect'):
             return webob.Response(request=req, status=302, location=cls.redirect)
         else:

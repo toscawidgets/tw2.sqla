@@ -24,39 +24,11 @@ def from_dict(entity, data, session=None):
                 del data[p.key]
         add = True
 
-    if hasattr(entity, 'from_dict'):
-        # If `entity` is an Elixir entity, then we can just use their method
-
-        # We *do* however have to delete the temporary object auto-created by
-        # elixir since we can't (politely) force users to disable save_on_init
-        # like so
-
-        ## elixir.options_defaults['mapper_options'] = {'save_on_init': False}
-
-        # Use elixir's own .from_dict(...)
-        entity.from_dict(data)
-
-        if not add:
-            # If we were modifying a record, then
-            # remove the temporarily created one.
-            import elixir
-            old_ent = entity.query.filter_by(**old_data).one()
-            elixir.session.delete(old_ent)
-
-        return entity
-
     for key, value in data.iteritems():
         if isinstance(value, dict):
-            dbvalue = getattr(entity, key)
             rel_class = mapper.get_property(key).mapper.class_
-            pk_props = rel_class.__mapper__.primary_key
-
-            if not [1 for p in pk_props if p.key in data] and \
-               dbvalue is not None:
-                dbvalue = from_dict(dbvalue, value, session=session)
-            else:
-                record = update_or_create(rel_class, value, session=session)
-                setattr(entity, key, record)
+            record = update_or_create(rel_class, value, session=session)
+            setattr(entity, key, record)
         elif isinstance(value, list) and \
              value and isinstance(value[0], dict):
 
@@ -81,11 +53,7 @@ def update_or_create(cls, data, session=None):
     Adapted from elixir.entity
     """
 
-    if hasattr(cls, 'update_or_create'):
-        e = cls.update_or_create(data)
-        return e
-
-    pk_props = cls.__mapper__.primary_key
+    pk_props = sa.orm.class_mapper(cls).primary_key
     add = False
     # if all pk are present
     if not [1 for p in pk_props if not data.get(p.key)]:
