@@ -92,11 +92,7 @@ class DbFormPage(twf.FormPage):
 
     @classmethod
     def validated_request(cls, req, data):
-        try:
-            session = cls.entity.query.session
-        except AttributeError:
-            raise AttributeError("entity has no query_property()")
-        utils.update_or_create(cls.entity, data, session)
+        utils.update_or_create(cls.entity, data)
         transaction.commit()
         if hasattr(cls, 'redirect'):
             return webob.Response(request=req, status=302, location=cls.redirect)

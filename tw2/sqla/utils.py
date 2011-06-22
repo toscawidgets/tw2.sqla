@@ -1,6 +1,6 @@
 import sqlalchemy as sa
 
-def from_dict(entity, data, session=None):
+def from_dict(entity, data):
     """
     Update a mapped class with data from a JSON-style nested dict/list
     structure.
@@ -8,26 +8,15 @@ def from_dict(entity, data, session=None):
     """
 
     mapper = sa.orm.object_mapper(entity)
-    add = False
 
     pk_props = mapper.primary_key
-    if [1 for p in pk_props if p.key in data and data[p.key]]:
-        # If all of our primary keys are present and non-empty, then load.
-        old_data = dict([(p.key, getattr(entity, p.key)) for p in pk_props])
-        kw = dict([(p.key, data[p.key]) for p in pk_props])
-        entity = entity.query.filter_by(**kw).one()
-    else:
-        # If any primary keys were specified as empty, ditch 'em.
-        # This happens with ``id = tw2.forms.HiddenField``
-        for p in pk_props:
-            if p.key in data and not data[p.key]:
-                del data[p.key]
-        add = True
+    for p in pk_props:
+        data.pop(p.key, None)
 
     for key, value in data.iteritems():
         if isinstance(value, dict):
             rel_class = mapper.get_property(key).mapper.class_
-            record = update_or_create(rel_class, value, session=session)
+            record = update_or_create(rel_class, value)
             setattr(entity, key, record)
         elif isinstance(value, list) and \
              value and isinstance(value[0], dict):
@@ -39,32 +28,34 @@ def from_dict(entity, data, session=None):
                     raise Exception(
                             'Cannot send mixed (dict/non dict) data '
                             'to list relationships in from_dict data.')
-                record = update_or_create(rel_class, row, session=session)
+                record = update_or_create(rel_class, row)
                 new_attr_value.append(record)
             setattr(entity, key, new_attr_value)
         else:
             setattr(entity, key, value)
-    if add and session:
-        session.add(entity)
     return entity
 
-def update_or_create(cls, data, session=None):
+def update_or_create(cls, data):
     """
     Adapted from elixir.entity
     """
 
+    try:
+        session = cls.query.session
+    except AttributeError:
+        raise AttributeError("entity has no query_property()")
+
     pk_props = sa.orm.class_mapper(cls).primary_key
-    add = False
     # if all pk are present
-    if not [1 for p in pk_props if not data.get(p.key)]:
+    if [1 for p in pk_props if data.get(p.key)]:
         pk_tuple = tuple([data[prop.key] for prop in pk_props])
         record = cls.query.get(pk_tuple)
         if record is None:
             raise Exception("cannot create with pk")
     else:
-        add = True
+        add = True        
         record = cls()
-    record = from_dict(record, data, session=session)
-    if add:
         session.add(record)
+        
+    record = from_dict(record, data)
     return record

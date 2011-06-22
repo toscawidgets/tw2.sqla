@@ -12,8 +12,7 @@ class BaseObject(object):
         d = {
             'id' : 1,
         }
-        e = twsu.from_dict(self.DBTestCls1.query.filter_by(**d).first(),
-                           d, getattr(self, 'session', None))
+        e = twsu.from_dict(self.DBTestCls1.query.filter_by(**d).first(), d)
         if hasattr(self, 'session'):
             self.session.flush()
         assert( e.id == 1 )
@@ -25,7 +24,9 @@ class BaseObject(object):
 
     def test_query_from_dict_empty(self):
         d = {}
-        e = twsu.from_dict(self.DBTestCls1(), d, getattr(self, 'session', None))
+        x = self.DBTestCls1()
+        self.session.add(x)
+        e = twsu.from_dict(x, d)
         if hasattr(self, 'session'):
             self.session.flush()
 
@@ -38,7 +39,9 @@ class BaseObject(object):
             'id' : None,
             'name' : 'bazaar',
         }
-        e = twsu.from_dict(self.DBTestCls1(), d, getattr(self, 'session', None))
+        x = self.DBTestCls1()
+        self.session.add(x)
+        e = twsu.from_dict(x, d)
         if hasattr(self, 'session'):
             self.session.flush()
 
@@ -74,8 +77,7 @@ class BaseObject(object):
             }
         }
        
-        e = twsu.from_dict(self.DBTestCls2.query.first(), d,
-                           getattr(self, 'session', None))
+        e = twsu.from_dict(self.DBTestCls2.query.first(), d)
         if hasattr(self, 'session'):
             self.session.flush()
         assert( self.DBTestCls2.query.first().nick == 'updated' )
@@ -91,7 +93,7 @@ class BaseObject(object):
             }
         }
        
-        e = twsu.from_dict(self.DBTestCls2(), d, getattr(self, 'session', None))
+        e = twsu.from_dict(self.DBTestCls2(), d)
         if hasattr(self, 'session'):
             self.session.flush()
         assert( e.id == 3 )
@@ -108,7 +110,7 @@ class BaseObject(object):
             }
         }
        
-        e = twsu.from_dict(self.DBTestCls2(), d, getattr(self, 'session', None))
+        e = twsu.from_dict(self.DBTestCls2(), d)
         if hasattr(self, 'session'):
             self.session.flush()
         print e.id
@@ -130,7 +132,7 @@ class BaseObject(object):
             ]
         }
        
-        e = twsu.from_dict(self.DBTestCls1(), d, getattr(self, 'session', None))
+        e = twsu.from_dict(self.DBTestCls1(), d)
         if hasattr(self, 'session'):
             self.session.flush()
         print e.id
@@ -154,8 +156,7 @@ class BaseObject(object):
         }
       
         try:
-            e = twsu.from_dict(self.DBTestCls1(), d,
-                               getattr(self, 'session', None))
+            e = twsu.from_dict(self.DBTestCls1(), d)
             assert(False)
         except Exception, e:
             assert(str(e) == 'Cannot send mixed (dict/non dict) data ' +
@@ -163,13 +164,13 @@ class BaseObject(object):
    
     def test_update_or_create(self):
         d = { 'name' : 'winboat' }
-        e = twsu.update_or_create(self.DBTestCls1, d, self.session)
+        e = twsu.update_or_create(self.DBTestCls1, d)
         self.session.flush()
         assert(e.id == 2)
         assert(e.name == 'winboat')
 
         d = { 'id' : 1, 'name' : 'winboat' }
-        e = twsu.update_or_create(self.DBTestCls1, d, self.session)
+        e = twsu.update_or_create(self.DBTestCls1, d)
         self.session.flush()
         assert(e.id == 1)
         assert(e.name == 'winboat')
@@ -180,7 +181,7 @@ class BaseObject(object):
             'name' : 'failboat'
         }
         try:
-            e = twsu.update_or_create(self.DBTestCls1, d, self.session)
+            e = twsu.update_or_create(self.DBTestCls1, d)
             assert(False)
         except Exception, e:
             assert([s in str(e) for s in ['cannot create', 'with pk']])
