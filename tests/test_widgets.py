@@ -278,12 +278,8 @@ class ListPageT(tw2test.WidgetTest):
 
 
 class TestListPageElixir(ElixirBase, ListPageT): pass
+class TestListPageSQLA(SQLABase, ListPageT): pass
 
-class TestListPageSQLA(SQLABase, ListPageT):
-    def setup(self):
-        super(TestListPageSQLA, self).setup()
-        import pylons
-        pylons.configuration.config.setdefault('DBSession', self.session)
 
 class FormPageT(tw2test.WidgetTest):
     def setup(self):
@@ -478,11 +474,6 @@ class FormPageT(tw2test.WidgetTest):
 class TestFormPageElixir(ElixirBase, FormPageT): pass
 
 class TestFormPageSQLA(SQLABase, FormPageT):
-    def setup(self):
-        super(TestFormPageSQLA, self).setup()
-        import pylons
-        pylons.configuration.config.setdefault('DBSession', self.session)
-
     def test_no_query_property(self):
         old_prop = self.widget.entity.query
         self.widget.entity.query = None
@@ -710,11 +701,7 @@ class AutoListPageT(tw2test.WidgetTest):
 
 
 class TestAutoListPageElixir(ElixirBase, AutoListPageT): pass
-class TestAutoListPageSQLA(SQLABase, AutoListPageT):
-    def setup(self):
-        super(TestAutoListPageSQLA, self).setup()
-        import pylons
-        pylons.configuration.config.setdefault('DBSession', self.session)
+class TestAutoListPageSQLA(SQLABase, AutoListPageT): pass
 
 # TODO -- do AutoListPageEDIT here
 
@@ -756,11 +743,8 @@ class AutoTableFormT1(tw2test.WidgetTest):
 </form>"""
 
 class TestAutoTableForm1Elixir(ElixirBase, AutoTableFormT1): pass
-class TestAutoTableForm1SQLA(SQLABase, AutoTableFormT1):
-    def setup(self):
-        super(TestAutoTableForm1SQLA, self).setup()
-        import pylons
-        pylons.configuration.config.setdefault('DBSession', self.session)
+class TestAutoTableForm1SQLA(SQLABase, AutoTableFormT1): pass
+
 
 class AutoTableFormT2(tw2test.WidgetTest):
     def setup(self):
@@ -800,11 +784,7 @@ class AutoTableFormT2(tw2test.WidgetTest):
 """
 
 class TestAutoTableForm2Elixir(ElixirBase, AutoTableFormT2): pass
-class TestAutoTableForm2SQLA(SQLABase, AutoTableFormT2):
-    def setup(self):
-        super(TestAutoTableForm2SQLA, self).setup()
-        import pylons
-        pylons.configuration.config.setdefault('DBSession', self.session)
+class TestAutoTableForm2SQLA(SQLABase, AutoTableFormT2): pass
 
 
 class AutoViewGridT(tw2test.WidgetTest):
@@ -823,11 +803,8 @@ class AutoViewGridT(tw2test.WidgetTest):
 
 
 class TestAutoViewGridElixir(ElixirBase, AutoViewGridT): pass
-class TestAutoViewGridSQLA(SQLABase, AutoViewGridT):
-    def setup(self):
-        super(TestAutoViewGridSQLA, self).setup()
-        import pylons
-        pylons.configuration.config.setdefault('DBSession', self.session)
+class TestAutoViewGridSQLA(SQLABase, AutoViewGridT): pass
+
 
 class AutoGrowingGridT(tw2test.WidgetTest):
     def setup(self):
@@ -871,11 +848,7 @@ class AutoGrowingGridT(tw2test.WidgetTest):
     </table>"""
 
 class TestAutoGrowingGridElixir(ElixirBase, AutoGrowingGridT): pass
-class TestAutoGrowingGridSQLA(SQLABase, AutoGrowingGridT):
-    def setup(self):
-        super(TestAutoGrowingGridSQLA, self).setup()
-        import pylons
-        pylons.configuration.config.setdefault('DBSession', self.session)
+class TestAutoGrowingGridSQLA(SQLABase, AutoGrowingGridT): pass
 
 
 class AutoGrowingGridAsChildT(tw2test.WidgetTest):
@@ -922,13 +895,9 @@ class AutoGrowingGridAsChildT(tw2test.WidgetTest):
     </tr>
     </table></body></html>"""
 
-class TestAutoGrowingGridAsChildElixir(ElixirBase, AutoGrowingGridAsChildT):
-    pass
-class TestAutoGrowingGridAsChildSQLA(SQLABase, AutoGrowingGridAsChildT):
-    def setup(self):
-        super(TestAutoGrowingGridAsChildSQLA, self).setup()
-        import pylons
-        pylons.configuration.config.setdefault('DBSession', self.session)
+class TestAutoGrowingGridAsChildElixir(ElixirBase, AutoGrowingGridAsChildT): pass
+class TestAutoGrowingGridAsChildSQLA(SQLABase, AutoGrowingGridAsChildT): pass
+
 
 class AutoGrowingGridAsChildWithRelationshipT(tw2test.WidgetTest):
     def setup(self):
@@ -982,8 +951,4 @@ class TestAutoGrowingGridAsChildWithRelationshipElixir(
     ElixirBase, AutoGrowingGridAsChildWithRelationshipT):
     pass
 class TestAutoGrowingGridAsChildWithRelationshipSQLA(
-    SQLABase, AutoGrowingGridAsChildWithRelationshipT):
-    def setup(self):
-        super(TestAutoGrowingGridAsChildWithRelationshipSQLA, self).setup()
-        import pylons
-        pylons.configuration.config.setdefault('DBSession', self.session)
+SQLABase, AutoGrowingGridAsChildWithRelationshipT): pass

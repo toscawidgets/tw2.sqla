@@ -7,11 +7,11 @@ tw2.sqla documentation
 Introduction
 ------------
 
-tw2.sqla is a database layer for ToscaWidgets 2 and SQLAlchemy. It allows common database tasks to be achieved with a minimal amount of code.
+tw2.sqla is a database layer for ToscaWidgets 2 and SQLAlchemy. It allows common database tasks to be achieved with minimal code.
 
 .. warning::
-    This is currently (July 2010) pre-alpha software. Although intended to work with any SQLAlchemy model, I am focusing testing on Elixir.
-
+    This is currently (June 2011) pre-alpha software.
+    
 
 Features
 --------
@@ -30,16 +30,17 @@ Features
     Applications often contain quite repetitive code to initiate the act of loading and saving data. A database layer should aim to do this automatically.
 
 
+`Populating Selection Fields`
+
+    Selection fields, such as dropdown lists, often have their options sourced from a database table. A database layer should load these automatically, and ideally support cacheing for efficiency.
+
+
 `Generating Widget Definitions`
 
     Many applications contain long widget definitions that closely match the underlying database models. The idea is to reduce application code by automatically generating these definitions. Some tools exist that automatically generate source code at design time, but tw2.sqla avoids that approach and generates the definitions at run time.
     
     For flexibility it is very important to be able to override the automatic definitions. This needs to be possible on a per-field basis. It should also be possible to provide a customised policy, specifying the rules for generating widgets from model definitions. For example, an application may decide that all fields named "comment" should have a TextArea, instead of a TextField.
 
-
-`Populating Selection Fields`
-
-    Selection fields, such as dropdown lists, often have their options sourced from a database table. A database layer should load these automatically, and ideally support cacheing for efficiency.
 
 
 Existing Technology
