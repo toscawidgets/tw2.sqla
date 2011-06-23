@@ -120,7 +120,7 @@ class DbListForm(DbPage, twf.FormPage):
         if hasattr(cls, 'redirect'):
             return webob.Response(request=req, status=302, location=cls.redirect)
         else:
-            return super(DbFormPage, cls).validated_request(req, data)
+            return super(DbListForm, cls).validated_request(req, data)
 
 
 class DbListPage(DbPage, twc.Page):

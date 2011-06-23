@@ -496,6 +496,179 @@ class TestFormPageSQLA(SQLABase, FormPageT):
             self.widget.entity.query = old_prop
 
 
+class ListFormT(tw2test.WidgetTest):
+    def setup(self):
+        self.widget = self.widget(entity=self.DbTestCls1)
+        return super(ListFormT, self).setup()
+
+    widget = tws.DbListForm
+    attrs = {
+        'child': twf.Form(
+            child=twf.GridLayout(
+                children=[
+                    twf.HiddenField(id='id'),
+                    twf.TextField(id='name'),
+                ])
+            ),
+        'title': 'some title'
+    }
+    expected = """<html>
+<head><title>some title</title></head>
+<body id="dblistform_d:page"><h1>some title</h1><form method="post" id="dblistform_d:form" enctype="multipart/form-data">
+     <span class="error"></span>
+    <table id="dblistform_d">
+    <tr><th>Name</th></tr>
+    <tr class="error"><td colspan="0" id="dblistform_d:error">
+    </td></tr>
+</table>
+    <input type="submit" id="submit" value="Save">
+</form></body>
+</html>"""
+
+    declarative = True
+    def test_request_get_edit(self):
+        environ = {
+            'REQUEST_METHOD': 'GET',
+        }
+        req=Request(environ)
+        self.mw.config.debug = True
+        r = self.widget().request(req)
+        tw2test.assert_eq_xml(r.body, """<html>
+<head><title>some title</title></head>
+<body id="dblistform_d:page"><h1>some title</h1><form method="post" id="dblistform_d:form" enctype="multipart/form-data">
+     <span class="error"></span>
+    <table id="dblistform_d">
+    <tr><th>Name</th></tr>
+    <tr id="dblistform_d:0" class="odd">
+    <td>
+        <input name="dblistform_d:0:name" value="foo1" id="dblistform_d:0:name" type="text">
+    </td>
+    <td>
+        <input name="dblistform_d:0:id" type="hidden" id="dblistform_d:0:id" value="1">
+    </td>
+</tr>
+<tr id="dblistform_d:1" class="even">
+    <td>
+        <input name="dblistform_d:1:name" value="foo2" id="dblistform_d:1:name" type="text">
+    </td>
+    <td>
+        <input name="dblistform_d:1:id" type="hidden" id="dblistform_d:1:id" value="2">
+    </td>
+</tr>
+    <tr class="error"><td colspan="2" id="dblistform_d:error">
+    </td></tr>
+</table>
+    <input type="submit" id="submit" value="Save">
+</form></body>
+</html>""")
+
+
+    def test_request_post_redirect(self):
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='dbformpage_d:name=a'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        r = self.widget(redirect="/foo").request(req)
+        assert( r.status_int == 302 and r.location=="/foo" )
+
+    def test_request_get(self):
+        environ = {'REQUEST_METHOD': 'GET', 'QUERY_STRING' :'name=foo2'}
+        req=Request(environ)
+        assert(req.GET)
+        r = self.widget().request(req)
+        tw2test.assert_eq_xml(r.body, """<html>
+<head><title>some title</title></head>
+<body id="dblistform_d:page"><h1>some title</h1><form method="post" id="dblistform_d:form" enctype="multipart/form-data">
+     <span class="error"></span>
+    <table id="dblistform_d">
+    <tr><th>Name</th></tr>
+    <tr id="dblistform_d:0" class="odd">
+    <td>
+        <input name="dblistform_d:0:name" value="foo1" id="dblistform_d:0:name" type="text">
+    </td>
+    <td>
+        <input name="dblistform_d:0:id" type="hidden" id="dblistform_d:0:id" value="1">
+    </td>
+</tr>
+<tr id="dblistform_d:1" class="even">
+    <td>
+        <input name="dblistform_d:1:name" value="foo2" id="dblistform_d:1:name" type="text">
+    </td>
+    <td>
+        <input name="dblistform_d:1:id" type="hidden" id="dblistform_d:1:id" value="2">
+    </td>
+</tr>
+    <tr class="error"><td colspan="2" id="dblistform_d:error">
+    </td></tr>
+</table>
+    <input type="submit" id="submit" value="Save">
+</form></body>
+</html>""")
+
+    def test_request_post_valid(self):
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='dblistform_d:0:name=a&dblistform_d:0:id=1'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        r = self.widget().request(req)
+        assert r.body == """Form posted successfully [{'id': u'1', 'name': u'a'}]""", r.body
+
+    def test_request_post_counts_new(self):
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='dblistform_d:0:name=a&dblistform_d:0:id=1'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        assert(self.DbTestCls1.query.count() == 2)
+        r = self.widget().request(req)
+        assert(self.DbTestCls1.query.count() == 1)
+
+    def test_request_post_counts_update(self):
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='dblistform_d:0:name=a&dblistform_d:0:id=1&dblistform_d:1:name=b&dblistform_d:1:id=2'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        assert(self.DbTestCls1.query.count() == 2)
+        r = self.widget().request(req)
+        assert(self.DbTestCls1.query.count() == 2)
+
+    # TODO: this test should pass, but needs fixing
+    def _test_request_post_content_update(self):
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='dblistform_d:0:name=b&dblistform_d:0:id=1'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        original = self.DbTestCls1.query.filter(self.DbTestCls1.id==1).one()
+        assert(original.name == 'foo1')
+        r = self.widget().request(req)
+        updated = self.DbTestCls1.query.filter(self.DbTestCls1.id=='1')
+        assert(updated.count() == 1)
+        updated = updated.one()
+        assert(updated.name == 'b')
+
+class TestListFormElixir(ElixirBase, ListFormT): pass
+class TestListFormSQLA(SQLABase, ListFormT): pass
+
+
 class AutoListPageT(tw2test.WidgetTest):
     def setup(self):
         self.widget = self.widget(entity=self.DbTestCls1)

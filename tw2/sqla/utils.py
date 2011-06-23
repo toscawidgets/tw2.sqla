@@ -47,10 +47,12 @@ def from_list(entity, objects, data):
         obj = obj_map.pop(pkey, None)
         if not obj:
             obj = entity()
+            obj.query.session.add(obj)
             objects.append(obj)
         from_dict(obj, row)
     for d in obj_map.values():
         objects.remove(d)
+        d.query.session.delete(d)
 
 
 def update_or_create(cls, data):
