@@ -94,6 +94,7 @@ class SQLABase(object):
 
 class RadioButtonT(tw2test.WidgetTest):
     widget = tws.DbRadioButtonList
+    declarative = True
     attrs = {'css_class':'something', 'id' : 'something'}
     params = {'checked':None}
     expected = """
@@ -108,6 +109,10 @@ class RadioButtonT(tw2test.WidgetTest):
     </li>
     </ul>"""
 
+    def test_validation(self):
+        value = self.widget.validate({'something':'1'})
+        assert(value is self.DbTestCls1.query.get(1))
+
     def setup(self):
         self.widget = self.widget(entity=self.DbTestCls1)
         return super(RadioButtonT, self).setup()
@@ -118,6 +123,7 @@ class TestRadioButtonSQLA(SQLABase, RadioButtonT): pass
 class CheckBoxT(tw2test.WidgetTest):
     widget = tws.DbCheckBoxList
     attrs = {'css_class':'something', 'id' : 'something'}
+    declarative = True
     params = {'checked':None}
     expected = """
     <ul class="something" id="something">
@@ -131,6 +137,10 @@ class CheckBoxT(tw2test.WidgetTest):
     </li>
     </ul>"""
 
+    def test_validation(self):
+        value = self.widget.validate({'something':'1'})
+        assert(value == [self.DbTestCls1.query.get(1)])
+
     def setup(self):
         self.widget = self.widget(entity=self.DbTestCls1)
         return super(CheckBoxT, self).setup()
@@ -141,6 +151,7 @@ class TestCheckBoxSQLA(SQLABase, CheckBoxT): pass
 class CheckBoxTableT(tw2test.WidgetTest):
     widget = tws.DbCheckBoxTable
     attrs = {'css_class':'something', 'id' : 'something'}
+    declarative = True
     params = {'checked':None}
     expected = """
     <table class="something" id="something"><tbody>
@@ -158,6 +169,10 @@ class CheckBoxTableT(tw2test.WidgetTest):
     </tbody></table>
     """
 
+    def test_validation(self):
+        value = self.widget.validate({'something':'1'})
+        assert(value == [self.DbTestCls1.query.get(1)])
+
     def setup(self):
         self.widget = self.widget(entity=self.DbTestCls1)
         return super(CheckBoxTableT, self).setup()
@@ -168,6 +183,7 @@ class TestCheckBoxTableSQLA(SQLABase, CheckBoxTableT): pass
 class SingleSelectT(tw2test.WidgetTest):
     widget = tws.DbSingleSelectField
     attrs = {'css_class':'something', 'id' : 'something'}
+    declarative = True
     params = {'checked':None}
     expected = """
     <select class="something" name="something" id="something">
@@ -175,6 +191,10 @@ class SingleSelectT(tw2test.WidgetTest):
     <option value="1">foo1</option>
     <option value="2">foo2</option>
     </select>"""
+
+    def test_validation(self):
+        value = self.widget.validate({'something':'1'})
+        assert(value is self.DbTestCls1.query.get(1))
 
     def setup(self):
         self.widget = self.widget(entity=self.DbTestCls1)
@@ -258,12 +278,8 @@ class ListPageT(tw2test.WidgetTest):
 
 
 class TestListPageElixir(ElixirBase, ListPageT): pass
+class TestListPageSQLA(SQLABase, ListPageT): pass
 
-class TestListPageSQLA(SQLABase, ListPageT):
-    def setup(self):
-        super(TestListPageSQLA, self).setup()
-        import pylons
-        pylons.configuration.config.setdefault('DBSession', self.session)
 
 class FormPageT(tw2test.WidgetTest):
     def setup(self):
@@ -458,11 +474,6 @@ class FormPageT(tw2test.WidgetTest):
 class TestFormPageElixir(ElixirBase, FormPageT): pass
 
 class TestFormPageSQLA(SQLABase, FormPageT):
-    def setup(self):
-        super(TestFormPageSQLA, self).setup()
-        import pylons
-        pylons.configuration.config.setdefault('DBSession', self.session)
-
     def test_no_query_property(self):
         old_prop = self.widget.entity.query
         self.widget.entity.query = None
@@ -483,6 +494,179 @@ class TestFormPageSQLA(SQLABase, FormPageT):
             assert(str(e) == 'entity has no query_property()')
         finally:
             self.widget.entity.query = old_prop
+
+
+class ListFormT(tw2test.WidgetTest):
+    def setup(self):
+        self.widget = self.widget(entity=self.DbTestCls1)
+        return super(ListFormT, self).setup()
+
+    widget = tws.DbListForm
+    attrs = {
+        'child': twf.Form(
+            child=twf.GridLayout(
+                children=[
+                    twf.HiddenField(id='id'),
+                    twf.TextField(id='name'),
+                ])
+            ),
+        'title': 'some title'
+    }
+    expected = """<html>
+<head><title>some title</title></head>
+<body id="dblistform_d:page"><h1>some title</h1><form method="post" id="dblistform_d:form" enctype="multipart/form-data">
+     <span class="error"></span>
+    <table id="dblistform_d">
+    <tr><th>Name</th></tr>
+    <tr class="error"><td colspan="0" id="dblistform_d:error">
+    </td></tr>
+</table>
+    <input type="submit" id="submit" value="Save">
+</form></body>
+</html>"""
+
+    declarative = True
+    def test_request_get_edit(self):
+        environ = {
+            'REQUEST_METHOD': 'GET',
+        }
+        req=Request(environ)
+        self.mw.config.debug = True
+        r = self.widget().request(req)
+        tw2test.assert_eq_xml(r.body, """<html>
+<head><title>some title</title></head>
+<body id="dblistform_d:page"><h1>some title</h1><form method="post" id="dblistform_d:form" enctype="multipart/form-data">
+     <span class="error"></span>
+    <table id="dblistform_d">
+    <tr><th>Name</th></tr>
+    <tr id="dblistform_d:0" class="odd">
+    <td>
+        <input name="dblistform_d:0:name" value="foo1" id="dblistform_d:0:name" type="text">
+    </td>
+    <td>
+        <input name="dblistform_d:0:id" type="hidden" id="dblistform_d:0:id" value="1">
+    </td>
+</tr>
+<tr id="dblistform_d:1" class="even">
+    <td>
+        <input name="dblistform_d:1:name" value="foo2" id="dblistform_d:1:name" type="text">
+    </td>
+    <td>
+        <input name="dblistform_d:1:id" type="hidden" id="dblistform_d:1:id" value="2">
+    </td>
+</tr>
+    <tr class="error"><td colspan="2" id="dblistform_d:error">
+    </td></tr>
+</table>
+    <input type="submit" id="submit" value="Save">
+</form></body>
+</html>""")
+
+
+    def test_request_post_redirect(self):
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='dbformpage_d:name=a'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        r = self.widget(redirect="/foo").request(req)
+        assert( r.status_int == 302 and r.location=="/foo" )
+
+    def test_request_get(self):
+        environ = {'REQUEST_METHOD': 'GET', 'QUERY_STRING' :'name=foo2'}
+        req=Request(environ)
+        assert(req.GET)
+        r = self.widget().request(req)
+        tw2test.assert_eq_xml(r.body, """<html>
+<head><title>some title</title></head>
+<body id="dblistform_d:page"><h1>some title</h1><form method="post" id="dblistform_d:form" enctype="multipart/form-data">
+     <span class="error"></span>
+    <table id="dblistform_d">
+    <tr><th>Name</th></tr>
+    <tr id="dblistform_d:0" class="odd">
+    <td>
+        <input name="dblistform_d:0:name" value="foo1" id="dblistform_d:0:name" type="text">
+    </td>
+    <td>
+        <input name="dblistform_d:0:id" type="hidden" id="dblistform_d:0:id" value="1">
+    </td>
+</tr>
+<tr id="dblistform_d:1" class="even">
+    <td>
+        <input name="dblistform_d:1:name" value="foo2" id="dblistform_d:1:name" type="text">
+    </td>
+    <td>
+        <input name="dblistform_d:1:id" type="hidden" id="dblistform_d:1:id" value="2">
+    </td>
+</tr>
+    <tr class="error"><td colspan="2" id="dblistform_d:error">
+    </td></tr>
+</table>
+    <input type="submit" id="submit" value="Save">
+</form></body>
+</html>""")
+
+    def test_request_post_valid(self):
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='dblistform_d:0:name=a&dblistform_d:0:id=1'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        r = self.widget().request(req)
+        assert r.body == """Form posted successfully [{'id': u'1', 'name': u'a'}]""", r.body
+
+    def test_request_post_counts_new(self):
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='dblistform_d:0:name=a&dblistform_d:0:id=1'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        assert(self.DbTestCls1.query.count() == 2)
+        r = self.widget().request(req)
+        assert(self.DbTestCls1.query.count() == 1)
+
+    def test_request_post_counts_update(self):
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='dblistform_d:0:name=a&dblistform_d:0:id=1&dblistform_d:1:name=b&dblistform_d:1:id=2'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        assert(self.DbTestCls1.query.count() == 2)
+        r = self.widget().request(req)
+        assert(self.DbTestCls1.query.count() == 2)
+
+    # TODO: this test should pass, but needs fixing
+    def _test_request_post_content_update(self):
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='dblistform_d:0:name=b&dblistform_d:0:id=1'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        original = self.DbTestCls1.query.filter(self.DbTestCls1.id==1).one()
+        assert(original.name == 'foo1')
+        r = self.widget().request(req)
+        updated = self.DbTestCls1.query.filter(self.DbTestCls1.id=='1')
+        assert(updated.count() == 1)
+        updated = updated.one()
+        assert(updated.name == 'b')
+
+class TestListFormElixir(ElixirBase, ListFormT): pass
+class TestListFormSQLA(SQLABase, ListFormT): pass
 
 
 class AutoListPageT(tw2test.WidgetTest):
@@ -690,11 +874,7 @@ class AutoListPageT(tw2test.WidgetTest):
 
 
 class TestAutoListPageElixir(ElixirBase, AutoListPageT): pass
-class TestAutoListPageSQLA(SQLABase, AutoListPageT):
-    def setup(self):
-        super(TestAutoListPageSQLA, self).setup()
-        import pylons
-        pylons.configuration.config.setdefault('DBSession', self.session)
+class TestAutoListPageSQLA(SQLABase, AutoListPageT): pass
 
 # TODO -- do AutoListPageEDIT here
 
@@ -736,11 +916,8 @@ class AutoTableFormT1(tw2test.WidgetTest):
 </form>"""
 
 class TestAutoTableForm1Elixir(ElixirBase, AutoTableFormT1): pass
-class TestAutoTableForm1SQLA(SQLABase, AutoTableFormT1):
-    def setup(self):
-        super(TestAutoTableForm1SQLA, self).setup()
-        import pylons
-        pylons.configuration.config.setdefault('DBSession', self.session)
+class TestAutoTableForm1SQLA(SQLABase, AutoTableFormT1): pass
+
 
 class AutoTableFormT2(tw2test.WidgetTest):
     def setup(self):
@@ -780,11 +957,7 @@ class AutoTableFormT2(tw2test.WidgetTest):
 """
 
 class TestAutoTableForm2Elixir(ElixirBase, AutoTableFormT2): pass
-class TestAutoTableForm2SQLA(SQLABase, AutoTableFormT2):
-    def setup(self):
-        super(TestAutoTableForm2SQLA, self).setup()
-        import pylons
-        pylons.configuration.config.setdefault('DBSession', self.session)
+class TestAutoTableForm2SQLA(SQLABase, AutoTableFormT2): pass
 
 
 class AutoViewGridT(tw2test.WidgetTest):
@@ -803,11 +976,8 @@ class AutoViewGridT(tw2test.WidgetTest):
 
 
 class TestAutoViewGridElixir(ElixirBase, AutoViewGridT): pass
-class TestAutoViewGridSQLA(SQLABase, AutoViewGridT):
-    def setup(self):
-        super(TestAutoViewGridSQLA, self).setup()
-        import pylons
-        pylons.configuration.config.setdefault('DBSession', self.session)
+class TestAutoViewGridSQLA(SQLABase, AutoViewGridT): pass
+
 
 class AutoGrowingGridT(tw2test.WidgetTest):
     def setup(self):
@@ -851,11 +1021,7 @@ class AutoGrowingGridT(tw2test.WidgetTest):
     </table>"""
 
 class TestAutoGrowingGridElixir(ElixirBase, AutoGrowingGridT): pass
-class TestAutoGrowingGridSQLA(SQLABase, AutoGrowingGridT):
-    def setup(self):
-        super(TestAutoGrowingGridSQLA, self).setup()
-        import pylons
-        pylons.configuration.config.setdefault('DBSession', self.session)
+class TestAutoGrowingGridSQLA(SQLABase, AutoGrowingGridT): pass
 
 
 class AutoGrowingGridAsChildT(tw2test.WidgetTest):
@@ -902,13 +1068,9 @@ class AutoGrowingGridAsChildT(tw2test.WidgetTest):
     </tr>
     </table></body></html>"""
 
-class TestAutoGrowingGridAsChildElixir(ElixirBase, AutoGrowingGridAsChildT):
-    pass
-class TestAutoGrowingGridAsChildSQLA(SQLABase, AutoGrowingGridAsChildT):
-    def setup(self):
-        super(TestAutoGrowingGridAsChildSQLA, self).setup()
-        import pylons
-        pylons.configuration.config.setdefault('DBSession', self.session)
+class TestAutoGrowingGridAsChildElixir(ElixirBase, AutoGrowingGridAsChildT): pass
+class TestAutoGrowingGridAsChildSQLA(SQLABase, AutoGrowingGridAsChildT): pass
+
 
 class AutoGrowingGridAsChildWithRelationshipT(tw2test.WidgetTest):
     def setup(self):
@@ -962,8 +1124,4 @@ class TestAutoGrowingGridAsChildWithRelationshipElixir(
     ElixirBase, AutoGrowingGridAsChildWithRelationshipT):
     pass
 class TestAutoGrowingGridAsChildWithRelationshipSQLA(
-    SQLABase, AutoGrowingGridAsChildWithRelationshipT):
-    def setup(self):
-        super(TestAutoGrowingGridAsChildWithRelationshipSQLA, self).setup()
-        import pylons
-        pylons.configuration.config.setdefault('DBSession', self.session)
+SQLABase, AutoGrowingGridAsChildWithRelationshipT): pass

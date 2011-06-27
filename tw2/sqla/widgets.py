@@ -71,15 +71,23 @@ class RelatedValidator(twc.IntValidator):
         return value and unicode(sa.orm.object_mapper(value).primary_key_from_instance(value)[0])
 
 
-class DbFormPage(twf.FormPage):
-    entity = twc.Param('SQLAlchemy mapped class to use', request_local=False)
-    redirect = twc.Param('Location to redirect to after successful POST', request_local=False)
-    _no_autoid = True
 
+class DbPage(twc.Page):
+    entity = twc.Param('SQLAlchemy mapped class to use', request_local=False)
+    _no_autoid = True
     @classmethod
     def post_define(cls):
         if hasattr(cls, 'entity') and not hasattr(cls, 'title'):
             cls.title = twc.util.name2label(cls.entity.__name__)
+
+class DbFormPage(DbPage, twf.FormPage):
+    """
+    A page that contains a form with database synchronisation. The `fetch_data` method loads a record
+    from the database, based on the primary key in the URL (no parameters for a new record). The
+    `validated_request` method saves the data to the database.
+    """
+    redirect = twc.Param('Location to redirect to after successful POST', request_local=False)
+    _no_autoid = True
 
     def fetch_data(self, req):
         self.value = req.GET and self.entity.query.filter_by(**req.GET.mixed()).first() or None
@@ -94,8 +102,32 @@ class DbFormPage(twf.FormPage):
             return super(DbFormPage, cls).validated_request(req, data)
 
 
-class DbListPage(twc.Page):
-    entity = twc.Param('SQLAlchemy mapped class to use', request_local=False)
+class DbListForm(DbPage, twf.FormPage):
+    """
+    A page that contains a list form with database synchronisation. The `fetch_data` method loads a full
+    table from the database. The `validated_request` method saves the data to the database.
+    """
+    redirect = twc.Param('Location to redirect to after successful POST', request_local=False)
+    _no_autoid = True
+
+    def fetch_data(self, req):
+        self.value = self.entity.query.all()
+        
+    @classmethod
+    def validated_request(cls, req, data):
+        utils.from_list(cls.entity, cls.entity.query.all(), data)
+        transaction.commit()
+        if hasattr(cls, 'redirect'):
+            return webob.Response(request=req, status=302, location=cls.redirect)
+        else:
+            return super(DbListForm, cls).validated_request(req, data)
+
+
+class DbListPage(DbPage, twc.Page):
+    """
+    A page that contains a list with database synchronisation. The `fetch_data` method loads a full
+    table from the database; there is no submit or write capability.    
+    """
     newlink = twc.Param('New item widget', default=None)
     template = 'tw2.sqla.templates.dblistpage'
     _no_autoid = True
@@ -107,9 +139,6 @@ class DbListPage(twc.Page):
     def post_define(cls):
         if cls.newlink:
             cls.newlink = cls.newlink(parent=cls)
-        if hasattr(cls, 'entity'):
-            if not hasattr(cls, 'title'):
-                cls.title = twc.util.name2label(cls.entity.__name__)
 
     def __init__(self, **kw):
         super(DbListPage, self).__init__(**kw)
@@ -126,6 +155,7 @@ class DbSelectionField(twf.SelectionField):
     entity = twc.Param('SQLAlchemy mapped class to use', request_local=False)
 
     def prepare(self):
+        # avoid hardcoded id
         self.options = [(x.id, unicode(x)) for x in self.entity.query.all()]
         super(DbSelectionField, self).prepare()
 
@@ -146,7 +176,7 @@ class DbRadioButtonList(DbSelectionField, twf.RadioButtonList):
     @classmethod
     def post_define(cls):
         if getattr(cls, 'entity', None):
-            cls.item_validator = RelatedValidator(entity=cls.entity)
+            cls.validator = RelatedValidator(entity=cls.entity)
 
 class DbCheckBoxTable(DbSelectionField, twf.CheckBoxTable):
     @classmethod
@@ -234,12 +264,7 @@ class WidgetPolicy(object):
             args = {'id': prop.key}
             if not sum([c.nullable for c in getattr(prop, 'columns', [])]):
                 args['validator'] = twc.Required
-
             widget = widget(**args)
-
-            # TODO - to be determined.  Why is this line necessary?
-            # Without it, some tests fail that shouldn't.
-            widget.display()
 
         return widget
 

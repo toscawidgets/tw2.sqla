@@ -37,7 +37,7 @@ def from_list(entity, objects, data):
     """
     mapper = sa.orm.class_mapper(entity)    
     pkey_fields = [f.key for f in mapper.primary_key]
-    obj_map = dict((mapper.primary_key_from_instance(o), o) for o in objects)
+    obj_map = dict((tuple(mapper.primary_key_from_instance(o)), o) for o in objects)
     for row in data:
         if not isinstance(row, dict):
             raise Exception(
@@ -47,10 +47,12 @@ def from_list(entity, objects, data):
         obj = obj_map.pop(pkey, None)
         if not obj:
             obj = entity()
+            obj.query.session.add(obj)
             objects.append(obj)
         from_dict(obj, row)
     for d in obj_map.values():
         objects.remove(d)
+        d.query.session.delete(d)
 
 
 def update_or_create(cls, data):
