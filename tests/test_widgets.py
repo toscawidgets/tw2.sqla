@@ -506,7 +506,7 @@ class ListFormT(tw2test.WidgetTest):
         'child': twf.Form(
             child=twf.GridLayout(
                 children=[
-                    twf.HiddenField(id='id'),
+                    twf.HiddenField(id='id', validator=twc.IntValidator),
                     twf.TextField(id='name'),
                 ])
             ),

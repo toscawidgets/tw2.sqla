@@ -115,7 +115,8 @@ class DbListForm(DbPage, twf.FormPage):
         
     @classmethod
     def validated_request(cls, req, data):
-        utils.from_list(cls.entity, cls.entity.query.all(), data)
+        utils.from_list(cls.entity, cls.entity.query.all(), data,
+                        force_delete=True)
         transaction.commit()
         if hasattr(cls, 'redirect'):
             return webob.Response(request=req, status=302, location=cls.redirect)

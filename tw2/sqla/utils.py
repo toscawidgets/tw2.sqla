@@ -28,7 +28,7 @@ def from_dict(obj, data):
     return obj
 
 
-def from_list(entity, objects, data):
+def from_list(entity, objects, data, force_delete=False):
     """
     Update a list of mapped objects with data from a JSON-style nested dict/list
     structure.
@@ -55,7 +55,12 @@ def from_list(entity, objects, data):
 
     for d in obj_map.values():
         objects.remove(d)
-        d.query.session.delete(d)
+        if force_delete:
+            # Only fully delete 'unreferenced' objects if explicitly told to do
+            # so.  You would *not* want to do this in a database of friends
+            # where sally and suzie stop being friends but you do not want suzie
+            # deleted from the database alltogether.
+            d.query.session.delete(d)
 
 
 def update_or_create(cls, data):
