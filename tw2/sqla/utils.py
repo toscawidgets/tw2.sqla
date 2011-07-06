@@ -1,4 +1,5 @@
 import sqlalchemy as sa
+things = ['new', 'dirty', 'deleted']
 
 def from_dict(obj, data):
     """
@@ -35,6 +36,7 @@ def from_list(entity, objects, data):
     To protect against parameter tampering attacks, if the primary key field(s) 
     for a row do not exactly match an existing object then a new object is created.
     """
+
     mapper = sa.orm.class_mapper(entity)    
     pkey_fields = [f.key for f in mapper.primary_key]
     obj_map = dict((tuple(mapper.primary_key_from_instance(o)), o) for o in objects)
@@ -46,10 +48,11 @@ def from_list(entity, objects, data):
         pkey = tuple(row.get(f) for f in pkey_fields)
         obj = obj_map.pop(pkey, None)
         if not obj:
-            obj = entity()
+            obj = update_or_create(entity, row)
             obj.query.session.add(obj)
             objects.append(obj)
         from_dict(obj, row)
+
     for d in obj_map.values():
         objects.remove(d)
         d.query.session.delete(d)
