@@ -619,7 +619,7 @@ class ListFormT(tw2test.WidgetTest):
 
         self.mw.config.debug = True
         r = self.widget().request(req)
-        assert r.body == """Form posted successfully [{'id': u'1', 'name': u'a'}]""", r.body
+        assert r.body == """Form posted successfully [{'id': 1, 'name': u'a'}]""", r.body
 
     def test_request_post_counts_new(self):
         environ = {'wsgi.input': StringIO('')}
