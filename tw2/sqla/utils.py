@@ -26,7 +26,7 @@ def from_dict(obj, data, protect_prm_tamp=True):
                 mapper.get_property(key).mapper.class_,
                 getattr(obj, key),
                 value,
-                protect_prm_tamp
+                protect_prm_tamp=protect_prm_tamp
             )
         elif key not in pk_props:
             setattr(obj, key, value)
