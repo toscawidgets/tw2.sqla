@@ -93,10 +93,12 @@ class DbFormPage(DbPage, twf.FormPage):
         self.value = req.GET and self.entity.query.filter_by(**req.GET.mixed()).first() or None
 
     @classmethod
-    def validated_request(cls, req, data, protect_prm_tamp=True):
+    def validated_request(cls, req, data, protect_prm_tamp=True, do_commit=True):
         utils.update_or_create(cls.entity, data,
                                protect_prm_tamp=protect_prm_tamp)
-        transaction.commit()
+        if do_commit:
+            transaction.commit()
+
         if hasattr(cls, 'redirect'):
             return webob.Response(request=req, status=302, location=cls.redirect)
         else:
@@ -115,10 +117,12 @@ class DbListForm(DbPage, twf.FormPage):
         self.value = self.entity.query.all()
         
     @classmethod
-    def validated_request(cls, req, data, protect_prm_tamp=True):
+    def validated_request(cls, req, data, protect_prm_tamp=True, do_commit=True):
         utils.from_list(cls.entity, cls.entity.query.all(), data,
                         force_delete=True, protect_prm_tamp=protect_prm_tamp)
-        transaction.commit()
+        if do_commit:
+            transaction.commit()
+
         if hasattr(cls, 'redirect'):
             return webob.Response(request=req, status=302, location=cls.redirect)
         else:
