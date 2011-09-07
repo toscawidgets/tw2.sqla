@@ -90,7 +90,9 @@ class DbFormPage(DbPage, twf.FormPage):
     _no_autoid = True
 
     def fetch_data(self, req):
-        filter = [ { key.__str__() : value } for key,value in req.GET.mixed().items() ][0]
+        filter = dict([
+            (key.__str__(), value) for key, value in req.GET.mixed().items()
+        ])
         self.value = req.GET and self.entity.query.filter_by(**filter).first() or None
 
     @classmethod
