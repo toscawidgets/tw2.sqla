@@ -1,3 +1,4 @@
+from nose.tools import eq_
 import tw2.core as twc, tw2.sqla as tws, sqlalchemy as sa, elixir as el, webtest, webob as wo, threading, os, random
 
 #import testapi
@@ -47,14 +48,14 @@ class TestTransactions(object):
         before = len(self.DBEnt.query.all())
         self.app.get('/createok')
         el.session.remove()
-        assert(len(self.DBEnt.query.all()) == before + 1)
+        eq_(len(self.DBEnt.query.all()), before + 1)
 
     def test_createfail(self):
         el.session.remove()
         before = len(self.DBEnt.query.all())
         self.app.get('/createfail', expect_errors=True)
         el.session.remove()
-        assert(len(self.DBEnt.query.all()) == before)
+        eq_(len(self.DBEnt.query.all()), before)
 
     def test_freshness(self):
         assert(self.app.get('/read').body == 'rjb')
@@ -66,4 +67,4 @@ class TestTransactions(object):
         thrdb.start()
         thrdb.join()
         # Check it's updated in the first thread
-        assert(self.app.get('/read').body == 'bob')
+        eq_(self.app.get('/read').body, 'bob')

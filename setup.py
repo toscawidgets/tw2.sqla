@@ -1,5 +1,8 @@
 from setuptools import setup, find_packages
 
+# Required imports to avoid weird error messages in python2.7
+import multiprocessing, logging
+
 # Requirements to install buffet plugins and engines
 _extra_cheetah = ["Cheetah>=1.0", "TurboCheetah>=0.9.5"]
 _extra_genshi = ["Genshi >= 0.3.5"]
