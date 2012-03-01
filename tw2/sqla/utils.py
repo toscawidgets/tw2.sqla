@@ -15,11 +15,16 @@ def from_dict(obj, data, protect_prm_tamp=True):
 
     for key, value in data.iteritems():
         if isinstance(value, dict):
-            record = getattr(obj, key)
-            if not record:
-                record = mapper.get_property(key).mapper.class_()
-                setattr(obj, key, record)
-            from_dict(record, value, protect_prm_tamp)
+            if hasattr(obj, key):
+                record = getattr(obj, key)
+                if not record:
+                    record = mapper.get_property(key).mapper.class_()
+                    setattr(obj, key, record)
+                from_dict(record, value, protect_prm_tamp)
+            else:
+                # Just discard the data.  Necessary in the event that someone is
+                # using tw2.captcha in their tw2.sqla form.
+                pass
         elif isinstance(value, list) and \
              value and isinstance(value[0], dict):
             from_list(
