@@ -177,8 +177,15 @@ class BaseObject(object):
         # When updating a DBTestCls1 object, it should only be possible to modify
         # a DBTestCls2 object that is related to that object.
         prev_nick = self.DBTestCls2.query.get(1).nick
-        twsu.from_dict(self.DBTestCls1(), {'others': [{'id':1, 'nick':prev_nick+'_fred'}]})
-        assert(self.DBTestCls2.query.get(1).nick == prev_nick)
+        prev_id = self.DBTestCls2.query.get(1).id
+        prev_count = self.DBTestCls2.query.count()
+        twsu.from_dict(self.DBTestCls1(), {'others': [
+            {'id':prev_id, 'nick':prev_nick+'_fred'}]})
+        obj = self.DBTestCls2.query.get(1)
+        count = self.DBTestCls2.query.count()
+        assert(prev_nick == obj.nick)
+        assert(prev_id == obj.id)
+        assert(count == prev_count+1)
 
     def test_update_or_create(self):
         d = { 'name' : 'winboat' }

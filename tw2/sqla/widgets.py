@@ -90,12 +90,18 @@ class DbFormPage(DbPage, twf.FormPage):
     _no_autoid = True
 
     def fetch_data(self, req):
-        self.value = req.GET and self.entity.query.filter_by(**req.GET.mixed()).first() or None
+        filter = dict([
+            (key.__str__(), value) for key, value in req.GET.mixed().items()
+        ])
+        self.value = req.GET and self.entity.query.filter_by(**filter).first() or None
 
     @classmethod
-    def validated_request(cls, req, data):
-        utils.update_or_create(cls.entity, data)
-        transaction.commit()
+    def validated_request(cls, req, data, protect_prm_tamp=True, do_commit=True):
+        utils.update_or_create(cls.entity, data,
+                               protect_prm_tamp=protect_prm_tamp)
+        if do_commit:
+            transaction.commit()
+
         if hasattr(cls, 'redirect'):
             return webob.Response(request=req, status=302, location=cls.redirect)
         else:
@@ -114,9 +120,12 @@ class DbListForm(DbPage, twf.FormPage):
         self.value = self.entity.query.all()
         
     @classmethod
-    def validated_request(cls, req, data):
-        utils.from_list(cls.entity, cls.entity.query.all(), data)
-        transaction.commit()
+    def validated_request(cls, req, data, protect_prm_tamp=True, do_commit=True):
+        utils.from_list(cls.entity, cls.entity.query.all(), data,
+                        force_delete=True, protect_prm_tamp=protect_prm_tamp)
+        if do_commit:
+            transaction.commit()
+
         if hasattr(cls, 'redirect'):
             return webob.Response(request=req, status=302, location=cls.redirect)
         else:

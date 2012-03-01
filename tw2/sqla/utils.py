@@ -1,6 +1,7 @@
 import sqlalchemy as sa
+things = ['new', 'dirty', 'deleted']
 
-def from_dict(obj, data):
+def from_dict(obj, data, protect_prm_tamp=True):
     """
     Update a mapped object with data from a JSON-style nested dict/list
     structure.
@@ -18,16 +19,21 @@ def from_dict(obj, data):
             if not record:
                 record = mapper.get_property(key).mapper.class_()
                 setattr(obj, key, record)
-            from_dict(record, value)
+            from_dict(record, value, protect_prm_tamp)
         elif isinstance(value, list) and \
              value and isinstance(value[0], dict):
-            from_list(mapper.get_property(key).mapper.class_, getattr(obj, key), value)
+            from_list(
+                mapper.get_property(key).mapper.class_,
+                getattr(obj, key),
+                value,
+                protect_prm_tamp=protect_prm_tamp
+            )
         elif key not in pk_props:
             setattr(obj, key, value)
     return obj
 
 
-def from_list(entity, objects, data):
+def from_list(entity, objects, data, force_delete=False, protect_prm_tamp=True):
     """
     Update a list of mapped objects with data from a JSON-style nested dict/list
     structure.
@@ -35,6 +41,7 @@ def from_list(entity, objects, data):
     To protect against parameter tampering attacks, if the primary key field(s) 
     for a row do not exactly match an existing object then a new object is created.
     """
+
     mapper = sa.orm.class_mapper(entity)    
     pkey_fields = [f.key for f in mapper.primary_key]
     obj_map = dict((tuple(mapper.primary_key_from_instance(o)), o) for o in objects)
@@ -45,17 +52,29 @@ def from_list(entity, objects, data):
                     'to list relationships in from_dict data.')
         pkey = tuple(row.get(f) for f in pkey_fields)
         obj = obj_map.pop(pkey, None)
-        if not obj:
+        if not obj and protect_prm_tamp:
             obj = entity()
+            from_dict(obj, row, protect_prm_tamp)
             obj.query.session.add(obj)
             objects.append(obj)
-        from_dict(obj, row)
+        elif not obj:
+            obj = update_or_create(entity, row)
+            obj.query.session.add(obj)
+            objects.append(obj)
+        else:
+            from_dict(obj, row, protect_prm_tamp)
+
     for d in obj_map.values():
         objects.remove(d)
-        d.query.session.delete(d)
+        if force_delete:
+            # Only fully delete 'unreferenced' objects if explicitly told to do
+            # so.  You would *not* want to do this in a database of friends
+            # where sally and suzie stop being friends but you do not want suzie
+            # deleted from the database alltogether.
+            d.query.session.delete(d)
 
 
-def update_or_create(cls, data):
+def update_or_create(cls, data, protect_prm_tamp=True):
 
     try:
         session = cls.query.session
@@ -73,5 +92,5 @@ def update_or_create(cls, data):
         record = cls()
         session.add(record)
 
-    record = from_dict(record, data)
+    record = from_dict(record, data, protect_prm_tamp)
     return record
