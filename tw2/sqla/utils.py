@@ -34,7 +34,12 @@ def from_dict(obj, data, protect_prm_tamp=True):
                 protect_prm_tamp=protect_prm_tamp
             )
         elif key not in pk_props:
-            setattr(obj, key, value)
+            if value or type(value) == bool:
+                # Ignore None and '', but we do want to explicitly
+                # set 'False' if its a boolean.
+                setattr(obj, key, value)
+            else:
+                pass
     return obj
 
 
