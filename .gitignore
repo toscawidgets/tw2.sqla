@@ -1,0 +1,10 @@
+*.pyc
+*.swp
+build/*
+dist/*
+tw2.sqla.egg-info/*
+virtualenv
+*.egg
+test.db
+htmlcov
+.coverage
