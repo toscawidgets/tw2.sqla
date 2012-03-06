@@ -15,7 +15,7 @@ setup(
     description='SQLAlchemy database layer for ToscaWidgets 2',
     author='Paul Johnston',
     author_email='paj@pajhome.org.uk',
-    url='http://www.toscawidgets.org/documentation/tw2.core/',
+    url='http://github.com/toscawidgets/tw2.sqla',
     install_requires=[
         "tw2.forms>=2.0b4",
         "tw2.dynforms",
