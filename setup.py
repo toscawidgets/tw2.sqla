@@ -30,7 +30,16 @@ setup(
     zip_safe=False,
     include_package_data=True,
     test_suite = 'nose.collector',
-    tests_require = ['BeautifulSoup', 'strainer', 'nose', 'FormEncode', 'WebTest', 'tw2.forms', 'elixir'] + _extra_cheetah + _extra_genshi + _extra_kid + _extra_mako,
+    tests_require = [
+        'BeautifulSoup',
+        'strainer',
+        'nose',
+        'FormEncode',
+        'WebTest',
+        'tw2.core>=2.0.1',
+        'tw2.forms',
+        'elixir',
+    ] + _extra_cheetah + _extra_genshi + _extra_kid + _extra_mako,
     extras_require = {
         'cheetah': _extra_cheetah,
         'kid': _extra_kid,
