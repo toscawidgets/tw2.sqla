@@ -1,8 +1,7 @@
-.. tw2.sqla
+tw2.sqla
+========
 
-tw2.sqla documentation
-======================
-
+.. split here
 
 Introduction
 ------------
@@ -10,8 +9,8 @@ Introduction
 tw2.sqla is a database layer for ToscaWidgets 2 and SQLAlchemy. It allows common database tasks to be achieved with minimal code.
 
 .. warning::
-    This is currently (June 2011) pre-alpha software.
-    
+    tw2.sqla itself is in good shape, but this document is horribly out of date.
+
 
 Features
 --------

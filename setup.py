@@ -16,6 +16,7 @@ setup(
     name='tw2.sqla',
     version='2.0a9',
     description='SQLAlchemy database layer for ToscaWidgets 2',
+    long_description=open('README.rst').read().split('.. split here', 1)[1],
     author='Paul Johnston',
     author_email='paj@pajhome.org.uk',
     url='http://github.com/toscawidgets/tw2.sqla',
