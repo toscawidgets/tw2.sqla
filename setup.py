@@ -14,7 +14,7 @@ _extra_mako = ["Mako >= 0.1.1"]
 
 setup(
     name='tw2.sqla',
-    version='2.0a9',
+    version='2.0.0',
     description='SQLAlchemy database layer for ToscaWidgets 2',
     long_description=open('README.rst').read().split('.. split here', 1)[1],
     author='Paul Johnston',
