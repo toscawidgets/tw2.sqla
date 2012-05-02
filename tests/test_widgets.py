@@ -426,7 +426,7 @@ class FormPageT(tw2test.WidgetTest):
 
         self.mw.config.debug = True
         r = self.widget().request(req)
-        assert r.body == """Form posted successfully {'id': None, 'name': u'a'}""", r.body
+        assert r.body == """Form posted successfully {'id': '', 'name': u'a'}""", r.body
 
     def test_request_post_counts_new(self):
         environ = {'wsgi.input': StringIO('')}
@@ -991,7 +991,7 @@ class AutoGrowingGridT(tw2test.WidgetTest):
     <table id="autogrid">
         <tr>
             <th>Name</th><th>Others</th><th></th>
-            <td><input style="display:none" type="image" id="autogrid:undo" src="/resources/tw2.dynforms.widgets/static/undo.png" alt="Undo" onclick="twd_grow_undo(this); return false;"></td>
+            <td><input style="display:none" type="image" id="autogrid:undo" src="/resources/tw2.dynforms.widgets/static/undo.png" alt="Undo" title="Undo" onclick="twd_grow_undo(this); return false;"></td>
         </tr>
         <tr style="display:none;" id="autogrid:0" class="odd">
         <td>
@@ -1039,7 +1039,7 @@ class AutoGrowingGridAsChildT(tw2test.WidgetTest):
     <table id="autogrid">
         <tr>
             <th>Name</th><th>Others</th><th></th>
-            <td><input style="display:none" type="image" id="autogrid:undo" src="/resources/tw2.dynforms.widgets/static/undo.png" alt="Undo" onclick="twd_grow_undo(this); return false;"></td>
+            <td><input style="display:none" type="image" id="autogrid:undo" src="/resources/tw2.dynforms.widgets/static/undo.png" alt="Undo" title="Undo" onclick="twd_grow_undo(this); return false;"></td>
         </tr>
         <tr style="display:none;" id="autogrid:0" class="odd">
         <td>
@@ -1087,7 +1087,7 @@ class AutoGrowingGridAsChildWithRelationshipT(tw2test.WidgetTest):
     <table id="others">
         <tr>
             <th>Nick</th><th>Other</th><th></th>
-            <td><input style="display:none" type="image" id="others:undo" src="/resources/tw2.dynforms.widgets/static/undo.png" alt="Undo" onclick="twd_grow_undo(this); return false;"></td>
+            <td><input style="display:none" type="image" id="others:undo" src="/resources/tw2.dynforms.widgets/static/undo.png" alt="Undo" title="Undo" onclick="twd_grow_undo(this); return false;"></td>
         </tr>
         <tr style="display:none;" id="others:0" class="odd">
         <td>
