@@ -2,3 +2,4 @@ recursive-include tw2/sqla/templates *
 recursive-include tw2/sqla/static *
 recursive-include tests *.py
 include README.rst
+include LICENSE
