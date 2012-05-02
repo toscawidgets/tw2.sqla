@@ -23,7 +23,7 @@ setup(
     install_requires=[
         "tw2.forms>=2.0b4",
         "tw2.dynforms",
-        "sqlalchemy >= 0.6",
+        "sqlalchemy >= 0.7",
         "zope.sqlalchemy >= 0.4",
         ],
     packages=find_packages(exclude=['ez_setup', 'tests']),
