@@ -3,8 +3,8 @@
 %global modname tw2.sqla
 
 Name:           python-tw2-sqla
-Version:        2.0.0
-Release:        2%{?dist}
+Version:        2.0.1
+Release:        1%{?dist}
 Summary:        SQLAlchemy database layer for ToscaWidgets2
 
 Group:          Development/Languages
@@ -84,10 +84,13 @@ PYTHONPATH=$(pwd) python setup.py test
 %endif
 
 %files
-%doc README.rst
+%doc README.rst LICENSE
 %{python_sitelib}/*
 
 %changelog
+* Wed May 02 2012 Ralph Bean <rbean@redhat.com> - 2.0.1-1
+- New upstream release, contains LICENSE.
+
 * Wed May 02 2012 Ralph Bean <rbean@redhat.com> - 2.0.0-2
 - Removed clean section
 - Removed defattr in files section
