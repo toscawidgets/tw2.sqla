@@ -8,3 +8,4 @@ virtualenv
 test.db
 htmlcov
 .coverage
+*.pdf
