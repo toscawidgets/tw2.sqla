@@ -18,7 +18,7 @@ Features
 `Session and Transaction Management`
 
     It is desirable to wrap individual HTTP requests in database transactions and ORM sessions. This ensures, for example, that if a web request fails part way through, no changes are made to the database. More advanced session management can retry a request if it fails due to a transitive error. Some also avoid the overhead of a database transaction for read-only requests.
-    
+
     Many web frameworks include session and transaction management. For example, TurboGears 2 uses `Repoze.tm <http://repoze.org/tmdemo.html>`_ and `zope.sqlalchemy <http://pypi.python.org/pypi/zope.sqlalchemy>`_ to support this.
 
 
@@ -37,7 +37,7 @@ Features
 `Generating Widget Definitions`
 
     Many applications contain long widget definitions that closely match the underlying database models. The idea is to reduce application code by automatically generating these definitions. Some tools exist that automatically generate source code at design time, but tw2.sqla avoids that approach and generates the definitions at run time.
-    
+
     For flexibility it is very important to be able to override the automatic definitions. This needs to be possible on a per-field basis. It should also be possible to provide a customised policy, specifying the rules for generating widgets from model definitions. For example, an application may decide that all fields named "comment" should have a TextArea, instead of a TextField.
 
 
@@ -66,53 +66,40 @@ Design
 
 `Session and Transaction Management`
 
-    The repoze.tm middleware needs to be installed in the stack. This can be done by passing ``repoze_tm=True`` to :func:`tw2.core.make_middleware` or :func:`tw2.core.dev_server`. For example::
+    The repoze.tm middleware needs to be installed in the stack. This can be done by passing ``repoze_tm=True`` to ``tw2.core.make_middleware`` or ``tw2.core.dev_server``. For example::
 
         import tw2.core as twc
         twc.dev_server(host='127.0.0.1', repoze_tm=True)
 
-    For this to work correctly, ``ZopeTransactionExtension`` must be installed in the session; there is a convenience function for this:
-
-    .. autofunction:: tw2.sqla.transactional_session
+    For this to work correctly, ``ZopeTransactionExtension`` must be installed in the session; there is a convenience function for this ``tw2.sqla.transactional_session``
 
     For example, to use this with Elixir, add the following to the model file::
-    
+
         import elixir as el, tw2.sqla as tws
         el.session = tws.transactional_session()
 
 
 `Loading and Saving Data`
 
-    .. autoclass:: tw2.sqla.RelatedValidator
-
+    Check out ``tw2.sqla.RelatedValidator``
 
     Efficiency consideration
     Say we have a ManyToOne relation, "status" using the column "status_id". We could have a SelectionField on "status" using RelatedValidator, or one on "status_id" using IntValidator. The former would do stronger validation, while the latter would be more efficient.
-    
+
     For now, lets go with "status"
 
 
 `Generating Widget Definitions`
 
     There is a policy class that defines the widget and its characteristics, based on:
-    
+
      * Database type
      * Field name (e.g. password, email)
      * Database details, e.g. nullable
-    
+
 
     For relations:
-    
+
      * ManyToOne - SingleSelectField
      * ManyToMany - CheckBoxList
      * OneToMany - nothing
-
-
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
