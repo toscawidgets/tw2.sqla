@@ -3,6 +3,26 @@ tw2.sqla
 
 .. split here
 
+Build Status
+------------
+
+.. |master| image:: https://secure.travis-ci.org/toscawidgets/tw2.sqla.png?branch=master
+   :alt: Build Status - master branch
+   :target: http://travis-ci.org/#!/toscawidgets/tw2.sqla
+
+.. |develop| image:: https://secure.travis-ci.org/toscawidgets/tw2.sqla.png?branch=develop
+   :alt: Build Status - develop branch
+   :target: http://travis-ci.org/#!/toscawidgets/tw2.sqla
+
++----------+-----------+
+| Branch   | Status    |
++==========+===========+
+| master   | |master|  |
++----------+-----------+
+| develop  | |develop| |
++----------+-----------+
+
+
 Introduction
 ------------
 

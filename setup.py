@@ -1,3 +1,4 @@
+import sys
 from setuptools import setup, find_packages
 
 # Required imports to avoid weird error messages in python2.7
@@ -12,21 +13,26 @@ _extra_genshi = ["Genshi >= 0.3.5"]
 _extra_kid = ["kid>=0.9.5", "TurboKid>=0.9.9"]
 _extra_mako = ["Mako >= 0.1.1"]
 
+requires = [
+    "tw2.forms>=2.0b4",
+    "tw2.dynforms",
+    "sqlalchemy >= 0.7",
+    "zope.sqlalchemy >= 0.4",
+]
+
+if sys.version_info[0] == 2 and sys.version_info[1] <= 5:
+    requires.append('WebOb<=1.1.1')
+
 setup(
     name='tw2.sqla',
-    version='2.0.2',
+    version='2.0.3',
     description='SQLAlchemy database layer for ToscaWidgets 2',
     long_description=open('README.rst').read().split('.. split here', 1)[1],
     author='Paul Johnston',
     author_email='paj@pajhome.org.uk',
     url='http://github.com/toscawidgets/tw2.sqla',
     license='MIT',
-    install_requires=[
-        "tw2.forms>=2.0b4",
-        "tw2.dynforms",
-        "sqlalchemy >= 0.7",
-        "zope.sqlalchemy >= 0.4",
-        ],
+    install_requires=requires,
     packages=find_packages(exclude=['ez_setup', 'tests']),
     namespace_packages = ['tw2'],
     zip_safe=False,
