@@ -20,12 +20,9 @@ requires = [
     "zope.sqlalchemy >= 0.4",
 ]
 
-if sys.version_info[0] == 2 and sys.version_info[1] <= 5:
-    requires.append('WebOb<=1.1.1')
-
 setup(
     name='tw2.sqla',
-    version='2.0.3',
+    version='2.0.4',
     description='SQLAlchemy database layer for ToscaWidgets 2',
     long_description=open('README.rst').read().split('.. split here', 1)[1],
     author='Paul Johnston',
@@ -71,5 +68,8 @@ setup(
         'Intended Audience :: Developers',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
     ],
 )
