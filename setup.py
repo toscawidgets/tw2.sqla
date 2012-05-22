@@ -25,7 +25,7 @@ if sys.version_info[0] == 2 and sys.version_info[1] <= 5:
 
 setup(
     name='tw2.sqla',
-    version='2.0.2',
+    version='2.0.3',
     description='SQLAlchemy database layer for ToscaWidgets 2',
     long_description=open('README.rst').read().split('.. split here', 1)[1],
     author='Paul Johnston',
