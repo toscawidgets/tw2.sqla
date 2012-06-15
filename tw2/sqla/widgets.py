@@ -43,7 +43,7 @@ class RelatedValidator(twc.IntValidator):
         self.entity = entity
         self.primary_key = cols[0]
 
-    def to_python(self, value):
+    def to_python(self, value, state=None):
         if not value:
             return None
 
@@ -61,7 +61,7 @@ class RelatedValidator(twc.IntValidator):
             raise twc.ValidationError('norel', self)
         return value
 
-    def from_python(self, value):
+    def from_python(self, value, state=None):
         if not value:
             return value
         if not isinstance(value, self.entity):
