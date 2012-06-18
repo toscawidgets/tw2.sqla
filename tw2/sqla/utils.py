@@ -1,5 +1,4 @@
 import sqlalchemy as sa
-things = ['new', 'dirty', 'deleted']
 
 def from_dict(obj, data, protect_prm_tamp=True):
     """
