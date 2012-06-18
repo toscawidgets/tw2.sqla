@@ -1,11 +1,12 @@
 import sqlalchemy as sa
 
+
 def from_dict(obj, data, protect_prm_tamp=True):
     """
     Update a mapped object with data from a JSON-style nested dict/list
     structure.
 
-    To protect against parameter tampering attacks, primary key fields are 
+    To protect against parameter tampering attacks, primary key fields are
     never overwritten.
     """
 
@@ -21,8 +22,8 @@ def from_dict(obj, data, protect_prm_tamp=True):
                     setattr(obj, key, record)
                 from_dict(record, value, protect_prm_tamp)
             else:
-                # Just discard the data.  Necessary in the event that someone is
-                # using tw2.captcha in their tw2.sqla form.
+                # Just discard the data.  Necessary in the event that someone
+                # is using tw2.captcha in their tw2.sqla form.
                 pass
         elif isinstance(value, list) and \
              value and isinstance(value[0], dict):
@@ -42,18 +43,22 @@ def from_dict(obj, data, protect_prm_tamp=True):
     return obj
 
 
-def from_list(entity, objects, data, force_delete=False, protect_prm_tamp=True):
+def from_list(entity, objects, data,
+              force_delete=False, protect_prm_tamp=True):
     """
-    Update a list of mapped objects with data from a JSON-style nested dict/list
-    structure.
-    
-    To protect against parameter tampering attacks, if the primary key field(s) 
-    for a row do not exactly match an existing object then a new object is created.
+    Update a list of mapped objects with data from a JSON-style nested
+    dict/list structure.
+
+    To protect against parameter tampering attacks, if the primary key field(s)
+    for a row do not exactly match an existing object then a new object is
+    created.
     """
 
-    mapper = sa.orm.class_mapper(entity)    
+    mapper = sa.orm.class_mapper(entity)
     pkey_fields = [f.key for f in mapper.primary_key]
-    obj_map = dict((tuple(mapper.primary_key_from_instance(o)), o) for o in objects)
+    obj_map = dict(
+        (tuple(mapper.primary_key_from_instance(o)), o) for o in objects
+    )
     for row in data:
         if not isinstance(row, dict):
             raise Exception(
@@ -78,8 +83,8 @@ def from_list(entity, objects, data, force_delete=False, protect_prm_tamp=True):
         if force_delete:
             # Only fully delete 'unreferenced' objects if explicitly told to do
             # so.  You would *not* want to do this in a database of friends
-            # where sally and suzie stop being friends but you do not want suzie
-            # deleted from the database alltogether.
+            # where sally and suzie stop being friends but you do not want
+            # suzie deleted from the database alltogether.
             d.query.session.delete(d)
 
 
