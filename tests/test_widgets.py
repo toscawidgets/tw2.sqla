@@ -9,6 +9,9 @@ import nose
 
 import tw2.core.testbase as tw2test
 
+class WidgetTest(tw2test.WidgetTest):
+    engines = ['mako', 'genshi']
+
 class ElixirBase(object):
     def setup(self):
         el.metadata = sa.MetaData('sqlite:///:memory:')
@@ -92,7 +95,7 @@ class SQLABase(object):
 
         return super(SQLABase, self).setup()
 
-class RadioButtonT(tw2test.WidgetTest):
+class RadioButtonT(WidgetTest):
     widget = tws.DbRadioButtonList
     declarative = True
     attrs = {'css_class':'something', 'id' : 'something'}
@@ -120,7 +123,7 @@ class RadioButtonT(tw2test.WidgetTest):
 class TestRadioButtonElixir(ElixirBase, RadioButtonT): pass
 class TestRadioButtonSQLA(SQLABase, RadioButtonT): pass
 
-class CheckBoxT(tw2test.WidgetTest):
+class CheckBoxT(WidgetTest):
     widget = tws.DbCheckBoxList
     attrs = {'css_class':'something', 'id' : 'something'}
     declarative = True
@@ -148,7 +151,7 @@ class CheckBoxT(tw2test.WidgetTest):
 class TestCheckBoxElixir(ElixirBase, CheckBoxT): pass
 class TestCheckBoxSQLA(SQLABase, CheckBoxT): pass
 
-class CheckBoxTableT(tw2test.WidgetTest):
+class CheckBoxTableT(WidgetTest):
     widget = tws.DbCheckBoxTable
     attrs = {'css_class':'something', 'id' : 'something'}
     declarative = True
@@ -180,7 +183,7 @@ class CheckBoxTableT(tw2test.WidgetTest):
 class TestCheckBoxTableElixir(ElixirBase, CheckBoxTableT): pass
 class TestCheckBoxTableSQLA(SQLABase, CheckBoxTableT): pass
 
-class SingleSelectT(tw2test.WidgetTest):
+class SingleSelectT(WidgetTest):
     widget = tws.DbSingleSelectField
     attrs = {'css_class':'something', 'id' : 'something'}
     declarative = True
@@ -203,7 +206,7 @@ class SingleSelectT(tw2test.WidgetTest):
 class TestSingleSelectElixir(ElixirBase, SingleSelectT): pass
 class TestSingleSelectSQLA(SQLABase, SingleSelectT): pass
 
-class ListPageT(tw2test.WidgetTest):
+class ListPageT(WidgetTest):
     def setup(self):
         self.widget = self.widget(entity=self.DbTestCls1)
         return super(ListPageT, self).setup()
@@ -281,7 +284,7 @@ class TestListPageElixir(ElixirBase, ListPageT): pass
 class TestListPageSQLA(SQLABase, ListPageT): pass
 
 
-class FormPageT(tw2test.WidgetTest):
+class FormPageT(WidgetTest):
     def setup(self):
         self.widget = self.widget(entity=self.DbTestCls1)
         return super(FormPageT, self).setup()
@@ -496,7 +499,7 @@ class TestFormPageSQLA(SQLABase, FormPageT):
             self.widget.entity.query = old_prop
 
 
-class ListFormT(tw2test.WidgetTest):
+class ListFormT(WidgetTest):
     def setup(self):
         self.widget = self.widget(entity=self.DbTestCls1)
         return super(ListFormT, self).setup()
@@ -669,7 +672,7 @@ class TestListFormElixir(ElixirBase, ListFormT): pass
 class TestListFormSQLA(SQLABase, ListFormT): pass
 
 
-class AutoListPageT(tw2test.WidgetTest):
+class AutoListPageT(WidgetTest):
     def setup(self):
         self.widget = self.widget(entity=self.DbTestCls1)
         return super(AutoListPageT, self).setup()
@@ -878,7 +881,7 @@ class TestAutoListPageSQLA(SQLABase, AutoListPageT): pass
 
 # TODO -- do AutoListPageEDIT here
 
-class AutoTableFormT1(tw2test.WidgetTest):
+class AutoTableFormT1(WidgetTest):
     def setup(self):
         self.widget = self.widget(entity=self.DbTestCls1)
         return super(AutoTableFormT1, self).setup()
@@ -919,7 +922,7 @@ class TestAutoTableForm1Elixir(ElixirBase, AutoTableFormT1): pass
 class TestAutoTableForm1SQLA(SQLABase, AutoTableFormT1): pass
 
 
-class AutoTableFormT2(tw2test.WidgetTest):
+class AutoTableFormT2(WidgetTest):
     def setup(self):
         self.widget = self.widget(entity=self.DbTestCls2)
         return super(AutoTableFormT2, self).setup()
@@ -960,7 +963,7 @@ class TestAutoTableForm2Elixir(ElixirBase, AutoTableFormT2): pass
 class TestAutoTableForm2SQLA(SQLABase, AutoTableFormT2): pass
 
 
-class AutoViewGridT(tw2test.WidgetTest):
+class AutoViewGridT(WidgetTest):
     def setup(self):
         self.widget = self.widget(entity=self.DbTestCls1)
         return super(AutoViewGridT, self).setup()
@@ -979,7 +982,7 @@ class TestAutoViewGridElixir(ElixirBase, AutoViewGridT): pass
 class TestAutoViewGridSQLA(SQLABase, AutoViewGridT): pass
 
 
-class AutoGrowingGridT(tw2test.WidgetTest):
+class AutoGrowingGridT(WidgetTest):
     def setup(self):
         self.widget = self.widget(entity=self.DbTestCls1)
         return super(AutoGrowingGridT, self).setup()
@@ -1024,7 +1027,7 @@ class TestAutoGrowingGridElixir(ElixirBase, AutoGrowingGridT): pass
 class TestAutoGrowingGridSQLA(SQLABase, AutoGrowingGridT): pass
 
 
-class AutoGrowingGridAsChildT(tw2test.WidgetTest):
+class AutoGrowingGridAsChildT(WidgetTest):
     def setup(self):
         self.widget = self.widget(entity=self.DbTestCls1)
         return super(AutoGrowingGridAsChildT, self).setup()
@@ -1072,7 +1075,7 @@ class TestAutoGrowingGridAsChildElixir(ElixirBase, AutoGrowingGridAsChildT): pas
 class TestAutoGrowingGridAsChildSQLA(SQLABase, AutoGrowingGridAsChildT): pass
 
 
-class AutoGrowingGridAsChildWithRelationshipT(tw2test.WidgetTest):
+class AutoGrowingGridAsChildWithRelationshipT(WidgetTest):
     def setup(self):
         self.widget = self.widget(entity=self.DbTestCls2)
         return super(AutoGrowingGridAsChildWithRelationshipT, self).setup()
