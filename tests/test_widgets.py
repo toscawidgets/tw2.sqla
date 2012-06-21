@@ -399,7 +399,7 @@ class FormPageT(WidgetTest):
                    }
         req=Request(environ)
         r = self.widget().request(req)
-        assert_eq_xml(r.body, """<html>
+        tw2test.assert_eq_xml(r.body, """<html>
 <head><title>some title</title></head>
 <body id="dbformpage_d:page"><h1>some title</h1><form method="post" id="dbformpage_d:form" enctype="multipart/form-data">
      <span class="error"></span>
@@ -899,15 +899,21 @@ class AutoTableFormT1(WidgetTest):
             <span id="foo_form:name:error"></span>
         </td>
         </tr>
-     <tr class="even"  id="foo_form:others:container">
+    <tr class="even required" id="foo_form:others:container">
         <th>Others</th>
-        <td >
-            <select name="foo_form:others" id="foo_form:others">
-             <option ></option>
-             <option value="1">bob1</option>
-             <option value="2">bob2</option>
-             <option value="3">bob3</option>
-            </select>
+        <td>
+            <ul id="foo_form:others">
+                <li>
+                    <input type="checkbox" name="foo_form:others" value="1" id="foo_form:others:0"/>
+                    <label for="foo_form:others:0">bob1</label>
+                </li><li>
+                    <input type="checkbox" name="foo_form:others" value="2" id="foo_form:others:1"/>
+                    <label for="foo_form:others:1">bob2</label>
+                </li><li>
+                    <input type="checkbox" name="foo_form:others" value="3" id="foo_form:others:2"/>
+                    <label for="foo_form:others:2">bob3</label>
+                </li>
+            </ul>
             <span id="foo_form:others:error"></span>
         </td>
     </tr>
@@ -994,29 +1000,47 @@ class AutoGrowingGridT(WidgetTest):
     <table id="autogrid">
         <tr>
             <th>Name</th><th>Others</th><th></th>
-            <td><input style="display:none" type="image" id="autogrid:undo" src="/resources/tw2.dynforms.widgets/static/undo.png" alt="Undo" title="Undo" onclick="twd_grow_undo(this); return false;"></td>
+            <td><input style="display:none" type="image" id="autogrid:undo" src="/resources/tw2.dynforms.widgets/static/undo.png" title="Undo" alt="Undo" onclick="twd_grow_undo(this); return false;" /></td>
         </tr>
         <tr style="display:none;" id="autogrid:0" class="odd">
         <td>
-            <input name="autogrid:0:name" id="autogrid:0:name" onchange="twd_grow_add(this);" type="text">
+            <input name="autogrid:0:name" type="text" id="autogrid:0:name" onchange="twd_grow_add(this);" />
         </td><td>
-        <select onchange="twd_grow_add(this);" id="autogrid:0:others" name="autogrid:0:others">
-        <option></option><option value="1">bob1</option><option value="2">bob2</option><option value="3">bob3</option>
-        </select>
+            <ul onchange="twd_grow_add(this);" id="autogrid:0:others">
+                <li>
+                    <input type="checkbox" name="autogrid:0:others" value="1" id="autogrid:0:others:0" />
+                    <label for="autogrid:0:others:0">bob1</label>
+                </li><li>
+                    <input type="checkbox" name="autogrid:0:others" value="2" id="autogrid:0:others:1" />
+                    <label for="autogrid:0:others:1">bob2</label>
+                </li><li>
+                    <input type="checkbox" name="autogrid:0:others" value="3" id="autogrid:0:others:2" />
+                    <label for="autogrid:0:others:2">bob3</label>
+                </li>
+            </ul>
         </td><td>
-            <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" name="autogrid:0:del" id="autogrid:0:del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image">
+            <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" name="autogrid:0:del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image" id="autogrid:0:del" />
         </td>
         <td>
         </td>
     </tr><tr id="autogrid:1" class="even">
         <td>
-            <input name="autogrid:1:name" id="autogrid:1:name" onchange="twd_grow_add(this);" type="text">
+            <input name="autogrid:1:name" type="text" id="autogrid:1:name" onchange="twd_grow_add(this);" />
         </td><td>
-        <select onchange="twd_grow_add(this);" id="autogrid:1:others" name="autogrid:1:others">
-        <option></option><option value="1">bob1</option><option value="2">bob2</option><option value="3">bob3</option>
-        </select>
+            <ul onchange="twd_grow_add(this);" id="autogrid:1:others">
+                <li>
+                    <input type="checkbox" name="autogrid:1:others" value="1" id="autogrid:1:others:0" />
+                    <label for="autogrid:1:others:0">bob1</label>
+                </li><li>
+                    <input type="checkbox" name="autogrid:1:others" value="2" id="autogrid:1:others:1" />
+                    <label for="autogrid:1:others:1">bob2</label>
+                </li><li>
+                    <input type="checkbox" name="autogrid:1:others" value="3" id="autogrid:1:others:2" />
+                    <label for="autogrid:1:others:2">bob3</label>
+                </li>
+            </ul>
         </td><td>
-            <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" name="autogrid:1:del" id="autogrid:1:del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image">
+            <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" name="autogrid:1:del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image" id="autogrid:1:del" />
         </td>
         <td>
         </td>
@@ -1042,29 +1066,47 @@ class AutoGrowingGridAsChildT(WidgetTest):
     <table id="autogrid">
         <tr>
             <th>Name</th><th>Others</th><th></th>
-            <td><input style="display:none" type="image" id="autogrid:undo" src="/resources/tw2.dynforms.widgets/static/undo.png" alt="Undo" title="Undo" onclick="twd_grow_undo(this); return false;"></td>
+            <td><input style="display:none" type="image" id="autogrid:undo" src="/resources/tw2.dynforms.widgets/static/undo.png" title="Undo" alt="Undo" onclick="twd_grow_undo(this); return false;" /></td>
         </tr>
         <tr style="display:none;" id="autogrid:0" class="odd">
         <td>
-            <input name="autogrid:0:name" id="autogrid:0:name" onchange="twd_grow_add(this);" type="text">
+            <input name="autogrid:0:name" id="autogrid:0:name" onchange="twd_grow_add(this);" type="text" />
         </td><td>
-            <select onchange="twd_grow_add(this);" id="autogrid:0:others" name="autogrid:0:others">
-            <option></option><option value="1">bob1</option><option value="2">bob2</option><option value="3">bob3</option>
-            </select>
+            <ul onchange="twd_grow_add(this);" id="autogrid:0:others">
+                <li>
+                    <input type="checkbox" name="autogrid:0:others" value="1" id="autogrid:0:others:0" />
+                    <label for="autogrid:0:others:0">bob1</label>
+                </li><li>
+                    <input type="checkbox" name="autogrid:0:others" value="2" id="autogrid:0:others:1" />
+                    <label for="autogrid:0:others:1">bob2</label>
+                </li><li>
+                    <input type="checkbox" name="autogrid:0:others" value="3" id="autogrid:0:others:2" />
+                    <label for="autogrid:0:others:2">bob3</label>
+                </li>
+            </ul>
         </td><td>
-            <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" name="autogrid:0:del" id="autogrid:0:del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image">
+            <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" name="autogrid:0:del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image" id="autogrid:0:del" />
         </td>
         <td>
         </td>
     </tr><tr id="autogrid:1" class="even">
         <td>
-            <input name="autogrid:1:name" id="autogrid:1:name" onchange="twd_grow_add(this);" type="text">
+            <input name="autogrid:1:name" id="autogrid:1:name" onchange="twd_grow_add(this);" type="text" />
         </td><td>
-            <select onchange="twd_grow_add(this);" id="autogrid:1:others" name="autogrid:1:others">
-            <option></option><option value="1">bob1</option><option value="2">bob2</option><option value="3">bob3</option>
-            </select>
+            <ul onchange="twd_grow_add(this);" id="autogrid:1:others">
+                <li>
+                    <input type="checkbox" name="autogrid:1:others" value="1" id="autogrid:1:others:0" />
+                    <label for="autogrid:1:others:0">bob1</label>
+                </li><li>
+                    <input type="checkbox" name="autogrid:1:others" value="2" id="autogrid:1:others:1" />
+                    <label for="autogrid:1:others:1">bob2</label>
+                </li><li>
+                    <input type="checkbox" name="autogrid:1:others" value="3" id="autogrid:1:others:2" />
+                    <label for="autogrid:1:others:2">bob3</label>
+                </li>
+            </ul>
         </td><td>
-            <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" name="autogrid:1:del" id="autogrid:1:del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image">
+            <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" name="autogrid:1:del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image" id="autogrid:1:del" />
         </td>
         <td>
         </td>

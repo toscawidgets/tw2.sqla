@@ -13,14 +13,49 @@ except ImportError:
             for j in y:
                 yield (i,j)
 
+def is_relation(prop):
+    return isinstance(prop, sa.orm.RelationshipProperty)
+
+def is_onetoone(prop):
+    if not is_relation(prop):
+        return False
+
+    if prop.direction == sa.orm.interfaces.ONETOMANY:
+        if not prop.uselist:
+            return True
+    
+    if prop.direction == sa.orm.interfaces.MANYTOONE:
+        lis = list(prop._reverse_property)
+        assert len(lis) == 1
+        if not lis[0].uselist:
+            return True
+
+    return False
 
 def is_manytoone(prop):
-    return isinstance(prop, sa.orm.RelationshipProperty) and \
-            prop.direction.name == 'MANYTOONE'
+    if not is_relation(prop):
+        return False
+
+    if not prop.direction == sa.orm.interfaces.MANYTOONE:
+        return False
+
+    if is_onetoone(prop):
+        return False
+
+    return True
 
 def is_onetomany(prop):
-    return isinstance(prop, sa.orm.RelationshipProperty) and \
-            prop.direction.name == 'ONETOMANY'
+    if not is_relation(prop):
+        return False
+
+    if not prop.direction == sa.orm.interfaces.ONETOMANY:
+        return False
+
+    if is_onetoone(prop):
+        return False
+
+    return True
+
 
 
 class RelatedValidator(twc.IntValidator):
@@ -295,7 +330,7 @@ class ViewPolicy(WidgetPolicy):
 class EditPolicy(WidgetPolicy):
     """Base WidgetPolicy for editing data."""
     # TODO -- actually set this to something sensible
-    onetomany_widget = DbSingleSelectField
+    onetomany_widget = DbCheckBoxList
     manytoone_widget = DbSingleSelectField
     name_widgets = {
         'password':     twf.PasswordField,
