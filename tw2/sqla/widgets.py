@@ -32,6 +32,10 @@ def is_onetoone(prop):
 
     return False
 
+def is_manytomany(prop):
+    return is_relation(prop) and \
+            prop.direction == sa.orm.interfaces.MANYTOMANY
+
 def is_manytoone(prop):
     if not is_relation(prop):
         return False
@@ -56,6 +60,22 @@ def is_onetomany(prop):
 
     return True
 
+def sort_properties(prop1, prop2):
+    """For now, we only want to make sure the many to many relation fields are
+    displayed at the end of the HTML form
+    """
+    weight1 = 0
+    weight2 = 0
+    if is_manytomany(prop1):
+        weight1 += 1
+    if is_manytomany(prop2):
+        weight2 += 1
+    
+    res = cmp(weight1, weight2)
+    if res != 0:
+        return res
+    
+    return cmp(prop1._creation_order, prop2._creation_order)
 
 
 class RelatedValidator(twc.IntValidator):
@@ -289,6 +309,13 @@ class WidgetPolicy(object):
                     "Cannot automatically create a widget " +
                     "for many-to-one relation '%s'" % prop.key)
             widget = cls.manytoone_widget(id=prop.key,entity=prop.mapper.class_)
+        elif is_manytomany(prop):
+            # Use the same widget as onetomany
+            if not cls.onetomany_widget:
+                raise twc.WidgetError(
+                    "Cannot automatically create a widget " +
+                    "for many-to-many relation '%s'" % prop.key)
+            widget = cls.onetomany_widget(id=prop.key,entity=prop.mapper.class_)
         elif prop.key in cls.name_widgets:
             widget = cls.name_widgets[prop.key]
         else:
@@ -369,7 +396,9 @@ class AutoContainer(twc.Widget):
             used_children = set()
             orig_children = getattr(cls.child, 'children', [])
 
-            for prop in sa.orm.class_mapper(cls.entity).iterate_properties:
+            properties = sa.orm.class_mapper(cls.entity)._props.values()
+            properties.sort(sort_properties)
+            for prop in properties:
                 if is_manytoone(prop):
                     continue
 

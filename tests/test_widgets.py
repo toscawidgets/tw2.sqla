@@ -16,6 +16,8 @@ class ElixirBase(object):
     def setup(self):
         el.metadata = sa.MetaData('sqlite:///:memory:')
         el.session = tws.transactional_session()
+        # Make sure the DB is clean between the tests
+        el.cleanup_all(drop_tables=True)
 
         class DbTestCls1(el.Entity):
             name = el.Field(el.String)
@@ -33,9 +35,23 @@ class ElixirBase(object):
             id1 = el.Field(el.Integer, primary_key=True)
             id2 = el.Field(el.Integer, primary_key=True)
 
+        class DbTestCls4(el.Entity):
+            surname = el.Field(el.String)
+            roles = el.ManyToMany('DbTestCls5')
+            def __unicode__(self):
+                return self.surname
+
+        class DbTestCls5(el.Entity):
+            rolename = el.Field(el.String)
+            users = el.ManyToMany('DbTestCls4')
+            def __unicode__(self):
+                return self.rolename
+
         self.DbTestCls1 = DbTestCls1
         self.DbTestCls2 = DbTestCls2
         self.DbTestCls3 = DbTestCls3
+        self.DbTestCls4 = DbTestCls4
+        self.DbTestCls5 = DbTestCls5
 
         el.setup_all()
         el.metadata.create_all()
@@ -46,7 +62,14 @@ class ElixirBase(object):
         self.DbTestCls2(id=2, nick='bob2')
         bob3 = self.DbTestCls2(id=3, nick='bob3')
         foo1.others.append(bob3)
-        assert(self.DbTestCls1.query.first().others[0] == bob3)
+        assert(self.DbTestCls1.query.first().others == [bob3])
+        toto1 = self.DbTestCls4(id=1, surname='toto1')
+        self.DbTestCls4(id=2, surname='toto2')
+        admin = self.DbTestCls5(id=1, rolename='admin')
+        self.DbTestCls5(id=2, rolename='owner')
+        self.DbTestCls5(id=3, rolename='anonymous')
+        toto1.roles.append(admin)
+        assert(self.DbTestCls4.query.first().roles == [admin])
         transaction.commit()
 
         return super(ElixirBase, self).setup()
@@ -76,9 +99,29 @@ class SQLABase(object):
             id1 = sa.Column(sa.Integer, primary_key=True)
             id2 = sa.Column(sa.Integer, primary_key=True)
 
+        join_table = sa.Table('Test4_Test5', Base.metadata,
+            sa.Column('Test4', sa.Integer, sa.ForeignKey('Test4.id'), primary_key=True),
+            sa.Column('Test5', sa.Integer, sa.ForeignKey('Test5.id'), primary_key=True)
+        )
+        class DbTestCls4(Base):
+            __tablename__ = 'Test4'
+            id = sa.Column(sa.Integer, primary_key=True)
+            surname = sa.Column(sa.String(50))
+            def __unicode__(self):
+                return self.surname
+        class DbTestCls5(Base):
+            __tablename__ = 'Test5'
+            id = sa.Column(sa.Integer, primary_key=True)
+            rolename = sa.Column(sa.String(50))
+            users = sa.orm.relationship('DbTestCls4', secondary=join_table, backref='roles')
+            def __unicode__(self):
+                return self.rolename
+
         self.DbTestCls1 = DbTestCls1
         self.DbTestCls2 = DbTestCls2
         self.DbTestCls3 = DbTestCls3
+        self.DbTestCls4 = DbTestCls4
+        self.DbTestCls5 = DbTestCls5
 
         Base.metadata.create_all()
 
@@ -90,7 +133,16 @@ class SQLABase(object):
         bob3 = self.DbTestCls2(id=3, nick='bob3')
         foo1.others.append(bob3)
         self.session.add(bob3)
-        assert(self.DbTestCls1.query.first().others[0] == bob3)
+        assert(self.DbTestCls1.query.first().others == [bob3])
+        toto1 = self.DbTestCls4(id=1, surname='toto1')
+        self.session.add(toto1)
+        self.session.add(self.DbTestCls4(id=2, surname='toto2'))
+        admin = self.DbTestCls5(id=1, rolename='admin')
+        self.session.add(admin)
+        self.session.add(self.DbTestCls5(id=2, rolename='owner'))
+        self.session.add(self.DbTestCls5(id=3, rolename='anonymous'))
+        toto1.roles.append(admin)
+        assert(self.DbTestCls4.query.first().roles == [admin])
         transaction.commit()
 
         return super(SQLABase, self).setup()
@@ -968,6 +1020,97 @@ class AutoTableFormT2(WidgetTest):
 class TestAutoTableForm2Elixir(ElixirBase, AutoTableFormT2): pass
 class TestAutoTableForm2SQLA(SQLABase, AutoTableFormT2): pass
 
+
+class AutoTableFormT4(WidgetTest):
+    def setup(self):
+        self.widget = self.widget(entity=self.DbTestCls4)
+        return super(AutoTableFormT4, self).setup()
+
+    widget = tws.AutoTableForm
+    attrs = { 'id' : 'foo_form' }
+    expected = """
+    <form method="post" id="foo_form:form" enctype="multipart/form-data">
+        <span class="error"></span>
+        <table id="foo_form">
+            <tr class="odd" id="foo_form:surname:container">
+                <th>Surname</th>
+                <td>
+                    <input name="foo_form:surname" id="foo_form:surname" type="text" />
+                    <span id="foo_form:surname:error"></span>
+                </td>
+            </tr><tr class="even required" id="foo_form:roles:container">
+                <th>Roles</th>
+                <td>
+                    <ul id="foo_form:roles">
+                        <li>
+                            <input type="checkbox" name="foo_form:roles" value="1" id="foo_form:roles:0" />
+                            <label for="foo_form:roles:0">admin</label>
+                        </li><li>
+                            <input type="checkbox" name="foo_form:roles" value="2" id="foo_form:roles:1" />
+                            <label for="foo_form:roles:1">owner</label>
+                        </li><li>
+                            <input type="checkbox" name="foo_form:roles" value="3" id="foo_form:roles:2" />
+                            <label for="foo_form:roles:2">anonymous</label>
+                        </li>
+                    </ul>
+                    <span id="foo_form:roles:error"></span>
+                </td>
+            </tr>
+            <tr class="error">
+                <td colspan="2">
+                    <span id="foo_form:error"></span>
+                </td>
+            </tr>
+        </table>
+        <input type="submit" id="submit" value="Save" />
+    </form>"""
+
+class TestAutoTableForm4Elixir(ElixirBase, AutoTableFormT4): pass
+class TestAutoTableForm4SQLA(SQLABase, AutoTableFormT4): pass
+
+
+class AutoTableFormT5(WidgetTest):
+    def setup(self):
+        self.widget = self.widget(entity=self.DbTestCls5)
+        return super(AutoTableFormT5, self).setup()
+
+    widget = tws.AutoTableForm
+    attrs = { 'id' : 'foo_form' }
+    expected = """
+    <form method="post" id="foo_form:form" enctype="multipart/form-data">
+        <span class="error"></span>
+        <table id="foo_form">
+        <tr class="odd" id="foo_form:rolename:container">
+            <th>Rolename</th>
+            <td>
+                <input name="foo_form:rolename" id="foo_form:rolename" type="text" />
+                <span id="foo_form:rolename:error"></span>
+            </td>
+        </tr><tr class="even required" id="foo_form:users:container">
+            <th>Users</th>
+            <td>
+                <ul id="foo_form:users">
+                    <li>
+                        <input type="checkbox" name="foo_form:users" value="1" id="foo_form:users:0" />
+                        <label for="foo_form:users:0">toto1</label>
+                    </li><li>
+                        <input type="checkbox" name="foo_form:users" value="2" id="foo_form:users:1" />
+                        <label for="foo_form:users:1">toto2</label>
+                    </li>
+                </ul>
+                <span id="foo_form:users:error"></span>
+            </td>
+        </tr><tr class="error">
+            <td colspan="2">
+                <span id="foo_form:error"></span>
+            </td>
+        </tr>
+        </table>
+        <input type="submit" id="submit" value="Save" />
+    </form>"""
+
+class TestAutoTableForm5Elixir(ElixirBase, AutoTableFormT5): pass
+class TestAutoTableForm5SQLA(SQLABase, AutoTableFormT5): pass
 
 class AutoViewGridT(WidgetTest):
     def setup(self):
