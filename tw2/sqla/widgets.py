@@ -78,6 +78,26 @@ def sort_properties(prop1, prop2):
     return cmp(prop1._creation_order, prop2._creation_order)
 
 
+def required_widget(prop):
+    """Returns bool
+
+    Returns True if the widget corresponding to the given prop should be required
+    """
+    is_nullable = lambda prop: sum([c.nullable for c in getattr(prop, 'columns', [])])
+
+    if not is_relation(prop):
+        if not is_nullable(prop):
+            return True
+        return False
+
+    if not is_manytoone(prop):
+        return False
+
+    localname = prop.local_side[0].name
+    # If the local field is required, the relation should be required
+    pkey = dict([(p.key, is_nullable(p)) for p in prop.parent.iterate_properties])
+    return not pkey.get(localname, True)
+
 class RelatedValidator(twc.IntValidator):
     """Validator for related object
 
@@ -90,16 +110,19 @@ class RelatedValidator(twc.IntValidator):
         'norel': 'No related object found',
     }
 
-    def __init__(self, entity, **kw):
+    def __init__(self, entity, required=False, **kw):
         super(RelatedValidator, self).__init__(**kw)
         cols = sa.orm.class_mapper(entity).primary_key
         if len(cols) != 1:
             raise twc.WidgetError('RelatedValidator can only act on tables that have a single primary key column')
         self.entity = entity
         self.primary_key = cols[0]
+        self.required=required
 
     def to_python(self, value, state=None):
         if not value:
+            if self.required:
+                raise twc.ValidationError('required', self)
             return None
 
         # How could this happen (that we are already to_python'd)?
@@ -125,6 +148,24 @@ class RelatedValidator(twc.IntValidator):
                 'instead "%s" of type "%s".' % (str(value), str(type(value))))
         return value and unicode(sa.orm.object_mapper(value).primary_key_from_instance(value)[0])
 
+
+class RelatedItemValidator(twc.Validator):
+
+    def __init__(self, entity, required=False, **kw):
+        super(RelatedItemValidator, self).__init__(**kw)
+        self.required=required
+        self.entity = entity
+        self.item_validator = RelatedValidator(entity=self.entity)
+
+    def to_python(self, value, state=None):
+        value = [twc.safe_validate(self.item_validator, v) for v in value]
+        value = [v for v in value if v is not twc.Invalid]
+        if not value and self.required:
+            raise twc.ValidationError('required', self)
+        return value
+
+    def from_python(self, value, state=None):
+        return value
 
 
 class DbPage(twc.Page):
@@ -228,24 +269,32 @@ class DbSingleSelectField(DbSelectionField, twf.SingleSelectField):
     @classmethod
     def post_define(cls):
         if getattr(cls, 'entity', None):
-            cls.validator = RelatedValidator(entity=cls.entity)
+            required=getattr(cls, 'required', False)
+            cls.validator = RelatedValidator(entity=cls.entity, required=required)
 
 class DbCheckBoxList(DbSelectionField, twf.CheckBoxList):
     @classmethod
     def post_define(cls):
         if getattr(cls, 'entity', None):
+            required=getattr(cls, 'required', False)
+            cls.validator = RelatedItemValidator(required=required, entity=cls.entity)
+            # We should keep item_validator to make sure the values are well transformed.
             cls.item_validator = RelatedValidator(entity=cls.entity)
 
 class DbRadioButtonList(DbSelectionField, twf.RadioButtonList):
     @classmethod
     def post_define(cls):
         if getattr(cls, 'entity', None):
-            cls.validator = RelatedValidator(entity=cls.entity)
+            required=getattr(cls, 'required', False)
+            cls.validator = RelatedValidator(entity=cls.entity, required=required)
 
 class DbCheckBoxTable(DbSelectionField, twf.CheckBoxTable):
     @classmethod
     def post_define(cls):
         if getattr(cls, 'entity', None):
+            required=getattr(cls, 'required', False)
+            cls.validator = RelatedItemValidator(required=required, entity=cls.entity)
+            # We should keep item_validator to make sure the values are well transformed.
             cls.item_validator = RelatedValidator(entity=cls.entity)
 
 
@@ -300,7 +349,7 @@ class WidgetPolicy(object):
                 raise twc.WidgetError(
                     "Cannot automatically create a widget " +
                     "for one-to-many relation '%s'" % prop.key)
-            widget = cls.onetomany_widget(id=prop.key,entity=prop.mapper.class_)
+            widget = cls.onetomany_widget(id=prop.key,entity=prop.mapper.class_, required=required_widget(prop))
         elif sum([c.primary_key for c in getattr(prop, 'columns', [])]):
             widget = cls.pkey_widget
         elif is_manytoone(prop):
@@ -308,14 +357,14 @@ class WidgetPolicy(object):
                 raise twc.WidgetError(
                     "Cannot automatically create a widget " +
                     "for many-to-one relation '%s'" % prop.key)
-            widget = cls.manytoone_widget(id=prop.key,entity=prop.mapper.class_)
+            widget = cls.manytoone_widget(id=prop.key,entity=prop.mapper.class_, required=required_widget(prop))
         elif is_manytomany(prop):
             # Use the same widget as onetomany
             if not cls.onetomany_widget:
                 raise twc.WidgetError(
                     "Cannot automatically create a widget " +
                     "for many-to-many relation '%s'" % prop.key)
-            widget = cls.onetomany_widget(id=prop.key,entity=prop.mapper.class_)
+            widget = cls.onetomany_widget(id=prop.key,entity=prop.mapper.class_, required=required_widget(prop))
         elif prop.key in cls.name_widgets:
             widget = cls.name_widgets[prop.key]
         else:
@@ -333,7 +382,7 @@ class WidgetPolicy(object):
 
         if widget:
             args = {'id': prop.key}
-            if not sum([c.nullable for c in getattr(prop, 'columns', [])]):
+            if required_widget(prop):
                 args['validator'] = twc.Required
             widget = widget(**args)
 

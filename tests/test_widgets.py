@@ -5,7 +5,6 @@ from cStringIO import StringIO
 import elixir as el
 import transaction
 from sqlalchemy.ext.declarative import declarative_base
-import nose
 
 import tw2.core.testbase as tw2test
 
@@ -47,11 +46,25 @@ class ElixirBase(object):
             def __unicode__(self):
                 return self.rolename
 
+        class DbTestCls6(el.Entity):
+            name = el.Field(el.String)
+            def __unicode__(self):
+                return self.name
+
+        class DbTestCls7(el.Entity):
+            nick = el.Field(el.String)
+            other_id = el.Field(el.Integer, required=True)
+            other = el.ManyToOne(DbTestCls6, field=other_id, backref='others')
+            def __unicode__(self):
+                return self.nick
+
         self.DbTestCls1 = DbTestCls1
         self.DbTestCls2 = DbTestCls2
         self.DbTestCls3 = DbTestCls3
         self.DbTestCls4 = DbTestCls4
         self.DbTestCls5 = DbTestCls5
+        self.DbTestCls6 = DbTestCls6
+        self.DbTestCls7 = DbTestCls7
 
         el.setup_all()
         el.metadata.create_all()
@@ -70,6 +83,10 @@ class ElixirBase(object):
         self.DbTestCls5(id=3, rolename='anonymous')
         toto1.roles.append(admin)
         assert(self.DbTestCls4.query.first().roles == [admin])
+        self.DbTestCls6(id=1, name='foo1')
+        self.DbTestCls6(id=2, name='foo2')
+        self.DbTestCls7(id=1, nick='bob1', other_id=1)
+        self.DbTestCls7(id=2, nick='bob2', other_id=1)
         transaction.commit()
 
         return super(ElixirBase, self).setup()
@@ -116,12 +133,28 @@ class SQLABase(object):
             users = sa.orm.relationship('DbTestCls4', secondary=join_table, backref='roles')
             def __unicode__(self):
                 return self.rolename
+        class DbTestCls6(Base):
+            __tablename__ = 'Test6'
+            id = sa.Column(sa.Integer, primary_key=True)
+            name = sa.Column(sa.String(50))
+            def __unicode__(self):
+                return self.name
+        class DbTestCls7(Base):
+            __tablename__ = 'Test7'
+            id = sa.Column(sa.Integer, primary_key=True)
+            nick = sa.Column(sa.String(50))
+            other_id = sa.Column(sa.Integer, sa.ForeignKey('Test6.id'), nullable=False)
+            other = sa.orm.relation(DbTestCls6, backref=sa.orm.backref('others'))
+            def __unicode__(self):
+                return self.nick
 
         self.DbTestCls1 = DbTestCls1
         self.DbTestCls2 = DbTestCls2
         self.DbTestCls3 = DbTestCls3
         self.DbTestCls4 = DbTestCls4
         self.DbTestCls5 = DbTestCls5
+        self.DbTestCls6 = DbTestCls6
+        self.DbTestCls7 = DbTestCls7
 
         Base.metadata.create_all()
 
@@ -143,6 +176,10 @@ class SQLABase(object):
         self.session.add(self.DbTestCls5(id=3, rolename='anonymous'))
         toto1.roles.append(admin)
         assert(self.DbTestCls4.query.first().roles == [admin])
+        self.session.add(self.DbTestCls6(id=1, name='foo1'))
+        self.session.add(self.DbTestCls6(id=2, name='foo2'))
+        self.session.add(self.DbTestCls7(id=1, nick='bob1', other_id=1))
+        self.session.add(self.DbTestCls7(id=2, nick='bob2', other_id=1))
         transaction.commit()
 
         return super(SQLABase, self).setup()
@@ -175,6 +212,39 @@ class RadioButtonT(WidgetTest):
 class TestRadioButtonElixir(ElixirBase, RadioButtonT): pass
 class TestRadioButtonSQLA(SQLABase, RadioButtonT): pass
 
+class RadioButtonRequiredT(WidgetTest):
+    widget = tws.DbRadioButtonList
+    declarative = True
+    attrs = {'css_class':'something', 'id' : 'something'}
+    params = {'checked':None}
+    expected = """
+    <ul class="something" id="something">
+    <li>
+        <input type="radio" name="something" value="1" id="something:0"/>
+        <label for="something:0">foo1</label>
+    </li>
+    <li>
+        <input type="radio" name="something" value="2" id="something:1"/>
+        <label for="something:1">foo2</label>
+    </li>
+    </ul>"""
+
+    def test_validation(self):
+        try:
+            self.widget.validate({})
+            assert(False)
+        except twc.ValidationError, ve:
+            assert(ve.widget.error_msg == twc.Validator.msgs['required'])
+        value = self.widget.validate({'something':'1'})
+        assert(value is self.DbTestCls1.query.get(1))
+
+    def setup(self):
+        self.widget = self.widget(entity=self.DbTestCls1, required=True)
+        return super(RadioButtonRequiredT, self).setup()
+
+class TestRadioButtonRequiredElixir(ElixirBase, RadioButtonRequiredT): pass
+class TestRadioButtonRequiredSQLA(SQLABase, RadioButtonRequiredT): pass
+
 class CheckBoxT(WidgetTest):
     widget = tws.DbCheckBoxList
     attrs = {'css_class':'something', 'id' : 'something'}
@@ -202,6 +272,41 @@ class CheckBoxT(WidgetTest):
 
 class TestCheckBoxElixir(ElixirBase, CheckBoxT): pass
 class TestCheckBoxSQLA(SQLABase, CheckBoxT): pass
+
+class CheckBoxRequiredT(WidgetTest):
+    widget = tws.DbCheckBoxList
+    attrs = {'css_class':'something', 'id' : 'something'}
+    declarative = True
+    params = {'checked':None}
+    expected = """
+    <ul class="something" id="something">
+    <li>
+        <input type="checkbox" name="something" value="1" id="something:0"/>
+        <label for="something:0">foo1</label>
+    </li>
+    <li>
+        <input type="checkbox" name="something" value="2" id="something:1"/>
+        <label for="something:1">foo2</label>
+    </li>
+    </ul>"""
+
+    def test_validation(self):
+        try:
+            self.widget.validate({'something':''})
+            assert(False)
+        except twc.ValidationError, ve:
+            assert(ve.msg == twc.Validator.msgs['required'])
+        value = self.widget.validate({'something':'1'})
+        assert(value == [self.DbTestCls1.query.get(1)])
+        value = self.widget.validate({'something':['1', '2']})
+        assert(value == [self.DbTestCls1.query.get(1), self.DbTestCls1.query.get(2)])
+
+    def setup(self):
+        self.widget = self.widget(entity=self.DbTestCls1, required=True)
+        return super(CheckBoxRequiredT, self).setup()
+
+class TestCheckBoxRequiredElixir(ElixirBase, CheckBoxRequiredT): pass
+class TestCheckBoxRequiredSQLA(SQLABase, CheckBoxRequiredT): pass
 
 class CheckBoxTableT(WidgetTest):
     widget = tws.DbCheckBoxTable
@@ -235,6 +340,43 @@ class CheckBoxTableT(WidgetTest):
 class TestCheckBoxTableElixir(ElixirBase, CheckBoxTableT): pass
 class TestCheckBoxTableSQLA(SQLABase, CheckBoxTableT): pass
 
+class CheckBoxTableRequiredT(WidgetTest):
+    widget = tws.DbCheckBoxTable
+    attrs = {'css_class':'something', 'id' : 'something'}
+    declarative = True
+    params = {'checked':None}
+    expected = """
+    <table class="something" id="something"><tbody>
+    <tr>
+        <td>
+            <input type="checkbox" name="something" value="1" id="something:0">
+            <label for="something:0">foo1</label>
+        </td>
+    </tr><tr>
+        <td>
+            <input type="checkbox" name="something" value="2" id="something:1">
+            <label for="something:1">foo2</label>
+        </td>
+    </tr>
+    </tbody></table>
+    """
+
+    def test_validation(self):
+        try:
+            self.widget.validate({})
+            assert(False)
+        except twc.ValidationError, ve:
+            assert(ve.msg == twc.Validator.msgs['required'])
+        value = self.widget.validate({'something':'1'})
+        assert(value == [self.DbTestCls1.query.get(1)])
+
+    def setup(self):
+        self.widget = self.widget(entity=self.DbTestCls1, required=True)
+        return super(CheckBoxTableRequiredT, self).setup()
+
+class TestCheckBoxTableRequestElixir(ElixirBase, CheckBoxTableRequiredT): pass
+class TestCheckBoxTableRequestSQLA(SQLABase, CheckBoxTableRequiredT): pass
+
 class SingleSelectT(WidgetTest):
     widget = tws.DbSingleSelectField
     attrs = {'css_class':'something', 'id' : 'something'}
@@ -257,6 +399,34 @@ class SingleSelectT(WidgetTest):
 
 class TestSingleSelectElixir(ElixirBase, SingleSelectT): pass
 class TestSingleSelectSQLA(SQLABase, SingleSelectT): pass
+
+class SingleSelectRequiredT(WidgetTest):
+    widget = tws.DbSingleSelectField
+    attrs = {'css_class':'something', 'id' : 'something'}
+    declarative = True
+    params = {'checked':None}
+    expected = """
+    <select class="something" name="something" id="something">
+    <option ></option>
+    <option value="1">foo1</option>
+    <option value="2">foo2</option>
+    </select>"""
+
+    def test_validation(self):
+        try:
+            self.widget.validate({'something':''})
+            assert(False)
+        except twc.ValidationError, ve:
+            assert(ve.widget.error_msg == twc.Validator.msgs['required'])
+        value = self.widget.validate({'something':'1'})
+        assert(value is self.DbTestCls1.query.get(1))
+
+    def setup(self):
+        self.widget = self.widget(entity=self.DbTestCls1, required=True)
+        return super(SingleSelectRequiredT, self).setup()
+
+class TestSingleSelectRequiredElixir(ElixirBase, SingleSelectRequiredT): pass
+class TestSingleSelectRequiredSQLA(SQLABase, SingleSelectRequiredT): pass
 
 class ListPageT(WidgetTest):
     def setup(self):
@@ -951,7 +1121,7 @@ class AutoTableFormT1(WidgetTest):
             <span id="foo_form:name:error"></span>
         </td>
         </tr>
-    <tr class="even required" id="foo_form:others:container">
+    <tr class="even" id="foo_form:others:container">
         <th>Others</th>
         <td>
             <ul id="foo_form:others">
@@ -1038,7 +1208,7 @@ class AutoTableFormT4(WidgetTest):
                     <input name="foo_form:surname" id="foo_form:surname" type="text" />
                     <span id="foo_form:surname:error"></span>
                 </td>
-            </tr><tr class="even required" id="foo_form:roles:container">
+            </tr><tr class="even" id="foo_form:roles:container">
                 <th>Roles</th>
                 <td>
                     <ul id="foo_form:roles">
@@ -1086,7 +1256,7 @@ class AutoTableFormT5(WidgetTest):
                 <input name="foo_form:rolename" id="foo_form:rolename" type="text" />
                 <span id="foo_form:rolename:error"></span>
             </td>
-        </tr><tr class="even required" id="foo_form:users:container">
+        </tr><tr class="even" id="foo_form:users:container">
             <th>Users</th>
             <td>
                 <ul id="foo_form:users">
@@ -1111,6 +1281,92 @@ class AutoTableFormT5(WidgetTest):
 
 class TestAutoTableForm5Elixir(ElixirBase, AutoTableFormT5): pass
 class TestAutoTableForm5SQLA(SQLABase, AutoTableFormT5): pass
+
+
+class AutoTableFormT6(WidgetTest):
+    def setup(self):
+        self.widget = self.widget(entity=self.DbTestCls6)
+        return super(AutoTableFormT6, self).setup()
+
+    widget = tws.AutoTableForm
+    attrs = { 'id' : 'foo_form' }
+    expected = """
+<form method="post" id="foo_form:form" enctype="multipart/form-data">
+    <span class="error"></span>
+    <table id="foo_form">
+    <tr class="odd" id="foo_form:name:container">
+        <th>Name</th>
+        <td>
+            <input name="foo_form:name" id="foo_form:name" type="text">
+            <span id="foo_form:name:error"></span>
+        </td>
+        </tr>
+    <tr class="even" id="foo_form:others:container">
+        <th>Others</th>
+        <td>
+            <ul id="foo_form:others">
+                <li>
+                    <input type="checkbox" name="foo_form:others" value="1" id="foo_form:others:0"/>
+                    <label for="foo_form:others:0">bob1</label>
+                </li><li>
+                    <input type="checkbox" name="foo_form:others" value="2" id="foo_form:others:1"/>
+                    <label for="foo_form:others:1">bob2</label>
+                </li>
+            </ul>
+            <span id="foo_form:others:error"></span>
+        </td>
+    </tr>
+    <tr class="error"><td colspan="2">
+        <span id="foo_form:error"></span>
+    </td></tr>
+    </table>
+    <input type="submit" id="submit" value="Save">
+</form>"""
+
+class TestAutoTableForm6Elixir(ElixirBase, AutoTableFormT6): pass
+class TestAutoTableForm6SQLA(SQLABase, AutoTableFormT6): pass
+
+
+class AutoTableFormT7(WidgetTest):
+    def setup(self):
+        self.widget = self.widget(entity=self.DbTestCls7)
+        return super(AutoTableFormT7, self).setup()
+
+    widget = tws.AutoTableForm
+    attrs = { 'id' : 'foo_form' }
+    expected = """
+<form id="foo_form:form" enctype="multipart/form-data" method="post">
+    <span class="error"></span>
+    <table id="foo_form">
+    <tr class="odd"  id="foo_form:nick:container">
+        <th>Nick</th>
+        <td >
+            <input name="foo_form:nick" type="text" id="foo_form:nick"/>
+            <span id="foo_form:nick:error"></span>
+        </td>
+    </tr>
+     <tr class="even required"  id="foo_form:other:container">
+        <th>Other</th>
+        <td >
+            <select name="foo_form:other" id="foo_form:other">
+         <option ></option>
+         <option value="1">foo1</option>
+         <option value="2">foo2</option>
+</select>
+            <span id="foo_form:other:error"></span>
+        </td>
+    </tr>
+    <tr class="error"><td colspan="2">
+        <span id="foo_form:error"></span>
+    </td></tr>
+    </table>
+    <input type="submit" value="Save" id="submit"/>
+</form>
+"""
+
+class TestAutoTableForm7Elixir(ElixirBase, AutoTableFormT7): pass
+class TestAutoTableForm7SQLA(SQLABase, AutoTableFormT7): pass
+
 
 class AutoViewGridT(WidgetTest):
     def setup(self):
@@ -1313,3 +1569,533 @@ class TestAutoGrowingGridAsChildWithRelationshipElixir(
     pass
 class TestAutoGrowingGridAsChildWithRelationshipSQLA(
 SQLABase, AutoGrowingGridAsChildWithRelationshipT): pass
+
+
+class AutoTableFormAsChildT(WidgetTest):
+    def setup(self):
+        self.widget = self.widget(entity=self.DbTestCls7)
+        return super(AutoTableFormAsChildT, self).setup()
+
+    widget = tws.DbFormPage
+    attrs = { 'id' : 'autotable', 'title' : 'Test',
+              'child' : tws.AutoTableForm}
+    expected = """
+<html>
+<head><title>Test</title></head>
+<body id="autotable:page"><h1>Test</h1><form method="post" id="autotable:form" enctype="multipart/form-data">
+    <span class="error"></span>
+    <table id="autotable">
+    <tr class="odd" id="autotable:nick:container">
+        <th>Nick</th>
+        <td>
+            <input name="autotable:nick" type="text" id="autotable:nick" />
+            <span id="autotable:nick:error"></span>
+        </td>
+    </tr><tr class="even required" id="autotable:other:container">
+        <th>Other</th>
+        <td>
+            <select id="autotable:other" name="autotable:other">
+                <option></option>
+                <option value="1">foo1</option>
+                <option value="2">foo2</option>
+            </select>
+            <span id="autotable:other:error"></span>
+        </td>
+    </tr>
+    <tr class="error"><td colspan="2">
+        <span id="autotable:error"></span>
+    </td></tr>
+    </table>
+    <input type="submit" id="submit" value="Save" />
+</form></body>
+</html>
+"""
+
+    declarative = True
+    def test_request_get_edit(self):
+        environ = {
+            'REQUEST_METHOD': 'GET',
+        }
+        req=Request(environ)
+        self.mw.config.debug = True
+        r = self.widget().request(req)
+        tw2test.assert_eq_xml(r.body, """
+<html>
+<head><title>Test</title></head>
+<body id="autotable:page"><h1>Test</h1><form method="post" id="autotable:form" enctype="multipart/form-data">
+    <span class="error"></span>
+    <table id="autotable">
+    <tr class="odd" id="autotable:nick:container">
+        <th>Nick</th>
+        <td>
+            <input name="autotable:nick" type="text" id="autotable:nick" />
+            <span id="autotable:nick:error"></span>
+        </td>
+    </tr><tr class="even required" id="autotable:other:container">
+        <th>Other</th>
+        <td>
+            <select id="autotable:other" name="autotable:other">
+                <option></option>
+                <option value="1">foo1</option>
+                <option value="2">foo2</option>
+            </select>
+            <span id="autotable:other:error"></span>
+        </td>
+    </tr>
+    <tr class="error"><td colspan="2">
+        <span id="autotable:error"></span>
+    </td></tr>
+    </table>
+    <input type="submit" id="submit" value="Save" />
+</form></body>
+</html>
+""")
+
+    def test_request_post_redirect(self):
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='autotable:other=1'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        r = self.widget(redirect="/foo").request(req)
+        assert( r.status_int == 302 and r.location=="/foo" )
+
+    def test_request_get(self):
+        environ = {'REQUEST_METHOD': 'GET', 'QUERY_STRING' :'nick=bob1'}
+        req=Request(environ)
+        assert(req.GET)
+        r = self.widget().request(req)
+        tw2test.assert_eq_xml(r.body, """
+<html>
+<head><title>Test</title></head>
+<body id="autotable:page"><h1>Test</h1><form id="autotable:form" enctype="multipart/form-data" method="post">
+    <span class="error"></span>
+    <table id="autotable">
+    <tr class="odd"  id="autotable:nick:container">
+        <th>Nick</th>
+        <td >
+            <input name="autotable:nick" type="text" id="autotable:nick" value="bob1"/>
+            
+            <span id="autotable:nick:error"></span>
+        </td>
+    </tr>
+    <tr class="even required"  id="autotable:other:container">
+        <th>Other</th>
+        <td >
+            <select name="autotable:other" id="autotable:other">
+                <option ></option>
+                <option selected="selected" value="1">foo1</option>
+                <option value="2">foo2</option>
+            </select>
+            <span id="autotable:other:error"></span>
+        </td>
+    </tr>
+    <tr class="error"><td colspan="2">
+        <span id="autotable:error"></span>
+    </td></tr>
+    </table>
+    <input type="submit" value="Save" id="submit"/>
+</form>
+</body>
+</html>""")
+
+    def test_request_post_valid(self):
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='autotable:nick=toto1&autotable:other=2'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        r = self.widget().request(req)
+        assert """Form posted successfully {'nick': u'toto1', 'other':""" in r.body, r.body
+
+    def test_request_post_invalid_no_other(self):
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='autotable:nick=toto1'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        r = self.widget().request(req)
+        tw2test.assert_eq_xml(r.body, """
+<html>
+<head><title>Test</title></head>
+<body id="autotable:page"><h1>Test</h1><form id="autotable:form" enctype="multipart/form-data" method="post">
+     <span class="error"></span>
+    <table id="autotable">
+    <tr class="odd"  id="autotable:nick:container">
+        <th>Nick</th>
+        <td >
+            <input name="autotable:nick" type="text" id="autotable:nick" value="toto1"/>
+            
+            <span id="autotable:nick:error"></span>
+        </td>
+    </tr>
+    <tr class="even required error"  id="autotable:other:container">
+        <th>Other</th>
+        <td >
+            <select name="autotable:other" id="autotable:other">
+                <option ></option>
+                <option value="1">foo1</option>
+                <option value="2">foo2</option>
+            </select>
+            <span id="autotable:other:error">Enter a value</span>
+        </td>
+    </tr>
+    <tr class="error"><td colspan="2">
+        <span id="autotable:error"></span>
+    </td></tr>
+    </table>
+    <input type="submit" value="Save" id="submit"/>
+</form>
+</body>
+</html>""")
+
+    def test_request_post_invalid_nonexisting_other(self):
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='autotable:nick=toto1&autotable:other=10'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        r = self.widget().request(req)
+        tw2test.assert_eq_xml(r.body, """
+<html>
+<head><title>Test</title></head>
+<body id="autotable:page"><h1>Test</h1><form id="autotable:form" enctype="multipart/form-data" method="post">
+    <span class="error"></span>
+    <table id="autotable">
+    <tr class="odd"  id="autotable:nick:container">
+        <th>Nick</th>
+        <td >
+            <input name="autotable:nick" type="text" id="autotable:nick" value="toto1"/>
+            
+            <span id="autotable:nick:error"></span>
+        </td>
+    </tr>
+    <tr class="even required error"  id="autotable:other:container">
+        <th>Other</th>
+        <td >
+            <select name="autotable:other" id="autotable:other">
+                <option ></option>
+                <option value="1">foo1</option>
+                <option value="2">foo2</option>
+            </select>
+            <span id="autotable:other:error">No related object found</span>
+        </td>
+    </tr>
+    <tr class="error"><td colspan="2">
+        <span id="autotable:error"></span>
+    </td></tr>
+    </table>
+    <input type="submit" value="Save" id="submit"/>
+</form>
+</body>
+</html>""")
+
+    def test_request_post_counts_new(self):
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='autotable:nick=toto1&autotable:other=1'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        assert(self.DbTestCls7.query.count() == 2)
+        r = self.widget().request(req)
+        assert(self.DbTestCls7.query.count() == 3)
+
+    def test_request_post_counts_update(self):
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='autotable:nick=toto1&autotable:other=1&autotable:id=1'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        assert(self.DbTestCls1.query.count() == 2)
+        r = self.widget().request(req)
+        assert(self.DbTestCls1.query.count() == 2)
+
+class TestAutoTableFormAsChildTElixir(ElixirBase, AutoTableFormAsChildT): pass
+class TestAutoTableFormAsChildTSQLA(SQLABase, AutoTableFormAsChildT): pass
+
+class FormPageRequiredCheckboxT(WidgetTest):
+    def setup(self):
+        attrs = {
+                'child': twf.TableForm(
+                    children=[
+                        twf.HiddenField(id='id'),
+                        twf.TextField(id='name'),
+                        tws.DbCheckBoxList(id='others', entity=self.DbTestCls2, required=True),
+                    ]),
+                'title': 'some title',
+                'entity': self.DbTestCls1,
+            }
+        self.widget = self.widget(**attrs)
+        return super(FormPageRequiredCheckboxT, self).setup()
+
+    widget = tws.DbFormPage
+    expected = """
+<html>
+<head><title>some title</title></head>
+<body id="dbformpage_d:page"><h1>some title</h1><form method="post" id="dbformpage_d:form" enctype="multipart/form-data">
+    <span class="error"></span>
+    <table id="dbformpage_d">
+    <tr class="odd" id="dbformpage_d:name:container">
+        <th>Name</th>
+        <td>
+            <input name="dbformpage_d:name" id="dbformpage_d:name" type="text" />
+            <span id="dbformpage_d:name:error"></span>
+        </td>
+    </tr><tr class="even required" id="dbformpage_d:others:container">
+        <th>Others</th>
+        <td>
+            <ul id="dbformpage_d:others">
+            <li>
+                <input type="checkbox" name="dbformpage_d:others" value="1" id="dbformpage_d:others:0" />
+                <label for="dbformpage_d:others:0">bob1</label>
+            </li><li>
+                <input type="checkbox" name="dbformpage_d:others" value="2" id="dbformpage_d:others:1" />
+                <label for="dbformpage_d:others:1">bob2</label>
+            </li><li>
+                <input type="checkbox" name="dbformpage_d:others" value="3" id="dbformpage_d:others:2" />
+                <label for="dbformpage_d:others:2">bob3</label>
+            </li>
+</ul>
+            <span id="dbformpage_d:others:error"></span>
+        </td>
+    </tr>
+    <tr class="error"><td colspan="2">
+        <input name="dbformpage_d:id" type="hidden" id="dbformpage_d:id" />
+        <span id="dbformpage_d:error"></span>
+    </td></tr>
+    </table>
+    <input type="submit" id="submit" value="Save" />
+</form></body>
+</html> 
+"""    
+    def test_request_post_redirect(self):
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='dbformpage_d:name=toto1&dbformpage_d:others=2'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        r = self.widget(redirect="/foo").request(req)
+        assert( r.status_int == 302 and r.location=="/foo" )
+
+    def test_request_get(self):
+        environ = {'REQUEST_METHOD': 'GET', 'QUERY_STRING' :'name=foo1'}
+        req=Request(environ)
+        assert(req.GET)
+        r = self.widget().request(req)
+        tw2test.assert_eq_xml(r.body, """
+<html>
+<head><title>some title</title></head>
+<body id="dbformpage_d:page"><h1>some title</h1><form id="dbformpage_d:form" enctype="multipart/form-data" method="post">
+    <span class="error"></span>
+    <table id="dbformpage_d">
+    <tr class="odd"  id="dbformpage_d:name:container">
+        <th>Name</th>
+        <td >
+            <input name="dbformpage_d:name" type="text" id="dbformpage_d:name" value="foo1"/>
+            
+            <span id="dbformpage_d:name:error"></span>
+        </td>
+    </tr>
+    <tr class="even required"  id="dbformpage_d:others:container">
+        <th>Others</th>
+        <td >
+            <ul id="dbformpage_d:others">
+                <li>
+                    <input type="checkbox" name="dbformpage_d:others" value="1" id="dbformpage_d:others:0"/>
+                    <label for="dbformpage_d:others:0">bob1</label>
+                </li>
+                <li>
+                    <input type="checkbox" name="dbformpage_d:others" value="2" id="dbformpage_d:others:1"/>
+                    <label for="dbformpage_d:others:1">bob2</label>
+                </li>
+                <li>
+                    <input type="checkbox" checked="checked" name="dbformpage_d:others" value="3" id="dbformpage_d:others:2"/>
+                    <label for="dbformpage_d:others:2">bob3</label>
+                </li>
+            </ul>
+            <span id="dbformpage_d:others:error"></span>
+        </td>
+    </tr>
+    <tr class="error"><td colspan="2">
+        <input type="hidden" name="dbformpage_d:id" value="1" id="dbformpage_d:id"/>
+        <span id="dbformpage_d:error"></span>
+    </td></tr>
+    </table>
+    <input type="submit" value="Save" id="submit"/>
+</form>
+</body>
+</html>
+""")
+
+    def test_request_post_valid(self):
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='dbformpage_d:name=toto1&dbformpage_d:others=2'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        r = self.widget().request(req)
+        assert """Form posted successfully""" in r.body, r.body
+
+    def test_request_post_invalid_no_others(self):
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='dbformpage_d:name=toto1'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        r = self.widget().request(req)
+        tw2test.assert_eq_xml(r.body, """
+<html>
+<head><title>some title</title></head>
+<body id="dbformpage_d:page"><h1>some title</h1><form id="dbformpage_d:form" enctype="multipart/form-data" method="post">
+    <span class="error"></span>
+    <table id="dbformpage_d">
+    <tr class="odd"  id="dbformpage_d:name:container">
+        <th>Name</th>
+        <td >
+            <input name="dbformpage_d:name" type="text" id="dbformpage_d:name" value="toto1"/>
+            
+            <span id="dbformpage_d:name:error"></span>
+        </td>
+    </tr>
+    <tr class="even required error"  id="dbformpage_d:others:container">
+        <th>Others</th>
+        <td >
+            <ul id="dbformpage_d:others">
+                <li>
+                    <input type="checkbox" name="dbformpage_d:others" value="1" id="dbformpage_d:others:0"/>
+                    <label for="dbformpage_d:others:0">bob1</label>
+                </li>
+                <li>
+                    <input type="checkbox" name="dbformpage_d:others" value="2" id="dbformpage_d:others:1"/>
+                    <label for="dbformpage_d:others:1">bob2</label>
+                </li>
+                <li>
+                    <input type="checkbox" name="dbformpage_d:others" value="3" id="dbformpage_d:others:2"/>
+                    <label for="dbformpage_d:others:2">bob3</label>
+                </li>
+            </ul>
+            <span id="dbformpage_d:others:error">Enter a value</span>
+        </td>
+    </tr>
+    <tr class="error"><td colspan="2">
+        <input type="hidden" name="dbformpage_d:id" value="" id="dbformpage_d:id"/>
+        <span id="dbformpage_d:error"></span>
+    </td></tr>
+    </table>
+    <input type="submit" value="Save" id="submit"/>
+</form>
+</body>
+</html>
+""")
+
+    def test_request_post_invalid_non_existing_others(self):
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='dbformpage_d:name=toto1&dbformpage_d:others=10'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        r = self.widget().request(req)
+        print r.body
+        tw2test.assert_eq_xml(r.body, """
+<html>
+<head><title>some title</title></head>
+<body id="dbformpage_d:page"><h1>some title</h1><form id="dbformpage_d:form" enctype="multipart/form-data" method="post">
+     <span class="error"></span>
+    <table id="dbformpage_d">
+    <tr class="odd"  id="dbformpage_d:name:container">
+        <th>Name</th>
+        <td >
+            <input name="dbformpage_d:name" type="text" id="dbformpage_d:name" value="toto1"/>
+            
+            <span id="dbformpage_d:name:error"></span>
+        </td>
+    </tr>
+    <tr class="even required error"  id="dbformpage_d:others:container">
+        <th>Others</th>
+        <td >
+            <ul id="dbformpage_d:others">
+                <li>
+                    <input type="checkbox" name="dbformpage_d:others" value="1" id="dbformpage_d:others:0"/>
+                    <label for="dbformpage_d:others:0">bob1</label>
+                </li>
+                <li>
+                    <input type="checkbox" name="dbformpage_d:others" value="2" id="dbformpage_d:others:1"/>
+                    <label for="dbformpage_d:others:1">bob2</label>
+                </li>
+                <li>
+                    <input type="checkbox" name="dbformpage_d:others" value="3" id="dbformpage_d:others:2"/>
+                    <label for="dbformpage_d:others:2">bob3</label>
+                </li>
+            </ul>
+            <span id="dbformpage_d:others:error">Enter a value</span>
+        </td>
+    </tr>
+    <tr class="error"><td colspan="2">
+        <input type="hidden" name="dbformpage_d:id" value="" id="dbformpage_d:id"/>
+        <span id="dbformpage_d:error"></span>
+    </td></tr>
+    </table>
+    <input type="submit" value="Save" id="submit"/>
+</form>
+</body>
+</html>
+""")
+
+    def test_request_post_counts_new(self):
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='dbformpage_d:name=toto1&dbformpage_d:others=1'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        assert(self.DbTestCls1.query.count() == 2)
+        r = self.widget().request(req)
+        assert(self.DbTestCls1.query.count() == 3)
+
+    def test_request_post_counts_update(self):
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='dbformpage_d:name=toto1&dbformpage_d:others=1&dbformpage_d:id=1'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        assert(self.DbTestCls1.query.count() == 2)
+        r = self.widget().request(req)
+        assert(self.DbTestCls1.query.count() == 2)
+
+class TestFormPageRequiredCheckboxTElixir(ElixirBase, FormPageRequiredCheckboxT): pass
+class TestFormPageRequiredCheckboxTSQLA(SQLABase, FormPageRequiredCheckboxT): pass
