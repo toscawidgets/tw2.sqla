@@ -60,23 +60,41 @@ def is_onetomany(prop):
 
     return True
 
-def sort_properties(prop1, prop2):
-    """For now, we only want to make sure the many to many relation fields are
-    displayed at the end of the HTML form
+def sort_properties(localname_from_relationname, localname_creation_order):
+    """Returns a function which will sort the SQLAlchemy properties
     """
-    weight1 = 0
-    weight2 = 0
-    if is_manytomany(prop1):
-        weight1 += 1
-    if is_manytomany(prop2):
-        weight2 += 1
-    
-    res = cmp(weight1, weight2)
-    if res != 0:
-        return res
-    
-    return cmp(prop1._creation_order, prop2._creation_order)
+    def sort_func(prop1, prop2):
+        """Sort the given SQLAlchemy properties
 
+        Logic: 1) Column
+               2) many to many
+               3) one to one
+
+        When a relation has a column on the local side, we put the relation at
+        the place of the column.
+        """
+        weight1 = 0
+        weight2 = 0
+        if is_onetoone(prop1):
+            weight1 += 2
+        if is_onetoone(prop2):
+            weight2 += 2
+        if is_manytomany(prop1):
+            weight1 += 1
+        if is_manytomany(prop2):
+            weight2 += 1
+        
+        res = cmp(weight1, weight2)
+        if res != 0:
+            return res
+
+        # If the prop is a relation we try to use the db column creation order
+        key1 = localname_from_relationname.get(prop1.key, prop1.key)
+        key2 = localname_from_relationname.get(prop2.key, prop2.key)
+        creation_order1 = localname_creation_order.get(key1, prop1._creation_order)
+        creation_order2 = localname_creation_order.get(key2, prop2._creation_order)
+        return cmp(creation_order1, creation_order2)
+    return sort_func
 
 def required_widget(prop):
     """Returns bool
@@ -90,13 +108,22 @@ def required_widget(prop):
             return True
         return False
 
-    if not is_manytoone(prop):
+    if not is_manytoone(prop) and not is_onetoone(prop):
         return False
 
     localname = prop.local_side[0].name
     # If the local field is required, the relation should be required
     pkey = dict([(p.key, is_nullable(p)) for p in prop.parent.iterate_properties])
     return not pkey.get(localname, True)
+
+def get_reverse_property_name(prop):
+    """Returns the reverse property name of the given prop
+    """
+    if not prop._reverse_property:
+        return None
+    
+    assert len(prop._reverse_property) == 1
+    return list(prop._reverse_property)[0].key
 
 class RelatedValidator(twc.IntValidator):
     """Validator for related object
@@ -150,6 +177,15 @@ class RelatedValidator(twc.IntValidator):
 
 
 class RelatedItemValidator(twc.Validator):
+    """Validator for related object
+
+    `entity`
+        The SQLAlchemy class to use. This must be mapped to a single table with a single primary key column.
+        It must also have the SQLAlchemy `query` property; this will be the case for Elixir classes,
+        and can be specified using DeclarativeBase (and is in the TG2 default setup).
+
+    This validator is used to make sure at least one value of the list is defined.
+    """
 
     def __init__(self, entity, required=False, **kw):
         super(RelatedItemValidator, self).__init__(**kw)
@@ -162,6 +198,47 @@ class RelatedItemValidator(twc.Validator):
         value = [v for v in value if v is not twc.Invalid]
         if not value and self.required:
             raise twc.ValidationError('required', self)
+        return value
+
+    def from_python(self, value, state=None):
+        return value
+
+class RelatedOneToOneValidator(twc.Validator):
+    """Validator for related object
+
+    `entity`
+        The SQLAlchemy class to use. This must be mapped to a single table with a single primary key column.
+        It must also have the SQLAlchemy `query` property; this will be the case for Elixir classes,
+        and can be specified using DeclarativeBase (and is in the TG2 default setup).
+
+    This validator should be used for the one to one relation.
+    """
+
+    def __init__(self, entity, required=False, **kw):
+        super(RelatedOneToOneValidator, self).__init__(**kw)
+        self.required=required
+        self.entity = entity
+
+    def to_python(self, value, state=None):
+        """We just validate, there is at least one value
+        """
+        def has_value(dic):
+            """Returns bool
+
+            Returns True if there is at least one value defined in the given
+            dic
+            """
+            for v in dic.values():
+                if type(v) == dict:
+                    if has_value(v):
+                        return True
+                if v:
+                    return True
+            return False
+        
+        if self.required:
+            if not has_value(value):
+                raise twc.ValidationError('required', self)
         return value
 
     def from_python(self, value, state=None):
@@ -193,6 +270,9 @@ class DbFormPage(DbPage, twf.FormPage):
 
     @classmethod
     def validated_request(cls, req, data, protect_prm_tamp=True, do_commit=True):
+        if 'id' not in data and 'id' in req.GET:
+            # If the 'id' is in the query string, we get it
+            data['id'] = req.GET['id']
         utils.update_or_create(cls.entity, data,
                                protect_prm_tamp=protect_prm_tamp)
         if do_commit:
@@ -319,6 +399,11 @@ class WidgetPolicy(object):
         For foreign key properties. In this case the widget's id is set to the
         name of the relation, and its entity is set to the target class.
 
+    `onetoone_widget`
+        For foreign key properties. In this case the widget's id is set to the
+        name of the relation, and its entity is set to the target class.
+        The relation is just one entity object, not a list like in onetomany.
+
     `name_widgets`
         A dictionary mapping property names to the desired widget. This can be
         used for names like "password" or "email".
@@ -337,6 +422,7 @@ class WidgetPolicy(object):
     pkey_widget = None
     onetomany_widget = None
     manytoone_widget = None
+    onetoone_widget = None
     name_widgets = {}
     type_widgets = {}
     default_widget = None
@@ -365,6 +451,17 @@ class WidgetPolicy(object):
                     "Cannot automatically create a widget " +
                     "for many-to-many relation '%s'" % prop.key)
             widget = cls.onetomany_widget(id=prop.key,entity=prop.mapper.class_, required=required_widget(prop))
+        elif is_onetoone(prop):
+            if not cls.onetoone_widget:
+                raise twc.WidgetError(
+                    "Cannot automatically create a widget " +
+                    "for one-to-one relation '%s'" % prop.key)
+            widget = cls.onetoone_widget(
+                        id=prop.key,
+                        entity=prop.mapper.class_, 
+                        required=required_widget(prop), 
+                        reverse_property_name=get_reverse_property_name(prop)
+                    )
         elif prop.key in cls.name_widgets:
             widget = cls.name_widgets[prop.key]
         else:
@@ -401,6 +498,7 @@ class ViewPolicy(WidgetPolicy):
     ## This gets assigned further down in the file.  It must, because of an
     ## otherwise circular dependency.
     #onetomany_widget = AutoViewGrid
+    #onetoone_widget = AutoViewGrid
 
 
 class EditPolicy(WidgetPolicy):
@@ -408,6 +506,10 @@ class EditPolicy(WidgetPolicy):
     # TODO -- actually set this to something sensible
     onetomany_widget = DbCheckBoxList
     manytoone_widget = DbSingleSelectField
+
+    ## This gets assigned further down in the file.  It must, because of an
+    ## otherwise circular dependency.
+    #onetoone_widget = AutoEditGrid
     name_widgets = {
         'password':     twf.PasswordField,
         'email':        twf.TextField(validator=twc.EmailValidator),
@@ -440,19 +542,33 @@ class AutoContainer(twc.Widget):
             cls._auto_widgets = True
             fkey = dict((p.local_side[0].name, p)
                         for p in sa.orm.class_mapper(cls.entity).iterate_properties
-                        if is_manytoone(p))
+                        if is_manytoone(p) or is_onetoone(p))
+
             new_children = []
             used_children = set()
             orig_children = getattr(cls.child, 'children', [])
-
-            properties = sa.orm.class_mapper(cls.entity)._props.values()
-            properties.sort(sort_properties)
+            
+            mapper = sa.orm.class_mapper(cls.entity)
+            properties = mapper._props.values()
+            localname_from_relationname = dict((p.key, p.local_side[0].name)
+                    for p in mapper.iterate_properties
+                    if is_manytoone(p) or is_onetoone(p))
+            localname_creation_order =  dict((p.key, p._creation_order)
+                    for p in mapper.iterate_properties
+                    if not is_relation(p))
+            
+            properties.sort(sort_properties(localname_from_relationname,
+                localname_creation_order))
+            reverse_property_name = getattr(cls, 'reverse_property_name', None)
             for prop in properties:
-                if is_manytoone(prop):
-                    continue
 
                 # Swap ids and objs
-                prop = fkey.get(prop.key, prop)
+                if fkey.get(prop.key):
+                    continue
+
+                if prop.key == reverse_property_name:
+                    # Avoid circular loop for the one to one relation
+                    continue
 
                 widget_name = prop.key
                 if isinstance(prop, sa.orm.RelationshipProperty):
@@ -486,8 +602,21 @@ class AutoGrowingGrid(twd.GrowingGridLayout, AutoContainer):
 class AutoViewGrid(AutoContainer, twf.GridLayout):
     policy = ViewPolicy
 
+class AutoViewFieldSet(AutoContainer, twf.TableFieldSet):
+    policy = ViewPolicy
+
+class AutoEditFieldSet(AutoContainer, twf.TableFieldSet):
+    policy = EditPolicy
+
+    def post_define(cls):
+        if getattr(cls, 'entity', None):
+            required=getattr(cls, 'required', False)
+            cls.validator = RelatedOneToOneValidator(entity=cls.entity, required=required)
+
 # This is assigned here and not above because of a circular dep.
 ViewPolicy.onetomany_widget = AutoViewGrid
+ViewPolicy.onetoone_widget = AutoViewFieldSet
+EditPolicy.onetoone_widget = AutoEditFieldSet
 
 class AutoListPage(DbListPage):
     _no_autoid = True

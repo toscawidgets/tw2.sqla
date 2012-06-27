@@ -4,6 +4,7 @@ from widgets import (
     DbCheckBoxList, DbRadioButtonList, DbCheckBoxTable,
     DbListPage, AutoTableForm, AutoViewGrid, AutoGrowingGrid,
     AutoListPage, AutoListPageEdit,
+    AutoEditFieldSet, AutoViewFieldSet,
     NoWidget)
 import utils
 import widgets
