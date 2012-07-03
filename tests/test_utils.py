@@ -5,6 +5,8 @@ import transaction
 import tw2.sqla.utils as twsu
 import testapi
 
+from nose.tools import eq_
+
 
 class BaseObject(object):
     """ Contains all tests to be run over Elixir and sqlalchemy-declarative """
@@ -206,6 +208,17 @@ class BaseObject(object):
         assert(e.id == 1)
         assert(e.name == 'winboat')
 
+    def test_update_or_create_with_zero(self):
+        """ Ensure that 0 doesn't get interpreted as None.
+
+        For the following issue:  http://bit.ly/OiFUfb
+        """
+
+        d = {'name': 'winboat', 'some_number': 0}
+        e = twsu.update_or_create(self.DBTestCls1, d)
+        self.session.flush()
+        eq_(e.some_number, 0)
+
     def test_update_or_create_exception(self):
         d = {
             'id': 55,
@@ -230,6 +243,7 @@ class TestElixir(BaseObject):
 
         class DBTestCls1(el.Entity):
             name = el.Field(el.String)
+            some_number = el.Field(el.Integer, default=2)
 
         class DBTestCls2(el.Entity):
             nick = el.Field(el.String)
@@ -265,6 +279,7 @@ class TestSQLA(BaseObject):
             __tablename__ = 'Test'
             id = sa.Column(sa.Integer, primary_key=True)
             name = sa.Column(sa.String(50))
+            some_number = sa.Column(sa.Integer, default=2)
 
         class DBTestCls2(Base):
             __tablename__ = 'Test2'
