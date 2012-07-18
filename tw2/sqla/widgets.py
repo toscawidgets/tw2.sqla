@@ -339,43 +339,42 @@ class DbListPage(DbPage, twc.Page):
 class DbSelectionField(twf.SelectionField):
     entity = twc.Param('SQLAlchemy mapped class to use', request_local=False)
 
+
+class DbSingleSelectionField(DbSelectionField):
     def prepare(self):
-        # avoid hardcoded id
-        self.options = [(x.id, unicode(x)) for x in self.entity.query.all()]
-        super(DbSelectionField, self).prepare()
+        self.options = [(getattr(x, self.validator.primary_key.name), unicode(x)) for x in self.entity.query.all()]
+        super(DbSingleSelectionField, self).prepare()
 
-
-class DbSingleSelectField(DbSelectionField, twf.SingleSelectField):
     @classmethod
     def post_define(cls):
         if getattr(cls, 'entity', None):
             required=getattr(cls, 'required', False)
             cls.validator = RelatedValidator(entity=cls.entity, required=required)
 
-class DbCheckBoxList(DbSelectionField, twf.CheckBoxList):
-    @classmethod
-    def post_define(cls):
-        if getattr(cls, 'entity', None):
-            required=getattr(cls, 'required', False)
-            cls.validator = RelatedItemValidator(required=required, entity=cls.entity)
-            # We should keep item_validator to make sure the values are well transformed.
-            cls.item_validator = RelatedValidator(entity=cls.entity)
 
-class DbRadioButtonList(DbSelectionField, twf.RadioButtonList):
-    @classmethod
-    def post_define(cls):
-        if getattr(cls, 'entity', None):
-            required=getattr(cls, 'required', False)
-            cls.validator = RelatedValidator(entity=cls.entity, required=required)
+class DbMultipleSelectionField(DbSelectionField):
+    def prepare(self):
+        self.options = [(getattr(x, self.item_validator.primary_key.name), unicode(x)) for x in self.entity.query.all()]
+        super(DbMultiSelectionField, self).prepare()
 
-class DbCheckBoxTable(DbSelectionField, twf.CheckBoxTable):
     @classmethod
     def post_define(cls):
         if getattr(cls, 'entity', None):
             required=getattr(cls, 'required', False)
-            cls.validator = RelatedItemValidator(required=required, entity=cls.entity)
-            # We should keep item_validator to make sure the values are well transformed.
-            cls.item_validator = RelatedValidator(entity=cls.entity)
+            cls.item_validator = RelatedValidator(entity=cls.entity, required=required)
+
+
+class DbSingleSelectField(DbSingleSelectionField, twf.SingleSelectField):
+    pass
+
+class DbRadioButtonList(DbSingleSelectionField, twf.RadioButtonList):
+    pass
+
+class DbCheckBoxList(DbMultipleSelectionField, twf.CheckBoxList):
+    pass
+    
+class DbCheckBoxTable(DbMultipleSelectionField, twf.CheckBoxTable):
+    pass
 
 
 class WidgetPolicy(object):
