@@ -336,6 +336,24 @@ class DbListPage(DbPage, twc.Page):
             self.newlink.prepare()
 
 
+# Note: this does not inherit from LinkField, as few of the parameters apply
+class DbLinkField(twc.Widget):
+    template = "tw2.forms.templates.link_field"
+    link = twc.Param('Path to link to')
+    entity = twc.Param('SQLAlchemy mapped class to use', request_local=False)
+    
+    def prepare(self):
+        super(DbLinkField, self).prepare()
+        if self.value:
+            qs = '&'.join(col.name + "=" + getattr(self.value, col.name)
+                                for col in sa.orm.class_mapper(self.entity).primary_key)
+        else:
+            qs = ''
+        self.safe_modify('attrs')
+        self.attrs['href'] = self.link + '?' + qs
+        self.text = unicode(self.value or '')
+
+
 class DbSelectionField(twf.SelectionField):
     entity = twc.Param('SQLAlchemy mapped class to use', request_local=False)
 
