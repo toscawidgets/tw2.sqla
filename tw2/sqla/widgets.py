@@ -263,9 +263,9 @@ class DbFormPage(DbPage, twf.FormPage):
     _no_autoid = True
 
     def fetch_data(self, req):
-        filter = dict([
-            (key.__str__(), value) for key, value in req.GET.mixed().items()
-        ])
+        data = req.GET.mixed()
+        filter = dict((col.name, data.get(col.name))
+                        for col in sa.orm.class_mapper(self.entity).primary_key)
         self.value = req.GET and self.entity.query.filter_by(**filter).first() or None
 
     @classmethod
