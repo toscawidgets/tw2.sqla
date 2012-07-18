@@ -1,7 +1,9 @@
 tw2.sqla
 ========
 
-.. tw2.sqla is a database layer for ToscaWidgets 2 and SQLAlchemy. It allows common database tasks to be achieved with minimal code.
+.. split here
+
+tw2.sqla is a database layer for ToscaWidgets 2 and SQLAlchemy. It allows common database tasks to be achieved with minimal code.
 
 
 Build Status
