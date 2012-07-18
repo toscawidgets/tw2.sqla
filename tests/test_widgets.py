@@ -626,7 +626,7 @@ class FormPageT(WidgetTest):
         assert( r.status_int == 302 and r.location=="/foo" )
 
     def test_request_get(self):
-        environ = {'REQUEST_METHOD': 'GET', 'QUERY_STRING' :'name=foo2'}
+        environ = {'REQUEST_METHOD': 'GET', 'QUERY_STRING' :'id=2'}
         req=Request(environ)
         assert(req.GET)
         r = self.widget().request(req)
@@ -840,7 +840,7 @@ class ListFormT(WidgetTest):
         assert( r.status_int == 302 and r.location=="/foo" )
 
     def test_request_get(self):
-        environ = {'REQUEST_METHOD': 'GET', 'QUERY_STRING' :'name=foo2'}
+        environ = {'REQUEST_METHOD': 'GET', 'QUERY_STRING' :'id=2'}
         req=Request(environ)
         assert(req.GET)
         r = self.widget().request(req)
@@ -1822,7 +1822,7 @@ class AutoEditRelationInFormT(WidgetTest):
 
     declarative = True
     def test_request_get_edit(self):
-        environ = {'REQUEST_METHOD': 'GET', 'QUERY_STRING' :'name=bob1'}
+        environ = {'REQUEST_METHOD': 'GET', 'QUERY_STRING' :'id=1'}
         req=Request(environ)
         assert(req.GET)
         r = self.widget().request(req)
@@ -2140,7 +2140,7 @@ class AutoTableFormAsChildT(WidgetTest):
         assert( r.status_int == 302 and r.location=="/foo" )
 
     def test_request_get(self):
-        environ = {'REQUEST_METHOD': 'GET', 'QUERY_STRING' :'nick=bob1'}
+        environ = {'REQUEST_METHOD': 'GET', 'QUERY_STRING' :'id=1'}
         req=Request(environ)
         assert(req.GET)
         r = self.widget().request(req)
@@ -2375,7 +2375,7 @@ class FormPageRequiredCheckboxT(WidgetTest):
         assert( r.status_int == 302 and r.location=="/foo" )
 
     def test_request_get(self):
-        environ = {'REQUEST_METHOD': 'GET', 'QUERY_STRING' :'name=foo1'}
+        environ = {'REQUEST_METHOD': 'GET', 'QUERY_STRING' :'id=1'}
         req=Request(environ)
         assert(req.GET)
         r = self.widget().request(req)
