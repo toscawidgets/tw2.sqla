@@ -373,13 +373,15 @@ class DbSingleSelectionField(DbSelectionField):
 class DbMultipleSelectionField(DbSelectionField):
     def prepare(self):
         self.options = [(getattr(x, self.item_validator.primary_key.name), unicode(x)) for x in self.entity.query.all()]
-        super(DbMultiSelectionField, self).prepare()
+        super(DbMultipleSelectionField, self).prepare()
 
     @classmethod
     def post_define(cls):
         if getattr(cls, 'entity', None):
             required=getattr(cls, 'required', False)
-            cls.item_validator = RelatedValidator(entity=cls.entity, required=required)
+            cls.validator = RelatedItemValidator(required=required, entity=cls.entity)
+            # We should keep item_validator to make sure the values are well transformed.
+            cls.item_validator = RelatedValidator(entity=cls.entity)
 
 
 class DbSingleSelectField(DbSingleSelectionField, twf.SingleSelectField):
