@@ -51,7 +51,7 @@ setup(
         'genshi': _extra_genshi,
         'mako': _extra_mako,
     },
-    entry_point="""
+    entry_points="""
         [tw2.widgets]
         # Register your widgets so they can be listed in the WidgetBrowser
         widgets = tw2.sqla
