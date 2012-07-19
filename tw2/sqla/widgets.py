@@ -1,7 +1,7 @@
 import tw2.core as twc, tw2.forms as twf, webob, sqlalchemy as sa, sys
 import sqlalchemy.types as sat, tw2.dynforms as twd
 from zope.sqlalchemy import ZopeTransactionExtension
-import transaction, utils
+import transaction, utils, urllib
 
 
 class RelatedValidator(twc.IntValidator):
@@ -221,10 +221,13 @@ class DbLinkField(twc.Widget):
     link = twc.Param('Path to link to')
     entity = twc.Param('SQLAlchemy mapped class to use', request_local=False)
     
+    def encode(self, value):
+        return urllib.quote(unicode(value).encode('utf-8'))
+    
     def prepare(self):
         super(DbLinkField, self).prepare()
         if self.value:
-            qs = '&'.join(col.name + "=" + getattr(self.value, col.name)
+            qs = '&'.join(col.name + "=" + self.encode(getattr(self.value, col.name))
                                 for col in sa.orm.class_mapper(self.entity).primary_key)
         else:
             qs = ''
