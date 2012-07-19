@@ -277,6 +277,14 @@ class DbCheckBoxList(DbMultipleSelectionField, twf.CheckBoxList):
     
 class DbCheckBoxTable(DbMultipleSelectionField, twf.CheckBoxTable):
     pass
+    
+
+class DbSingleSelectLink(twd.LinkContainer):
+    class child(DbSingleSelectField):
+        @classmethod
+        def post_define(cls):
+            if hasattr(cls.parent, 'entity') and not hasattr(cls, 'entity'):
+                cls.entity = cls.parent.entity
 
 
 # Borrowed from TG2

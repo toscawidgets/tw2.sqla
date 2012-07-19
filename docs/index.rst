@@ -76,6 +76,7 @@ Populating selection fields
  * DbRadioList
  * DbCheckBoxList
  * DbCheckBoxTable
+ * DbSingleSelectLink - LinkContainer with an inner DbSingleSelectField (experimental)
 
 Note: composite primary keys are **not** supported by these fields. 
 
