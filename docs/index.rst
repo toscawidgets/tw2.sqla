@@ -122,7 +122,7 @@ To suppress a field, use `tws.NoWidget`.
 **TBD**
  
  * Sometimes you want a way to say "only include these fields"
- * It would be helpful to be able to put hints on the model, using the info attribute. Need separate hints for view and edit.
+ * Hints on the model, using the info attribute - experimental; needs tests & doc
  * There are experimental widgets for `AutoListPage` and `AutoListPageEdit`. The biggest issue is linking between them.
 
 

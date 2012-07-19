@@ -173,10 +173,12 @@ class WidgetPolicy(object):
     name_widgets = {}
     type_widgets = {}
     default_widget = None
+    hint_name = None
 
     @classmethod
     def factory(cls, prop):
         widget = None
+        cols = getattr(prop, 'columns', [])
         if is_onetomany(prop):
             if not cls.onetomany_widget:
                 raise twc.WidgetError(
@@ -210,10 +212,12 @@ class WidgetPolicy(object):
                         reverse_property_name=get_reverse_property_name(prop)
                     )
         elif prop.key in cls.name_widgets:
-            widget = cls.name_widgets[prop.key]
-        else:
-            for t, c in product(cls.type_widgets,
-                                getattr(prop, 'columns', [])):
+            widget = cls.name_widgets[prop.key]        
+        elif cols and cls.hint_name and cls.hint_name in cols[0].info:
+            if not issubclass(cols[0].info[cls.hint_name], NoWidget):
+                widget = cols[0].info[cls.hint_name]
+        else:            
+            for t, c in product(cls.type_widgets, cols):
                 if isinstance(c.type, t):
                     widget = cls.type_widgets[t]
                     break
@@ -239,6 +243,7 @@ class NoWidget(twc.Widget):
 
 class ViewPolicy(WidgetPolicy):
     """Base WidgetPolicy for viewing data."""
+    hint_name = 'view_widget'
     manytoone_widget = twf.LabelField
     default_widget = twf.LabelField
 
@@ -251,6 +256,7 @@ class ViewPolicy(WidgetPolicy):
 class EditPolicy(WidgetPolicy):
     """Base WidgetPolicy for editing data."""
     # TODO -- actually set this to something sensible
+    hint_name = 'edit_widget'
     onetomany_widget = DbCheckBoxList
     manytoone_widget = DbSingleSelectField
 
