@@ -958,7 +958,7 @@ class AutoListPageT(WidgetTest):
 
     declarative = True
     def test_exception_manytoone(self):
-        class WackPolicy(tws.widgets.WidgetPolicy):
+        class WackPolicy(tws.WidgetPolicy):
             pass
         props = filter(
             lambda x : x.key == 'other',
@@ -972,7 +972,7 @@ class AutoListPageT(WidgetTest):
                    "for many-to-one relation 'other'")
 
     def test_exception_onetomany(self):
-        class WackPolicy(tws.widgets.WidgetPolicy):
+        class WackPolicy(tws.WidgetPolicy):
             pass
         props = filter(
             lambda x : x.key == 'others',
@@ -986,7 +986,7 @@ class AutoListPageT(WidgetTest):
                    "for one-to-many relation 'others'")
 
     def test_exception_onetoone(self):
-        class WackPolicy(tws.widgets.WidgetPolicy):
+        class WackPolicy(tws.WidgetPolicy):
             pass
         props = filter(
             lambda x : x.key == 'account',
@@ -1000,7 +1000,7 @@ class AutoListPageT(WidgetTest):
                    "for one-to-one relation 'account'")
 
     def test_exception_default(self):
-        class WackPolicy(tws.widgets.WidgetPolicy):
+        class WackPolicy(tws.WidgetPolicy):
             pass
         props = filter(
             lambda x : x.key == 'name',
@@ -1013,7 +1013,7 @@ class AutoListPageT(WidgetTest):
             assert(str(e) == "Cannot automatically create a widget for 'name'")
 
     def test_name_widgets(self):
-        class AwesomePolicy(tws.widgets.WidgetPolicy):
+        class AwesomePolicy(tws.WidgetPolicy):
             name_widgets = { 'name' : twf.LabelField, }
 
         props = filter(
@@ -1026,7 +1026,7 @@ class AutoListPageT(WidgetTest):
             assert(False)
 
     def test_info_on_prop(self):
-        class AwesomePolicy(tws.widgets.WidgetPolicy):
+        class AwesomePolicy(tws.WidgetPolicy):
             name_widgets = { 'name' : twf.LabelField, }
 
         props = filter(
@@ -1045,7 +1045,7 @@ class AutoListPageT(WidgetTest):
             _no_autoid = True
             entity = self.DbTestCls1
 
-            class child(tws.widgets.AutoViewGrid):
+            class child(tws.AutoViewGrid):
                 name = twf.InputField(type='text')
 
         environ = {
