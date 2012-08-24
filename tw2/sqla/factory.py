@@ -184,7 +184,7 @@ class WidgetPolicy(object):
                 raise twc.WidgetError(
                     "Cannot automatically create a widget " +
                     "for one-to-many relation '%s'" % prop.key)
-            widget = cls.onetomany_widget(id=prop.key,entity=prop.mapper.class_, required=required_widget(prop))
+            widget = cls.onetomany_widget(id=prop.key,entity=prop.mapper.class_)
         elif sum([c.primary_key for c in getattr(prop, 'columns', [])]):
             widget = cls.pkey_widget
         elif is_manytoone(prop):
@@ -192,14 +192,14 @@ class WidgetPolicy(object):
                 raise twc.WidgetError(
                     "Cannot automatically create a widget " +
                     "for many-to-one relation '%s'" % prop.key)
-            widget = cls.manytoone_widget(id=prop.key,entity=prop.mapper.class_, required=required_widget(prop))
+            widget = cls.manytoone_widget(id=prop.key,entity=prop.mapper.class_)
         elif is_manytomany(prop):
             # Use the same widget as onetomany
             if not cls.onetomany_widget:
                 raise twc.WidgetError(
                     "Cannot automatically create a widget " +
                     "for many-to-many relation '%s'" % prop.key)
-            widget = cls.onetomany_widget(id=prop.key,entity=prop.mapper.class_, required=required_widget(prop))
+            widget = cls.onetomany_widget(id=prop.key,entity=prop.mapper.class_)
         elif is_onetoone(prop):
             if not cls.onetoone_widget:
                 raise twc.WidgetError(
@@ -208,7 +208,7 @@ class WidgetPolicy(object):
             widget = cls.onetoone_widget(
                         id=prop.key,
                         entity=prop.mapper.class_, 
-                        required=required_widget(prop), 
+                        required=required_widget(prop),
                         reverse_property_name=get_reverse_property_name(prop)
                     )
         elif prop.key in cls.name_widgets:
@@ -361,9 +361,10 @@ class AutoViewFieldSet(AutoContainer, twf.TableFieldSet):
 class AutoEditFieldSet(AutoContainer, twf.TableFieldSet):
     policy = EditPolicy
 
+    @classmethod
     def post_define(cls):
         if getattr(cls, 'entity', None):
-            required=getattr(cls, 'required', False)
+            required = getattr(cls, 'required', False)
             cls.validator = RelatedOneToOneValidator(entity=cls.entity, required=required)
 
 # This is assigned here and not above because of a circular dep.

@@ -293,7 +293,7 @@ class RadioButtonRequiredT(WidgetTest):
         assert(value is self.DbTestCls1.query.get(1))
 
     def setup(self):
-        self.widget = self.widget(entity=self.DbTestCls1, required=True)
+        self.widget = self.widget(entity=self.DbTestCls1, validator=twc.Required)
         return super(RadioButtonRequiredT, self).setup()
 
 class TestRadioButtonRequiredElixir(ElixirBase, RadioButtonRequiredT): pass
@@ -356,7 +356,7 @@ class CheckBoxRequiredT(WidgetTest):
         assert(value == [self.DbTestCls1.query.get(1), self.DbTestCls1.query.get(2)])
 
     def setup(self):
-        self.widget = self.widget(entity=self.DbTestCls1, required=True)
+        self.widget = self.widget(entity=self.DbTestCls1, validator=twc.Required)
         return super(CheckBoxRequiredT, self).setup()
 
 class TestCheckBoxRequiredElixir(ElixirBase, CheckBoxRequiredT): pass
@@ -425,7 +425,7 @@ class CheckBoxTableRequiredT(WidgetTest):
         assert(value == [self.DbTestCls1.query.get(1)])
 
     def setup(self):
-        self.widget = self.widget(entity=self.DbTestCls1, required=True)
+        self.widget = self.widget(entity=self.DbTestCls1, validator=twc.Required)
         return super(CheckBoxTableRequiredT, self).setup()
 
 class TestCheckBoxTableRequestElixir(ElixirBase, CheckBoxTableRequiredT): pass
@@ -476,7 +476,7 @@ class SingleSelectRequiredT(WidgetTest):
         assert(value is self.DbTestCls1.query.get(1))
 
     def setup(self):
-        self.widget = self.widget(entity=self.DbTestCls1, required=True)
+        self.widget = self.widget(entity=self.DbTestCls1, validator=twc.Required)
         return super(SingleSelectRequiredT, self).setup()
 
 class TestSingleSelectRequiredElixir(ElixirBase, SingleSelectRequiredT): pass
@@ -2326,7 +2326,7 @@ class FormPageRequiredCheckboxT(WidgetTest):
                     children=[
                         twf.HiddenField(id='id'),
                         twf.TextField(id='name'),
-                        tws.DbCheckBoxList(id='others', entity=self.DbTestCls2, required=True),
+                        tws.DbCheckBoxList(id='others', entity=self.DbTestCls2, validator=twc.Required),
                     ]),
                 'title': 'some title',
                 'entity': self.DbTestCls1,

@@ -248,7 +248,7 @@ class DbSingleSelectionField(DbSelectionField):
     @classmethod
     def post_define(cls):
         if getattr(cls, 'entity', None):
-            required=getattr(cls, 'required', False)
+            required = getattr(cls.validator, 'required', None)
             cls.validator = RelatedValidator(entity=cls.entity, required=required)
 
 
@@ -260,7 +260,7 @@ class DbMultipleSelectionField(DbSelectionField):
     @classmethod
     def post_define(cls):
         if getattr(cls, 'entity', None):
-            required=getattr(cls, 'required', False)
+            required = getattr(cls.validator, 'required', None)
             cls.validator = RelatedItemValidator(required=required, entity=cls.entity)
             # We should keep item_validator to make sure the values are well transformed.
             cls.item_validator = RelatedValidator(entity=cls.entity)
