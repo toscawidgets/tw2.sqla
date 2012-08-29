@@ -577,7 +577,7 @@ class FormPageT(WidgetTest):
         <span id="dbformpage_d:error"></span>
     </td></tr>
 </table>
-    <input type="submit" id="submit" value="Save">
+    <input type="submit" value="Save">
 </form></body>
 </html>"""
 
@@ -608,7 +608,7 @@ class FormPageT(WidgetTest):
         <span id="dbformpage_d:error"></span>
     </td></tr>
 </table>
-    <input type="submit" id="submit" value="Save">
+    <input type="submit" value="Save">
 </form></body>
 </html>""")
 
@@ -647,7 +647,7 @@ class FormPageT(WidgetTest):
         <span id="dbformpage_d:error"></span>
     </td></tr>
 </table>
-    <input type="submit" id="submit" value="Save">
+    <input type="submit" value="Save">
 </form></body>
 </html>""")
 
@@ -677,7 +677,7 @@ class FormPageT(WidgetTest):
         <span id="dbformpage_d:error"></span>
     </td></tr>
 </table>
-    <input type="submit" id="submit" value="Save">
+    <input type="submit" value="Save">
 </form></body>
 </html>""")
 
@@ -785,7 +785,7 @@ class ListFormT(WidgetTest):
     <tr class="error"><td colspan="0" id="dblistform_d:error">
     </td></tr>
 </table>
-    <input type="submit" id="submit" value="Save">
+    <input type="submit" value="Save">
 </form></body>
 </html>"""
 
@@ -822,7 +822,7 @@ class ListFormT(WidgetTest):
     <tr class="error"><td colspan="2" id="dblistform_d:error">
     </td></tr>
 </table>
-    <input type="submit" id="submit" value="Save">
+    <input type="submit" value="Save">
 </form></body>
 </html>""")
 
@@ -869,7 +869,7 @@ class ListFormT(WidgetTest):
     <tr class="error"><td colspan="2" id="dblistform_d:error">
     </td></tr>
 </table>
-    <input type="submit" id="submit" value="Save">
+    <input type="submit" value="Save">
 </form></body>
 </html>""")
 
@@ -1270,7 +1270,7 @@ class AutoTableFormT1(WidgetTest):
         <span id="foo_form:error"></span>
     </td></tr>
 </table>
-    <input type="submit" id="submit" value="Save">
+    <input type="submit" value="Save">
 </form>"""
 
 class TestAutoTableForm1Elixir(ElixirBase, AutoTableFormT1): pass
@@ -1310,7 +1310,7 @@ class AutoTableFormT2(WidgetTest):
         <span id="foo_form:error"></span>
     </td></tr>
 </table>
-    <input type="submit" value="Save" id="submit"/>
+    <input type="submit" value="Save"/>
 </form>
 """
 
@@ -1359,7 +1359,7 @@ class AutoTableFormT4(WidgetTest):
                 </td>
             </tr>
         </table>
-        <input type="submit" id="submit" value="Save" />
+        <input type="submit" value="Save" />
     </form>"""
 
 class TestAutoTableForm4Elixir(ElixirBase, AutoTableFormT4): pass
@@ -1403,7 +1403,7 @@ class AutoTableFormT5(WidgetTest):
             </td>
         </tr>
         </table>
-        <input type="submit" id="submit" value="Save" />
+        <input type="submit" value="Save" />
     </form>"""
 
 class TestAutoTableForm5Elixir(ElixirBase, AutoTableFormT5): pass
@@ -1447,7 +1447,7 @@ class AutoTableFormT6(WidgetTest):
         <span id="foo_form:error"></span>
     </td></tr>
     </table>
-    <input type="submit" id="submit" value="Save">
+    <input type="submit" value="Save">
 </form>"""
 
 class TestAutoTableForm6Elixir(ElixirBase, AutoTableFormT6): pass
@@ -1487,7 +1487,7 @@ class AutoTableFormT7(WidgetTest):
         <span id="foo_form:error"></span>
     </td></tr>
     </table>
-    <input type="submit" value="Save" id="submit"/>
+    <input type="submit" value="Save"/>
 </form>
 """
 
@@ -1688,7 +1688,7 @@ class AutoGrowingGridAsChildWithRelationshipT(WidgetTest):
         </td>
     </tr>
     </table>
-    <input type="submit" id="submit" value="Save">
+    <input type="submit" value="Save">
     </form>"""
 
 class TestAutoGrowingGridAsChildWithRelationshipElixir(
@@ -1738,7 +1738,7 @@ class AutoEditRelationInTableT(WidgetTest):
         <span id="something:error"></span>
     </td></tr>
 </table>
-    <input type="submit" id="submit" value="Save" />
+    <input type="submit" value="Save" />
 </form>
 """
 
@@ -1815,7 +1815,7 @@ class AutoEditRelationInFormT(WidgetTest):
         <span id="autoedit:error"></span>
     </td></tr>
     </table>
-    <input type="submit" id="submit" value="Save" />
+    <input type="submit" value="Save" />
 </form></body>
 </html> 
 """    
@@ -1863,7 +1863,7 @@ class AutoEditRelationInFormT(WidgetTest):
         <span id="autoedit:error"></span>
     </td></tr>
     </table>
-    <input type="submit" id="submit" value="Save" />
+    <input type="submit" value="Save" />
 </form></body>
 </html> 
 """)
@@ -1921,7 +1921,7 @@ class AutoEditRelationInFormT(WidgetTest):
         <span id="autoedit:error"></span>
     </td></tr>
     </table>
-    <input type="submit" id="submit" value="Save" />
+    <input type="submit" value="Save" />
 </form></body>
 </html> 
 """)        
@@ -1971,7 +1971,7 @@ class AutoEditRelationInFormT(WidgetTest):
         <span id="autoedit:error"></span>
     </td></tr>
     </table>
-    <input type="submit" value="Save" id="submit"/>
+    <input type="submit" value="Save"/>
 </form>
 </body>
 </html>""")
@@ -2082,7 +2082,7 @@ class AutoTableFormAsChildT(WidgetTest):
         <span id="autotable:error"></span>
     </td></tr>
     </table>
-    <input type="submit" id="submit" value="Save" />
+    <input type="submit" value="Save" />
 </form></body>
 </html>
 """
@@ -2122,7 +2122,7 @@ class AutoTableFormAsChildT(WidgetTest):
         <span id="autotable:error"></span>
     </td></tr>
     </table>
-    <input type="submit" id="submit" value="Save" />
+    <input type="submit" value="Save" />
 </form></body>
 </html>
 """)
@@ -2173,7 +2173,7 @@ class AutoTableFormAsChildT(WidgetTest):
         <span id="autotable:error"></span>
     </td></tr>
     </table>
-    <input type="submit" value="Save" id="submit"/>
+    <input type="submit" value="Save"/>
 </form>
 </body>
 </html>""")
@@ -2229,7 +2229,7 @@ class AutoTableFormAsChildT(WidgetTest):
         <span id="autotable:error"></span>
     </td></tr>
     </table>
-    <input type="submit" value="Save" id="submit"/>
+    <input type="submit" value="Save"/>
 </form>
 </body>
 </html>""")
@@ -2273,7 +2273,7 @@ class AutoTableFormAsChildT(WidgetTest):
         <span id="autotable:error"></span>
     </td></tr>
     </table>
-    <input type="submit" value="Save" id="submit"/>
+    <input type="submit" value="Save"/>
 </form>
 </body>
 </html>""")
@@ -2358,7 +2358,7 @@ class FormPageRequiredCheckboxT(WidgetTest):
         <span id="dbformpage_d:error"></span>
     </td></tr>
     </table>
-    <input type="submit" id="submit" value="Save" />
+    <input type="submit" value="Save" />
 </form></body>
 </html> 
 """    
@@ -2418,7 +2418,7 @@ class FormPageRequiredCheckboxT(WidgetTest):
         <span id="dbformpage_d:error"></span>
     </td></tr>
     </table>
-    <input type="submit" value="Save" id="submit"/>
+    <input type="submit" value="Save"/>
 </form>
 </body>
 </html>
@@ -2485,7 +2485,7 @@ class FormPageRequiredCheckboxT(WidgetTest):
         <span id="dbformpage_d:error"></span>
     </td></tr>
     </table>
-    <input type="submit" value="Save" id="submit"/>
+    <input type="submit" value="Save"/>
 </form>
 </body>
 </html>
@@ -2540,7 +2540,7 @@ class FormPageRequiredCheckboxT(WidgetTest):
         <span id="dbformpage_d:error"></span>
     </td></tr>
     </table>
-    <input type="submit" value="Save" id="submit"/>
+    <input type="submit" value="Save"/>
 </form>
 </body>
 </html>
