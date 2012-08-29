@@ -71,6 +71,11 @@ class ElixirBase(object):
             def __unicode__(self):
                 return self.name
 
+        class DbTestCls10(el.Entity):
+            name = el.Field(el.String, primary_key=True)
+            def __unicode__(self):
+                return self.name
+
         self.DbTestCls1 = DbTestCls1
         self.DbTestCls2 = DbTestCls2
         self.DbTestCls3 = DbTestCls3
@@ -80,6 +85,7 @@ class ElixirBase(object):
         self.DbTestCls7 = DbTestCls7
         self.DbTestCls8 = DbTestCls8
         self.DbTestCls9 = DbTestCls9
+        self.DbTestCls10 = DbTestCls10
 
         el.setup_all()
         el.metadata.create_all()
@@ -180,6 +186,11 @@ class SQLABase(object):
             account = sa.orm.relation(DbTestCls8, backref=sa.orm.backref('user', uselist=False))
             def __unicode__(self):
                 return self.name
+        class DbTestCls10(Base):
+            __tablename__ = 'Test10'
+            name = sa.Column(sa.String(50), primary_key=True)
+            def __unicode__(self):
+                return self.name
 
 
         self.DbTestCls1 = DbTestCls1
@@ -191,6 +202,7 @@ class SQLABase(object):
         self.DbTestCls7 = DbTestCls7
         self.DbTestCls8 = DbTestCls8
         self.DbTestCls9 = DbTestCls9
+        self.DbTestCls10 = DbTestCls10
 
         Base.metadata.create_all()
 
@@ -958,7 +970,7 @@ class AutoListPageT(WidgetTest):
 
     declarative = True
     def test_exception_manytoone(self):
-        class WackPolicy(tws.widgets.WidgetPolicy):
+        class WackPolicy(tws.WidgetPolicy):
             pass
         props = filter(
             lambda x : x.key == 'other',
@@ -972,7 +984,7 @@ class AutoListPageT(WidgetTest):
                    "for many-to-one relation 'other'")
 
     def test_exception_onetomany(self):
-        class WackPolicy(tws.widgets.WidgetPolicy):
+        class WackPolicy(tws.WidgetPolicy):
             pass
         props = filter(
             lambda x : x.key == 'others',
@@ -986,7 +998,7 @@ class AutoListPageT(WidgetTest):
                    "for one-to-many relation 'others'")
 
     def test_exception_onetoone(self):
-        class WackPolicy(tws.widgets.WidgetPolicy):
+        class WackPolicy(tws.WidgetPolicy):
             pass
         props = filter(
             lambda x : x.key == 'account',
@@ -1000,7 +1012,7 @@ class AutoListPageT(WidgetTest):
                    "for one-to-one relation 'account'")
 
     def test_exception_default(self):
-        class WackPolicy(tws.widgets.WidgetPolicy):
+        class WackPolicy(tws.WidgetPolicy):
             pass
         props = filter(
             lambda x : x.key == 'name',
@@ -1013,7 +1025,7 @@ class AutoListPageT(WidgetTest):
             assert(str(e) == "Cannot automatically create a widget for 'name'")
 
     def test_name_widgets(self):
-        class AwesomePolicy(tws.widgets.WidgetPolicy):
+        class AwesomePolicy(tws.WidgetPolicy):
             name_widgets = { 'name' : twf.LabelField, }
 
         props = filter(
@@ -1026,7 +1038,7 @@ class AutoListPageT(WidgetTest):
             assert(False)
 
     def test_info_on_prop(self):
-        class AwesomePolicy(tws.widgets.WidgetPolicy):
+        class AwesomePolicy(tws.WidgetPolicy):
             name_widgets = { 'name' : twf.LabelField, }
 
         props = filter(
@@ -1045,7 +1057,7 @@ class AutoListPageT(WidgetTest):
             _no_autoid = True
             entity = self.DbTestCls1
 
-            class child(tws.widgets.AutoViewGrid):
+            class child(tws.AutoViewGrid):
                 name = twf.InputField(type='text')
 
         environ = {
@@ -2574,3 +2586,22 @@ class FormPageRequiredCheckboxT(WidgetTest):
 
 class TestFormPageRequiredCheckboxTElixir(ElixirBase, FormPageRequiredCheckboxT): pass
 class TestFormPageRequiredCheckboxTSQLA(SQLABase, FormPageRequiredCheckboxT): pass
+
+
+class DbLinkFieldT(WidgetTest):
+    widget = tws.DbLinkField
+    declarative = True
+    params = {'link':'/test'}
+    expected = """<a href="/test?id=1">foo1</a>"""
+
+    def setup(self):
+        self.widget = self.widget(entity=self.DbTestCls1, value=self.DbTestCls1.query.get(1))
+        return super(DbLinkFieldT, self).setup()
+
+    def test_encode(self):
+        d = self.DbTestCls10(name="fr&ed")
+        w = tws.DbLinkField(entity=self.DbTestCls10, value=d, link='/test')
+        tw2test.assert_eq_xml(w.display(), """<a href="/test?name=fr%26ed">fr&amp;ed</a>""")
+
+class TestLinkFieldElixir(ElixirBase, DbLinkFieldT): pass
+class TestLinkFieldSQLA(SQLABase, DbLinkFieldT): pass
