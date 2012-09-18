@@ -54,6 +54,24 @@ class BaseObject(object):
         assert(e.name == 'bazaar')
         assert(len(e.others) == 0)
 
+    def test_from_dict_modify_to_none(self):
+        # Do this to set up an object with name => 'bazaar'
+        self.test_from_dict_new()
+
+        # Now try to modify that object and set its name to None
+        d = {
+            'id': 2,
+            'name': None,
+        }
+        x = self.DBTestCls1.query.filter_by(id=2).first()
+        e = twsu.from_dict(x, d)
+        if hasattr(self, 'session'):
+            self.session.flush()
+
+        eq_(e.id, 2)
+        eq_(e.name, None)
+        eq_(len(e.others), 0)
+
 ##
 ## Not sure if this test should even be possible, but its sure broken now
 ##
