@@ -199,7 +199,11 @@ class WidgetPolicy(object):
                 raise twc.WidgetError(
                     "Cannot automatically create a widget " +
                     "for many-to-many relation '%s'" % prop.key)
-            widget = cls.onetomany_widget(id=prop.key,entity=prop.mapper.class_)
+            widget = cls.onetomany_widget(
+                id=prop.key,
+                entity=prop.mapper.class_,
+                reverse_property_name=get_reverse_property_name(prop)
+            )
         elif is_onetoone(prop):
             if not cls.onetoone_widget:
                 raise twc.WidgetError(
@@ -207,7 +211,7 @@ class WidgetPolicy(object):
                     "for one-to-one relation '%s'" % prop.key)
             widget = cls.onetoone_widget(
                         id=prop.key,
-                        entity=prop.mapper.class_, 
+                        entity=prop.mapper.class_,
                         required=required_widget(prop),
                         reverse_property_name=get_reverse_property_name(prop)
                     )
