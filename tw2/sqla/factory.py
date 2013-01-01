@@ -174,6 +174,7 @@ class WidgetPolicy(object):
     type_widgets = {}
     default_widget = None
     hint_name = None
+    add_edit_link = False
 
     @classmethod
     def factory(cls, prop):
@@ -250,6 +251,7 @@ class ViewPolicy(WidgetPolicy):
     hint_name = 'view_widget'
     manytoone_widget = twf.LabelField
     default_widget = twf.LabelField
+    add_edit_link = True
 
     ## This gets assigned further down in the file.  It must, because of an
     ## otherwise circular dependency.
@@ -342,6 +344,11 @@ class AutoContainer(twc.Widget):
                     if new_widget:
                         new_children.append(new_widget)
 
+            edit_link = getattr(cls.entity, 'tws_edit_link', None)
+            if cls.policy.add_edit_link and edit_link:
+                new_children += [DbLinkField('edit', text='edit',
+                                         entity=cls.entity,
+                                         link=edit_link)]
             def child_filter(w):
                 return w.key not in used_children and \
                        w.key not in [W.key for W in new_children]

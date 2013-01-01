@@ -48,6 +48,7 @@ class ElixirBase(object):
 
         class DbTestCls6(el.Entity):
             name = el.Field(el.String)
+            tws_edit_link = '/edit/$'
             def __unicode__(self):
                 return self.name
 
@@ -166,6 +167,7 @@ class SQLABase(object):
             __tablename__ = 'Test6'
             id = sa.Column(sa.Integer, primary_key=True)
             name = sa.Column(sa.String(50))
+            tws_edit_link = '/edit/$'
             def __unicode__(self):
                 return self.name
         class DbTestCls7(Base):
@@ -1529,6 +1531,81 @@ class AutoViewGridT(WidgetTest):
     <tr class="error"><td colspan="0" id="autogrid:error"></td></tr>
     </table>"""
 
+    def test_edit_link(self):
+        values = self.DbTestCls6.query.all()
+        w = tws.AutoViewGrid(entity=self.DbTestCls6,
+                             value=values, **self.attrs)
+        tw2test.assert_eq_xml(w.display(), """
+<table id="autogrid">
+<tr>
+  <th>Name</th>
+  <th>Others</th>
+  <th>Edit</th>
+</tr>
+<tr id="autogrid:0" class="odd">
+  <td>
+    <span>foo1<input type="hidden" name="name" value="foo1" id="autogrid:0:name"/></span>
+  </td>
+  <td>
+    <table id="autogrid:0:others">
+    <tr>
+      <th>Nick</th>
+      <th>Other</th>
+    </tr>
+    <tr id="autogrid:0:others:0" class="odd">
+      <td>
+        <span>bob1<input type="hidden" name="nick" value="bob1" id="autogrid:0:others:0:nick"/></span>
+      </td>
+      <td>
+        <span>foo1<input type="hidden" name="other" value="foo1" id="autogrid:0:others:0:other"/></span>
+      </td>
+      <td></td>
+    </tr>
+    <tr id="autogrid:0:others:1" class="even">
+      <td>
+        <span>bob2<input type="hidden" name="nick" value="bob2" id="autogrid:0:others:1:nick"/></span>
+      </td>
+      <td>
+        <span>foo1<input type="hidden" name="other" value="foo1" id="autogrid:0:others:1:other"/></span>
+      </td>
+      <td>
+      </td>
+    </tr>
+    <tr class="error">
+      <td colspan="2" id="autogrid:0:others:error"></td>
+    </tr>
+    </table>
+  </td>
+  <td>
+      <a href="/edit/1" id="autogrid:0:edit">edit</a>
+  </td>
+  <td>
+  </td>
+</tr>
+<tr id="autogrid:1" class="even">
+  <td>
+    <span>foo2<input type="hidden" name="name" value="foo2" id="autogrid:1:name"/></span>
+  </td>
+  <td>
+    <table id="autogrid:1:others">
+    <tr>
+      <th>Nick</th>
+      <th>Other</th>
+    </tr>
+    <tr class="error">
+      <td colspan="0" id="autogrid:1:others:error"></td>
+    </tr>
+    </table>
+  </td>
+  <td>
+    <a href="/edit/2" id="autogrid:1:edit">edit</a>
+  </td>
+  <td></td>
+</tr>
+<tr class="error">
+  <td colspan="2" id="autogrid:error"></td>
+</tr>
+</table>""")
 
 class TestAutoViewGridElixir(ElixirBase, AutoViewGridT): pass
 class TestAutoViewGridSQLA(SQLABase, AutoViewGridT): pass
