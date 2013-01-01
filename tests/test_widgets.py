@@ -116,6 +116,10 @@ class ElixirBase(object):
 
         return super(ElixirBase, self).setup()
 
+    def teardown(self):
+        transaction.abort()
+
+
 class SQLABase(object):
     def setup(self):
         self.session = tws.transactional_session()
@@ -237,6 +241,10 @@ class SQLABase(object):
         transaction.commit()
 
         return super(SQLABase, self).setup()
+
+    def teardown(self):
+        transaction.abort()
+
 
 class RadioButtonT(WidgetTest):
     widget = tws.DbRadioButtonList
@@ -2602,6 +2610,62 @@ class DbLinkFieldT(WidgetTest):
         d = self.DbTestCls10(name="fr&ed")
         w = tws.DbLinkField(entity=self.DbTestCls10, value=d, link='/test')
         tw2test.assert_eq_xml(w.display(), """<a href="/test?name=fr%26ed">fr&amp;ed</a>""")
+
+    def test_ident(self):
+        d = self.DbTestCls10(name="fred")
+        w = tws.DbLinkField(entity=self.DbTestCls10, value=d, link='/test/$')
+        tw2test.assert_eq_xml(w.display(), '<a href="/test/fred">fred</a>')
+
+    def test_text(self):
+        d = self.DbTestCls10(name="fred")
+        w = tws.DbLinkField(entity=self.DbTestCls10, value=d, link='/test/$',
+                            text='edit')
+        tw2test.assert_eq_xml(w.display(), '<a href="/test/fred">edit</a>')
+
+    def test_many_pkeys(self):
+        d = self.DbTestCls3(id1=1, id2=2)
+        w = tws.DbLinkField(entity=self.DbTestCls3, value=d, link='/test/$',
+                            text='edit')
+        try:
+            w.display()
+            assert(False)
+        except twc.WidgetError, e:
+            expected = ("Can't replace '$' in /test/$ since there is many "
+            "primary keys. For this special case remove the '$' and let the "
+            "widget making the query string.")
+            assert(str(e) == expected)
+
+    def test_no_value(self):
+        w = tws.DbLinkField(entity=self.DbTestCls10, link='/test/$')
+        tw2test.assert_eq_xml(w.display(), '<a ></a>')
+
+    def test_parent_value(self):
+        d = self.DbTestCls10(name="fred")
+        w = tws.AutoTableForm(
+                children=[
+                    tws.DbLinkField(
+                        'edit', entity=self.DbTestCls10, link='/test/$')
+                ],
+                value=d)
+        tw2test.assert_eq_xml(w.display(), """
+<form enctype="multipart/form-data" method="post">
+  <span class="error"></span>
+  <table>
+  <tr class="odd"  id="edit:container">
+      <th>Edit</th>
+      <td>
+          <a href="/test/fred" id="edit">fred</a>
+          <span id="edit:error"></span>
+      </td>
+  </tr>
+  <tr class="error"><td colspan="2">
+      <span id=":error"></span>
+  </td></tr>
+  </table>
+  <input type="submit" value="Save"/>
+</form>
+""")
+
 
 class TestLinkFieldElixir(ElixirBase, DbLinkFieldT): pass
 class TestLinkFieldSQLA(SQLABase, DbLinkFieldT): pass
