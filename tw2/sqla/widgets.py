@@ -218,7 +218,7 @@ class DbListPage(DbPage, twc.Page):
 # Note: this does not inherit from LinkField, as few of the parameters apply
 class DbLinkField(twc.Widget):
     template = "tw2.forms.templates.link_field"
-    link = twc.Param('Path to link to')
+    link = twc.Param('Path to link to', default=None)
     text = twc.Param('Link text', default='')
     entity = twc.Param('SQLAlchemy mapped class to use', request_local=False)
 
@@ -231,7 +231,7 @@ class DbLinkField(twc.Widget):
             # The value can be defined on the parent
             self.value = self.parent and self.parent.value or None
 
-        if self.value:
+        if self.link and self.value:
             self.safe_modify('attrs')
             pkeys = sa.orm.class_mapper(self.entity).primary_key
             if '$' in self.link:
@@ -248,9 +248,23 @@ class DbLinkField(twc.Widget):
                 qs = '&'.join(col.name + "=" + self.encode(getattr(self.value, col.name))
                                 for col in pkeys)
                 self.attrs['href'] = self.link + '?' + qs
+
         if not self.text:
             self.text = unicode(self.value or '')
 
+
+class DbListLinkField(twc.RepeatingWidget):
+    """A container of DbLinkFields use for the onetomany/manytomany relations
+    """
+    child = DbLinkField
+
+    link = twc.Param('Path to link to')
+    entity = twc.Param('SQLAlchemy mapped class to use', request_local=False)
+
+    def prepare(self):
+        self.child.entity = self.entity
+        self.child.link = self.link
+        super(DbListLinkField, self).prepare()
 
 
 class DbSelectionField(twf.SelectionField):

@@ -1085,27 +1085,16 @@ class AutoListPageT(WidgetTest):
         <input type="text" name="name" value="foo1" id="0:name"/>
     </td>
     <td>
-        <table id="0:others">
-    <tr><th>Nick</th><th>Other</th></tr>
-    <tr id="0:others:0" class="odd">
-    <td>
-        <span>bob3<input name="nick" type="hidden" id="0:others:0:nick" value="bob3"></span>
-    </td>
-    <td>
-        <span>foo1<input name="other" type="hidden" id="0:others:0:other" value="foo1"></span>
-    </td><td></td></tr>
-    <tr class="error"><td colspan="1" id="0:others:error">
-    </td></tr>
-</table>
+      <div id="0:others">
+           <a id="0:others:0">bob3</a>
+      </div>
     </td><td></td></tr>
 <tr id="1" class="even">
     <td>
         <input type="text" name="name" value="foo2" id="1:name"/>
     </td><td>
-        <table id="1:others">
-    <tr><th>Nick</th><th>Other</th></tr>
-    <tr class="error"><td colspan="0" id="1:others:error">
-    </td></tr></table>
+      <div id="1:others">
+      </div>
     </td><td></td>
     </tr>
     <tr class="error"><td colspan="2" id=":error">
@@ -1133,21 +1122,9 @@ class AutoListPageT(WidgetTest):
         <span>foo1<input name="name" type="hidden" id="autolistpage_d:0:name" value="foo1"></span>
     </td>
     <td>
-        <table id="autolistpage_d:0:others">
-            <tr><th>Nick</th><th>Other</th></tr>
-            <tr id="autolistpage_d:0:others:0" class="odd">
-            <td>
-                <span>bob3<input name="nick" type="hidden" id="autolistpage_d:0:others:0:nick" value="bob3"></span>
-            </td>
-            <td>
-                <span>foo1<input name="other" type="hidden" id="autolistpage_d:0:others:0:other" value="foo1"></span>
-            </td>
-            <td>
-            </td>
-        </tr>
-            <tr class="error"><td colspan="1" id="autolistpage_d:0:others:error">
-            </td></tr>
-        </table>
+      <div id="autolistpage_d:0:others">
+         <a id="autolistpage_d:0:others:0">bob3</a>
+      </div>
     </td>
     <td>
     </td>
@@ -1157,11 +1134,8 @@ class AutoListPageT(WidgetTest):
         <span>foo2<input name="name" type="hidden" id="autolistpage_d:1:name" value="foo2"></span>
     </td>
     <td>
-        <table id="autolistpage_d:1:others">
-            <tr><th>Nick</th><th>Other</th></tr>
-            <tr class="error"><td colspan="0" id="autolistpage_d:1:others:error">
-            </td></tr>
-        </table>
+      <div id="autolistpage_d:1:others">
+      </div>
     </td>
     <td>
     </td>
@@ -1547,34 +1521,10 @@ class AutoViewGridT(WidgetTest):
     <span>foo1<input type="hidden" name="name" value="foo1" id="autogrid:0:name"/></span>
   </td>
   <td>
-    <table id="autogrid:0:others">
-    <tr>
-      <th>Nick</th>
-      <th>Other</th>
-    </tr>
-    <tr id="autogrid:0:others:0" class="odd">
-      <td>
-        <span>bob1<input type="hidden" name="nick" value="bob1" id="autogrid:0:others:0:nick"/></span>
-      </td>
-      <td>
-        <span>foo1<input type="hidden" name="other" value="foo1" id="autogrid:0:others:0:other"/></span>
-      </td>
-      <td></td>
-    </tr>
-    <tr id="autogrid:0:others:1" class="even">
-      <td>
-        <span>bob2<input type="hidden" name="nick" value="bob2" id="autogrid:0:others:1:nick"/></span>
-      </td>
-      <td>
-        <span>foo1<input type="hidden" name="other" value="foo1" id="autogrid:0:others:1:other"/></span>
-      </td>
-      <td>
-      </td>
-    </tr>
-    <tr class="error">
-      <td colspan="2" id="autogrid:0:others:error"></td>
-    </tr>
-    </table>
+    <div id="autogrid:0:others">
+         <a id="autogrid:0:others:0">bob1</a>
+         <a id="autogrid:0:others:1">bob2</a>
+    </div>
   </td>
   <td>
       <a href="/edit/1" id="autogrid:0:edit">edit</a>
@@ -1587,15 +1537,55 @@ class AutoViewGridT(WidgetTest):
     <span>foo2<input type="hidden" name="name" value="foo2" id="autogrid:1:name"/></span>
   </td>
   <td>
-    <table id="autogrid:1:others">
-    <tr>
-      <th>Nick</th>
-      <th>Other</th>
-    </tr>
-    <tr class="error">
-      <td colspan="0" id="autogrid:1:others:error"></td>
-    </tr>
-    </table>
+    <div id="autogrid:1:others">
+    </div>
+  </td>
+  <td>
+    <a href="/edit/2" id="autogrid:1:edit">edit</a>
+  </td>
+  <td></td>
+</tr>
+<tr class="error">
+  <td colspan="2" id="autogrid:error"></td>
+</tr>
+</table>""")
+
+
+    def test_foreign_edit_link(self):
+        values = self.DbTestCls6.query.all()
+        self.DbTestCls7.tws_edit_link = '/edit7/$'
+        w = tws.AutoViewGrid(entity=self.DbTestCls6,
+                             value=values, **self.attrs)
+        tw2test.assert_eq_xml(w.display(), """
+<table id="autogrid">
+<tr>
+  <th>Name</th>
+  <th>Others</th>
+  <th>Edit</th>
+</tr>
+<tr id="autogrid:0" class="odd">
+  <td>
+    <span>foo1<input type="hidden" name="name" value="foo1" id="autogrid:0:name"/></span>
+  </td>
+  <td>
+    <div id="autogrid:0:others">
+         <a href="/edit7/1" id="autogrid:0:others:0">bob1</a>
+         <a href="/edit7/2" id="autogrid:0:others:1">bob2</a>
+    </div>
+  </td>
+  <td>
+      <a href="/edit/1" id="autogrid:0:edit">edit</a>
+  </td>
+  <td>
+  </td>
+</tr>
+<tr id="autogrid:1" class="even">
+  <td>
+    <span>foo2<input type="hidden" name="name" value="foo2" id="autogrid:1:name"/></span>
+  </td>
+  <td>
+    <div id="autogrid:1:others">
+    </div>
   </td>
   <td>
     <a href="/edit/2" id="autogrid:1:edit">edit</a>
@@ -2715,6 +2705,10 @@ class DbLinkFieldT(WidgetTest):
     def test_no_value(self):
         w = tws.DbLinkField(entity=self.DbTestCls10, link='/test/$')
         tw2test.assert_eq_xml(w.display(), '<a ></a>')
+
+    def test_no_link(self):
+        w = tws.DbLinkField(entity=self.DbTestCls10, text='edit')
+        tw2test.assert_eq_xml(w.display(), '<a>edit</a>')
 
     def test_parent_value(self):
         d = self.DbTestCls10(name="fred")

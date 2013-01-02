@@ -185,7 +185,15 @@ class WidgetPolicy(object):
                 raise twc.WidgetError(
                     "Cannot automatically create a widget " +
                     "for one-to-many relation '%s'" % prop.key)
-            widget = cls.onetomany_widget(id=prop.key,entity=prop.mapper.class_)
+            prop_cls = prop.mapper.class_
+            edit_link = getattr(prop_cls, 'tws_edit_link', None)
+            params = {}
+            if cls.add_edit_link:
+                params['link'] = edit_link
+            widget = cls.onetomany_widget(
+                id=prop.key,
+                entity=prop_cls,
+                **params)
         elif sum([c.primary_key for c in getattr(prop, 'columns', [])]):
             widget = cls.pkey_widget
         elif is_manytoone(prop):
@@ -200,10 +208,16 @@ class WidgetPolicy(object):
                 raise twc.WidgetError(
                     "Cannot automatically create a widget " +
                     "for many-to-many relation '%s'" % prop.key)
+            prop_cls = prop.mapper.class_
+            edit_link = getattr(prop_cls, 'tws_edit_link', None)
+            params = {}
+            if cls.add_edit_link:
+                params['link'] = edit_link
             widget = cls.onetomany_widget(
                 id=prop.key,
-                entity=prop.mapper.class_,
-                reverse_property_name=get_reverse_property_name(prop)
+                entity=prop_cls,
+                reverse_property_name=get_reverse_property_name(prop),
+                **params
             )
         elif is_onetoone(prop):
             if not cls.onetoone_widget:
@@ -255,7 +269,7 @@ class ViewPolicy(WidgetPolicy):
 
     ## This gets assigned further down in the file.  It must, because of an
     ## otherwise circular dependency.
-    #onetomany_widget = AutoViewGrid
+    #onetomany_widget = DbListLinkField
     #onetoone_widget = AutoViewGrid
 
 
@@ -379,7 +393,7 @@ class AutoEditFieldSet(AutoContainer, twf.TableFieldSet):
             cls.validator = RelatedOneToOneValidator(entity=cls.entity, required=required)
 
 # This is assigned here and not above because of a circular dep.
-ViewPolicy.onetomany_widget = AutoViewGrid
+ViewPolicy.onetomany_widget = DbListLinkField
 ViewPolicy.onetoone_widget = AutoViewFieldSet
 EditPolicy.onetoone_widget = AutoEditFieldSet
 
