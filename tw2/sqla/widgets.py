@@ -122,7 +122,9 @@ class RelatedOneToOneValidator(twc.Validator):
         elif self.required_children:
             if not has_value(value):
                 # No problem, no value posted.
-                return value
+                # We return None to make sure we will delete the onetoone field
+                # or not create it
+                return None
 
             error_dict = {}
             for c in self.required_children:
