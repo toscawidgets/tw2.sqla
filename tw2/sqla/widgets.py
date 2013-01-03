@@ -93,10 +93,11 @@ class RelatedOneToOneValidator(twc.Validator):
     This validator should be used for the one to one relation.
     """
 
-    def __init__(self, entity, required=False, **kw):
+    def __init__(self, entity, required=False, required_children=None, **kw):
         super(RelatedOneToOneValidator, self).__init__(**kw)
         self.required=required
         self.entity = entity
+        self.required_children = required_children
 
     def to_python(self, value, state=None):
         """We just validate, there is at least one value
@@ -114,10 +115,27 @@ class RelatedOneToOneValidator(twc.Validator):
                 if v:
                     return True
             return False
-        
+
         if self.required:
             if not has_value(value):
                 raise twc.ValidationError('required', self)
+        elif self.required_children:
+            if not has_value(value):
+                # No problem, no value posted.
+                return value
+
+            error_dict = {}
+            for c in self.required_children:
+                v = value.get(c.key)
+                if v is twc.Invalid:
+                    continue
+                if not v:
+                    error_dict[c.key] = self.msgs['required']
+            if error_dict:
+                e = twc.ValidationError('required', self)
+                e.error_dict = error_dict
+                raise e
+
         return value
 
     def from_python(self, value, state=None):

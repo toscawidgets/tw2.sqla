@@ -229,11 +229,13 @@ class WidgetPolicy(object):
                 raise twc.WidgetError(
                     "Cannot automatically create a widget " +
                     "for one-to-one relation '%s'" % prop.key)
+            required = required_widget(prop)
             widget = cls.onetoone_widget(
                         id=prop.key,
                         entity=prop.mapper.class_,
-                        required=required_widget(prop),
-                        reverse_property_name=get_reverse_property_name(prop)
+                        required=required,
+                        reverse_property_name=get_reverse_property_name(prop),
+                        required_on_parent=(not required),
                     )
         elif prop.key in cls.name_widgets:
             widget = cls.name_widgets[prop.key]        
@@ -373,6 +375,13 @@ class AutoContainer(twc.Widget):
                        w.key not in [W.key for W in new_children]
 
             new_children.extend(filter(child_filter, orig_children))
+
+            cls.required_children = []
+            if getattr(cls, 'required_on_parent', False):
+                for c in new_children:
+                    if c.validator.required:
+                        cls.required_children += [c]
+                        c.validator.required = False
             cls.child = cls.child(children=new_children, entity=cls.entity)
 
 
@@ -395,7 +404,11 @@ class AutoEditFieldSet(AutoContainer, twf.TableFieldSet):
     def post_define(cls):
         if getattr(cls, 'entity', None):
             required = getattr(cls, 'required', False)
-            cls.validator = RelatedOneToOneValidator(entity=cls.entity, required=required)
+            required_children = getattr(cls, 'required_children', None)
+            cls.validator = RelatedOneToOneValidator(
+                entity=cls.entity,
+                required=required,
+                required_children=required_children)
 
 # This is assigned here and not above because of a circular dep.
 ViewPolicy.onetomany_widget = DbListLinkField
