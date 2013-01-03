@@ -1,6 +1,7 @@
 import tw2.core as twc, tw2.forms as twf, sqlalchemy as sa, sys
 import sqlalchemy.types as sat, tw2.dynforms as twd
 from widgets import *
+import compat
 
 
 try:
@@ -110,7 +111,7 @@ def required_widget(prop):
     if not is_manytoone(prop) and not is_onetoone(prop):
         return False
 
-    localname = prop.local_side[0].name
+    localname = compat.local_name(prop)
     # If the local field is required, the relation should be required
     pkey = dict([(p.key, is_nullable(p)) for p in prop.parent.iterate_properties])
     return not pkey.get(localname, True)
@@ -293,7 +294,7 @@ class AutoContainer(twc.Widget):
 
         if hasattr(cls, 'entity') and not getattr(cls, '_auto_widgets', False):
             cls._auto_widgets = True
-            fkey = dict((p.local_side[0].name, p)
+            fkey = dict((compat.local_name(p), p)
                         for p in sa.orm.class_mapper(cls.entity).iterate_properties
                         if is_manytoone(p) or is_onetoone(p))
 
@@ -303,7 +304,7 @@ class AutoContainer(twc.Widget):
             
             mapper = sa.orm.class_mapper(cls.entity)
             properties = mapper._props.values()
-            localname_from_relationname = dict((p.key, p.local_side[0].name)
+            localname_from_relationname = dict((p.key, compat.local_name(p))
                     for p in mapper.iterate_properties
                     if is_manytoone(p) or is_onetoone(p))
             localname_creation_order =  dict((p.key, p._creation_order)
@@ -325,7 +326,7 @@ class AutoContainer(twc.Widget):
 
                 widget_name = prop.key
                 if isinstance(prop, sa.orm.RelationshipProperty):
-                    widget_name = prop.local_side[0].name
+                    widget_name = compat.local_name(prop)
 
                 matches = [w for w in orig_children if w.key == widget_name]
                 widget = len(matches) and matches[0] or None
