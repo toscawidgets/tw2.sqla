@@ -59,7 +59,6 @@ class BaseObject(object):
 
 class TestElixir(BaseObject):
     def setUp(self):
-        import elixir as el
         import transaction
         el.metadata = sa.MetaData('sqlite:///:memory:')
 
@@ -83,6 +82,18 @@ class TestElixir(BaseObject):
         transaction.commit()
 
         testapi.setup()
+
+
+# Disable elixir tests if its not importable.
+el = None
+try:
+    import elixir as el
+except ImportError:
+    pass
+
+if not el:
+    TestElixir = None
+
 
 class TestSQLA(BaseObject):
     def setUp(self):
