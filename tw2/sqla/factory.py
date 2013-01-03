@@ -175,6 +175,7 @@ class WidgetPolicy(object):
     type_widgets = {}
     default_widget = None
     hint_name = None
+    add_edit_link = False
 
     @classmethod
     def factory(cls, prop):
@@ -185,7 +186,15 @@ class WidgetPolicy(object):
                 raise twc.WidgetError(
                     "Cannot automatically create a widget " +
                     "for one-to-many relation '%s'" % prop.key)
-            widget = cls.onetomany_widget(id=prop.key,entity=prop.mapper.class_, required=required_widget(prop))
+            prop_cls = prop.mapper.class_
+            edit_link = getattr(prop_cls, 'tws_edit_link', None)
+            params = {}
+            if cls.add_edit_link:
+                params['link'] = edit_link
+            widget = cls.onetomany_widget(
+                id=prop.key,
+                entity=prop_cls,
+                **params)
         elif sum([c.primary_key for c in getattr(prop, 'columns', [])]):
             widget = cls.pkey_widget
         elif is_manytoone(prop):
@@ -193,14 +202,24 @@ class WidgetPolicy(object):
                 raise twc.WidgetError(
                     "Cannot automatically create a widget " +
                     "for many-to-one relation '%s'" % prop.key)
-            widget = cls.manytoone_widget(id=prop.key,entity=prop.mapper.class_, required=required_widget(prop))
+            widget = cls.manytoone_widget(id=prop.key,entity=prop.mapper.class_)
         elif is_manytomany(prop):
             # Use the same widget as onetomany
             if not cls.onetomany_widget:
                 raise twc.WidgetError(
                     "Cannot automatically create a widget " +
                     "for many-to-many relation '%s'" % prop.key)
-            widget = cls.onetomany_widget(id=prop.key,entity=prop.mapper.class_, required=required_widget(prop))
+            prop_cls = prop.mapper.class_
+            edit_link = getattr(prop_cls, 'tws_edit_link', None)
+            params = {}
+            if cls.add_edit_link:
+                params['link'] = edit_link
+            widget = cls.onetomany_widget(
+                id=prop.key,
+                entity=prop_cls,
+                reverse_property_name=get_reverse_property_name(prop),
+                **params
+            )
         elif is_onetoone(prop):
             if not cls.onetoone_widget:
                 raise twc.WidgetError(
@@ -208,8 +227,8 @@ class WidgetPolicy(object):
                     "for one-to-one relation '%s'" % prop.key)
             widget = cls.onetoone_widget(
                         id=prop.key,
-                        entity=prop.mapper.class_, 
-                        required=required_widget(prop), 
+                        entity=prop.mapper.class_,
+                        required=required_widget(prop),
                         reverse_property_name=get_reverse_property_name(prop)
                     )
         elif prop.key in cls.name_widgets:
@@ -247,10 +266,11 @@ class ViewPolicy(WidgetPolicy):
     hint_name = 'view_widget'
     manytoone_widget = twf.LabelField
     default_widget = twf.LabelField
+    add_edit_link = True
 
     ## This gets assigned further down in the file.  It must, because of an
     ## otherwise circular dependency.
-    #onetomany_widget = AutoViewGrid
+    #onetomany_widget = DbListLinkField
     #onetoone_widget = AutoViewGrid
 
 
@@ -339,6 +359,11 @@ class AutoContainer(twc.Widget):
                     if new_widget:
                         new_children.append(new_widget)
 
+            edit_link = getattr(cls.entity, 'tws_edit_link', None)
+            if cls.policy.add_edit_link and edit_link:
+                new_children += [DbLinkField('edit', text='edit',
+                                         entity=cls.entity,
+                                         link=edit_link)]
             def child_filter(w):
                 return w.key not in used_children and \
                        w.key not in [W.key for W in new_children]
@@ -362,13 +387,14 @@ class AutoViewFieldSet(AutoContainer, twf.TableFieldSet):
 class AutoEditFieldSet(AutoContainer, twf.TableFieldSet):
     policy = EditPolicy
 
+    @classmethod
     def post_define(cls):
         if getattr(cls, 'entity', None):
-            required=getattr(cls, 'required', False)
+            required = getattr(cls, 'required', False)
             cls.validator = RelatedOneToOneValidator(entity=cls.entity, required=required)
 
 # This is assigned here and not above because of a circular dep.
-ViewPolicy.onetomany_widget = AutoViewGrid
+ViewPolicy.onetomany_widget = DbListLinkField
 ViewPolicy.onetoone_widget = AutoViewFieldSet
 EditPolicy.onetoone_widget = AutoEditFieldSet
 

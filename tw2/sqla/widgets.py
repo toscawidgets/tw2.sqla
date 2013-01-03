@@ -218,22 +218,53 @@ class DbListPage(DbPage, twc.Page):
 # Note: this does not inherit from LinkField, as few of the parameters apply
 class DbLinkField(twc.Widget):
     template = "tw2.forms.templates.link_field"
-    link = twc.Param('Path to link to')
+    link = twc.Param('Path to link to', default=None)
+    text = twc.Param('Link text', default='')
     entity = twc.Param('SQLAlchemy mapped class to use', request_local=False)
-    
+
     def encode(self, value):
         return urllib.quote(unicode(value).encode('utf-8'))
-    
+
     def prepare(self):
         super(DbLinkField, self).prepare()
-        if self.value:
-            qs = '&'.join(col.name + "=" + self.encode(getattr(self.value, col.name))
-                                for col in sa.orm.class_mapper(self.entity).primary_key)
-        else:
-            qs = ''
-        self.safe_modify('attrs')
-        self.attrs['href'] = self.link + '?' + qs
-        self.text = unicode(self.value or '')
+        if not self.value:
+            # The value can be defined on the parent
+            self.value = self.parent and self.parent.value or None
+
+        if self.link and self.value:
+            self.safe_modify('attrs')
+            pkeys = sa.orm.class_mapper(self.entity).primary_key
+            if '$' in self.link:
+                if len(pkeys) != 1:
+                    raise twc.WidgetError(
+                        "Can't replace '$' in %s "
+                        "since there is many primary keys. "
+                        "For this special case remove the '$' and let the "
+                        "widget making the query string." % self.link)
+
+                ident = getattr(self.value, pkeys[0].name)
+                self.attrs['href'] = self.link.replace('$', unicode(ident))
+            else:
+                qs = '&'.join(col.name + "=" + self.encode(getattr(self.value, col.name))
+                                for col in pkeys)
+                self.attrs['href'] = self.link + '?' + qs
+
+        if not self.text:
+            self.text = unicode(self.value or '')
+
+
+class DbListLinkField(twc.RepeatingWidget):
+    """A container of DbLinkFields use for the onetomany/manytomany relations
+    """
+    child = DbLinkField
+
+    link = twc.Param('Path to link to')
+    entity = twc.Param('SQLAlchemy mapped class to use', request_local=False)
+
+    def prepare(self):
+        self.child.entity = self.entity
+        self.child.link = self.link
+        super(DbListLinkField, self).prepare()
 
 
 class DbSelectionField(twf.SelectionField):
@@ -248,7 +279,7 @@ class DbSingleSelectionField(DbSelectionField):
     @classmethod
     def post_define(cls):
         if getattr(cls, 'entity', None):
-            required=getattr(cls, 'required', False)
+            required = getattr(cls.validator, 'required', None)
             cls.validator = RelatedValidator(entity=cls.entity, required=required)
 
 
@@ -260,7 +291,7 @@ class DbMultipleSelectionField(DbSelectionField):
     @classmethod
     def post_define(cls):
         if getattr(cls, 'entity', None):
-            required=getattr(cls, 'required', False)
+            required = getattr(cls.validator, 'required', None)
             cls.validator = RelatedItemValidator(required=required, entity=cls.entity)
             # We should keep item_validator to make sure the values are well transformed.
             cls.item_validator = RelatedValidator(entity=cls.entity)

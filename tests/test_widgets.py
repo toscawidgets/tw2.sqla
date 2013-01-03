@@ -56,6 +56,7 @@ class ElixirBase(object):
 
         class DbTestCls6(el.Entity):
             name = el.Field(el.String)
+            tws_edit_link = '/edit/$'
             def __unicode__(self):
                 return self.name
 
@@ -124,6 +125,10 @@ class ElixirBase(object):
 
         return super(ElixirBase, self).setup()
 
+    def teardown(self):
+        transaction.abort()
+
+
 class SQLABase(object):
     def setup(self):
         self.session = tws.transactional_session()
@@ -170,6 +175,7 @@ class SQLABase(object):
             __tablename__ = 'Test6'
             id = sa.Column(sa.Integer, primary_key=True)
             name = sa.Column(sa.String(50))
+            tws_edit_link = '/edit/$'
             def __unicode__(self):
                 return self.name
         class DbTestCls7(Base):
@@ -246,6 +252,10 @@ class SQLABase(object):
 
         return super(SQLABase, self).setup()
 
+    def teardown(self):
+        transaction.abort()
+
+
 class RadioButtonT(WidgetTest):
     widget = tws.DbRadioButtonList
     declarative = True
@@ -303,7 +313,7 @@ class RadioButtonRequiredT(WidgetTest):
         assert(value is self.DbTestCls1.query.get(1))
 
     def setup(self):
-        self.widget = self.widget(entity=self.DbTestCls1, required=True)
+        self.widget = self.widget(entity=self.DbTestCls1, validator=twc.Required)
         return super(RadioButtonRequiredT, self).setup()
 
 if el:
@@ -370,7 +380,7 @@ class CheckBoxRequiredT(WidgetTest):
         assert(value == [self.DbTestCls1.query.get(1), self.DbTestCls1.query.get(2)])
 
     def setup(self):
-        self.widget = self.widget(entity=self.DbTestCls1, required=True)
+        self.widget = self.widget(entity=self.DbTestCls1, validator=twc.Required)
         return super(CheckBoxRequiredT, self).setup()
 
 if el:
@@ -443,7 +453,7 @@ class CheckBoxTableRequiredT(WidgetTest):
         assert(value == [self.DbTestCls1.query.get(1)])
 
     def setup(self):
-        self.widget = self.widget(entity=self.DbTestCls1, required=True)
+        self.widget = self.widget(entity=self.DbTestCls1, validator=twc.Required)
         return super(CheckBoxTableRequiredT, self).setup()
 
 if el:
@@ -498,7 +508,7 @@ class SingleSelectRequiredT(WidgetTest):
         assert(value is self.DbTestCls1.query.get(1))
 
     def setup(self):
-        self.widget = self.widget(entity=self.DbTestCls1, required=True)
+        self.widget = self.widget(entity=self.DbTestCls1, validator=twc.Required)
         return super(SingleSelectRequiredT, self).setup()
 
 if el:
@@ -1104,27 +1114,16 @@ class AutoListPageT(WidgetTest):
         <input type="text" name="name" value="foo1" id="0:name"/>
     </td>
     <td>
-        <table id="0:others">
-    <tr><th>Nick</th><th>Other</th></tr>
-    <tr id="0:others:0" class="odd">
-    <td>
-        <span>bob3<input name="nick" type="hidden" id="0:others:0:nick" value="bob3"></span>
-    </td>
-    <td>
-        <span>foo1<input name="other" type="hidden" id="0:others:0:other" value="foo1"></span>
-    </td><td></td></tr>
-    <tr class="error"><td colspan="1" id="0:others:error">
-    </td></tr>
-</table>
+      <div id="0:others">
+           <a id="0:others:0">bob3</a>
+      </div>
     </td><td></td></tr>
 <tr id="1" class="even">
     <td>
         <input type="text" name="name" value="foo2" id="1:name"/>
     </td><td>
-        <table id="1:others">
-    <tr><th>Nick</th><th>Other</th></tr>
-    <tr class="error"><td colspan="0" id="1:others:error">
-    </td></tr></table>
+      <div id="1:others">
+      </div>
     </td><td></td>
     </tr>
     <tr class="error"><td colspan="2" id=":error">
@@ -1152,21 +1151,9 @@ class AutoListPageT(WidgetTest):
         <span>foo1<input name="name" type="hidden" id="autolistpage_d:0:name" value="foo1"></span>
     </td>
     <td>
-        <table id="autolistpage_d:0:others">
-            <tr><th>Nick</th><th>Other</th></tr>
-            <tr id="autolistpage_d:0:others:0" class="odd">
-            <td>
-                <span>bob3<input name="nick" type="hidden" id="autolistpage_d:0:others:0:nick" value="bob3"></span>
-            </td>
-            <td>
-                <span>foo1<input name="other" type="hidden" id="autolistpage_d:0:others:0:other" value="foo1"></span>
-            </td>
-            <td>
-            </td>
-        </tr>
-            <tr class="error"><td colspan="1" id="autolistpage_d:0:others:error">
-            </td></tr>
-        </table>
+      <div id="autolistpage_d:0:others">
+         <a id="autolistpage_d:0:others:0">bob3</a>
+      </div>
     </td>
     <td>
     </td>
@@ -1176,11 +1163,8 @@ class AutoListPageT(WidgetTest):
         <span>foo2<input name="name" type="hidden" id="autolistpage_d:1:name" value="foo2"></span>
     </td>
     <td>
-        <table id="autolistpage_d:1:others">
-            <tr><th>Nick</th><th>Other</th></tr>
-            <tr class="error"><td colspan="0" id="autolistpage_d:1:others:error">
-            </td></tr>
-        </table>
+      <div id="autolistpage_d:1:others">
+      </div>
     </td>
     <td>
     </td>
@@ -1564,6 +1548,97 @@ class AutoViewGridT(WidgetTest):
     <tr class="error"><td colspan="0" id="autogrid:error"></td></tr>
     </table>"""
 
+    def test_edit_link(self):
+        values = self.DbTestCls6.query.all()
+        w = tws.AutoViewGrid(entity=self.DbTestCls6,
+                             value=values, **self.attrs)
+        tw2test.assert_eq_xml(w.display(), """
+<table id="autogrid">
+<tr>
+  <th>Name</th>
+  <th>Others</th>
+  <th>Edit</th>
+</tr>
+<tr id="autogrid:0" class="odd">
+  <td>
+    <span>foo1<input type="hidden" name="name" value="foo1" id="autogrid:0:name"/></span>
+  </td>
+  <td>
+    <div id="autogrid:0:others">
+         <a id="autogrid:0:others:0">bob1</a>
+         <a id="autogrid:0:others:1">bob2</a>
+    </div>
+  </td>
+  <td>
+      <a href="/edit/1" id="autogrid:0:edit">edit</a>
+  </td>
+  <td>
+  </td>
+</tr>
+<tr id="autogrid:1" class="even">
+  <td>
+    <span>foo2<input type="hidden" name="name" value="foo2" id="autogrid:1:name"/></span>
+  </td>
+  <td>
+    <div id="autogrid:1:others">
+    </div>
+  </td>
+  <td>
+    <a href="/edit/2" id="autogrid:1:edit">edit</a>
+  </td>
+  <td></td>
+</tr>
+<tr class="error">
+  <td colspan="2" id="autogrid:error"></td>
+</tr>
+</table>""")
+
+
+    def test_foreign_edit_link(self):
+        values = self.DbTestCls6.query.all()
+        self.DbTestCls7.tws_edit_link = '/edit7/$'
+        w = tws.AutoViewGrid(entity=self.DbTestCls6,
+                             value=values, **self.attrs)
+        tw2test.assert_eq_xml(w.display(), """
+<table id="autogrid">
+<tr>
+  <th>Name</th>
+  <th>Others</th>
+  <th>Edit</th>
+</tr>
+<tr id="autogrid:0" class="odd">
+  <td>
+    <span>foo1<input type="hidden" name="name" value="foo1" id="autogrid:0:name"/></span>
+  </td>
+  <td>
+    <div id="autogrid:0:others">
+         <a href="/edit7/1" id="autogrid:0:others:0">bob1</a>
+         <a href="/edit7/2" id="autogrid:0:others:1">bob2</a>
+    </div>
+  </td>
+  <td>
+      <a href="/edit/1" id="autogrid:0:edit">edit</a>
+  </td>
+  <td>
+  </td>
+</tr>
+<tr id="autogrid:1" class="even">
+  <td>
+    <span>foo2<input type="hidden" name="name" value="foo2" id="autogrid:1:name"/></span>
+  </td>
+  <td>
+    <div id="autogrid:1:others">
+    </div>
+  </td>
+  <td>
+    <a href="/edit/2" id="autogrid:1:edit">edit</a>
+  </td>
+  <td></td>
+</tr>
+<tr class="error">
+  <td colspan="2" id="autogrid:error"></td>
+</tr>
+</table>""")
 
 if el:
     class TestAutoViewGridElixir(ElixirBase, AutoViewGridT): pass
@@ -2383,7 +2458,7 @@ class FormPageRequiredCheckboxT(WidgetTest):
                     children=[
                         twf.HiddenField(id='id'),
                         twf.TextField(id='name'),
-                        tws.DbCheckBoxList(id='others', entity=self.DbTestCls2, required=True),
+                        tws.DbCheckBoxList(id='others', entity=self.DbTestCls2, validator=twc.Required),
                     ]),
                 'title': 'some title',
                 'entity': self.DbTestCls1,
@@ -2661,6 +2736,66 @@ class DbLinkFieldT(WidgetTest):
         d = self.DbTestCls10(name="fr&ed")
         w = tws.DbLinkField(entity=self.DbTestCls10, value=d, link='/test')
         tw2test.assert_eq_xml(w.display(), """<a href="/test?name=fr%26ed">fr&amp;ed</a>""")
+
+    def test_ident(self):
+        d = self.DbTestCls10(name="fred")
+        w = tws.DbLinkField(entity=self.DbTestCls10, value=d, link='/test/$')
+        tw2test.assert_eq_xml(w.display(), '<a href="/test/fred">fred</a>')
+
+    def test_text(self):
+        d = self.DbTestCls10(name="fred")
+        w = tws.DbLinkField(entity=self.DbTestCls10, value=d, link='/test/$',
+                            text='edit')
+        tw2test.assert_eq_xml(w.display(), '<a href="/test/fred">edit</a>')
+
+    def test_many_pkeys(self):
+        d = self.DbTestCls3(id1=1, id2=2)
+        w = tws.DbLinkField(entity=self.DbTestCls3, value=d, link='/test/$',
+                            text='edit')
+        try:
+            w.display()
+            assert(False)
+        except twc.WidgetError, e:
+            expected = ("Can't replace '$' in /test/$ since there is many "
+            "primary keys. For this special case remove the '$' and let the "
+            "widget making the query string.")
+            assert(str(e) == expected)
+
+    def test_no_value(self):
+        w = tws.DbLinkField(entity=self.DbTestCls10, link='/test/$')
+        tw2test.assert_eq_xml(w.display(), '<a ></a>')
+
+    def test_no_link(self):
+        w = tws.DbLinkField(entity=self.DbTestCls10, text='edit')
+        tw2test.assert_eq_xml(w.display(), '<a>edit</a>')
+
+    def test_parent_value(self):
+        d = self.DbTestCls10(name="fred")
+        w = tws.AutoTableForm(
+                children=[
+                    tws.DbLinkField(
+                        'edit', entity=self.DbTestCls10, link='/test/$')
+                ],
+                value=d)
+        tw2test.assert_eq_xml(w.display(), """
+<form enctype="multipart/form-data" method="post">
+  <span class="error"></span>
+  <table>
+  <tr class="odd"  id="edit:container">
+      <th>Edit</th>
+      <td>
+          <a href="/test/fred" id="edit">fred</a>
+          <span id="edit:error"></span>
+      </td>
+  </tr>
+  <tr class="error"><td colspan="2">
+      <span id=":error"></span>
+  </td></tr>
+  </table>
+  <input type="submit" value="Save"/>
+</form>
+""")
+
 
 if el:
     class TestLinkFieldElixir(ElixirBase, DbLinkFieldT): pass
