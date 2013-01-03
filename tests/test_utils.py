@@ -253,9 +253,9 @@ class BaseObject(object):
 # From a design standpoint, it would be nice to make the tw2.sqla.utils
 # functions persistance-layer agnostic.
 #
+
 class TestElixir(BaseObject):
     def setUp(self):
-        import elixir as el
         self.session = el.session = tws.transactional_session()
         el.metadata = sa.MetaData('sqlite:///:memory:')
 
@@ -284,6 +284,17 @@ class TestElixir(BaseObject):
     #def tearDown(self):
     #    import elixir as el
     #    el.drop_all()
+
+
+# Disable elixir tests if its not importable.
+el = None
+try:
+    import elixir as el
+except ImportError:
+    pass
+
+if not el:
+    TestElixir = None
 
 
 class TestSQLA(BaseObject):

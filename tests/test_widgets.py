@@ -2,7 +2,6 @@ import tw2.core as twc, tw2.sqla as tws, tw2.forms as twf, sqlalchemy as sa
 from webob import Request
 from cStringIO import StringIO
 
-import elixir as el
 import transaction
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -10,6 +9,15 @@ import tw2.core.testbase as tw2test
 
 class WidgetTest(tw2test.WidgetTest):
     engines = ['mako', 'genshi']
+
+
+# Only run elixir tests if it is importable.
+el = None
+try:
+    import elixir as el
+except ImportError:
+    pass
+
 
 class ElixirBase(object):
     def setup(self):
@@ -273,7 +281,9 @@ class RadioButtonT(WidgetTest):
         self.widget = self.widget(entity=self.DbTestCls1)
         return super(RadioButtonT, self).setup()
 
-class TestRadioButtonElixir(ElixirBase, RadioButtonT): pass
+if el:
+    class TestRadioButtonElixir(ElixirBase, RadioButtonT): pass
+
 class TestRadioButtonSQLA(SQLABase, RadioButtonT): pass
 
 class RadioButtonRequiredT(WidgetTest):
@@ -306,7 +316,9 @@ class RadioButtonRequiredT(WidgetTest):
         self.widget = self.widget(entity=self.DbTestCls1, validator=twc.Required)
         return super(RadioButtonRequiredT, self).setup()
 
-class TestRadioButtonRequiredElixir(ElixirBase, RadioButtonRequiredT): pass
+if el:
+    class TestRadioButtonRequiredElixir(ElixirBase, RadioButtonRequiredT): pass
+
 class TestRadioButtonRequiredSQLA(SQLABase, RadioButtonRequiredT): pass
 
 class CheckBoxT(WidgetTest):
@@ -334,7 +346,9 @@ class CheckBoxT(WidgetTest):
         self.widget = self.widget(entity=self.DbTestCls1)
         return super(CheckBoxT, self).setup()
 
-class TestCheckBoxElixir(ElixirBase, CheckBoxT): pass
+if el:
+    class TestCheckBoxElixir(ElixirBase, CheckBoxT): pass
+
 class TestCheckBoxSQLA(SQLABase, CheckBoxT): pass
 
 class CheckBoxRequiredT(WidgetTest):
@@ -369,7 +383,9 @@ class CheckBoxRequiredT(WidgetTest):
         self.widget = self.widget(entity=self.DbTestCls1, validator=twc.Required)
         return super(CheckBoxRequiredT, self).setup()
 
-class TestCheckBoxRequiredElixir(ElixirBase, CheckBoxRequiredT): pass
+if el:
+    class TestCheckBoxRequiredElixir(ElixirBase, CheckBoxRequiredT): pass
+
 class TestCheckBoxRequiredSQLA(SQLABase, CheckBoxRequiredT): pass
 
 class CheckBoxTableT(WidgetTest):
@@ -401,7 +417,9 @@ class CheckBoxTableT(WidgetTest):
         self.widget = self.widget(entity=self.DbTestCls1)
         return super(CheckBoxTableT, self).setup()
 
-class TestCheckBoxTableElixir(ElixirBase, CheckBoxTableT): pass
+if el:
+    class TestCheckBoxTableElixir(ElixirBase, CheckBoxTableT): pass
+
 class TestCheckBoxTableSQLA(SQLABase, CheckBoxTableT): pass
 
 class CheckBoxTableRequiredT(WidgetTest):
@@ -438,7 +456,9 @@ class CheckBoxTableRequiredT(WidgetTest):
         self.widget = self.widget(entity=self.DbTestCls1, validator=twc.Required)
         return super(CheckBoxTableRequiredT, self).setup()
 
-class TestCheckBoxTableRequestElixir(ElixirBase, CheckBoxTableRequiredT): pass
+if el:
+    class TestCheckBoxTableRequestElixir(ElixirBase, CheckBoxTableRequiredT): pass
+
 class TestCheckBoxTableRequestSQLA(SQLABase, CheckBoxTableRequiredT): pass
 
 class SingleSelectT(WidgetTest):
@@ -461,7 +481,9 @@ class SingleSelectT(WidgetTest):
         self.widget = self.widget(entity=self.DbTestCls1)
         return super(SingleSelectT, self).setup()
 
-class TestSingleSelectElixir(ElixirBase, SingleSelectT): pass
+if el:
+    class TestSingleSelectElixir(ElixirBase, SingleSelectT): pass
+
 class TestSingleSelectSQLA(SQLABase, SingleSelectT): pass
 
 class SingleSelectRequiredT(WidgetTest):
@@ -489,7 +511,9 @@ class SingleSelectRequiredT(WidgetTest):
         self.widget = self.widget(entity=self.DbTestCls1, validator=twc.Required)
         return super(SingleSelectRequiredT, self).setup()
 
-class TestSingleSelectRequiredElixir(ElixirBase, SingleSelectRequiredT): pass
+if el:
+    class TestSingleSelectRequiredElixir(ElixirBase, SingleSelectRequiredT): pass
+
 class TestSingleSelectRequiredSQLA(SQLABase, SingleSelectRequiredT): pass
 
 class ListPageT(WidgetTest):
@@ -564,7 +588,9 @@ class ListPageT(WidgetTest):
 </body>
 </html>""")
 
-class TestListPageElixir(ElixirBase, ListPageT): pass
+if el:
+    class TestListPageElixir(ElixirBase, ListPageT): pass
+
 class TestListPageSQLA(SQLABase, ListPageT): pass
 
 
@@ -758,7 +784,8 @@ class FormPageT(WidgetTest):
         updated = updated.one()
         assert(updated.name == 'b')
 
-class TestFormPageElixir(ElixirBase, FormPageT): pass
+if el:
+    class TestFormPageElixir(ElixirBase, FormPageT): pass
 
 class TestFormPageSQLA(SQLABase, FormPageT):
     def test_no_query_property(self):
@@ -951,7 +978,9 @@ class ListFormT(WidgetTest):
         updated = updated.one()
         assert(updated.name == 'b')
 
-class TestListFormElixir(ElixirBase, ListFormT): pass
+if el:
+    class TestListFormElixir(ElixirBase, ListFormT): pass
+
 class TestListFormSQLA(SQLABase, ListFormT): pass
 
 
@@ -1145,8 +1174,9 @@ class AutoListPageT(WidgetTest):
 </table></body></html>""")
 
 
+if el:
+    class TestAutoListPageElixir(ElixirBase, AutoListPageT): pass
 
-class TestAutoListPageElixir(ElixirBase, AutoListPageT): pass
 class TestAutoListPageSQLA(SQLABase, AutoListPageT): pass
 
 
@@ -1220,8 +1250,9 @@ class AutoListPageOneToOneRelationT(WidgetTest):
         </html>""")
 
 
+if el:
+    class TestAutoListPageOneToOneRelationElixir(ElixirBase, AutoListPageOneToOneRelationT): pass
 
-class TestAutoListPageOneToOneRelationElixir(ElixirBase, AutoListPageOneToOneRelationT): pass
 class TestAutoListPageOneToOneRelationSQLA(SQLABase, AutoListPageOneToOneRelationT): pass
 
 # TODO -- do AutoListPageEDIT here
@@ -1269,7 +1300,9 @@ class AutoTableFormT1(WidgetTest):
     <input type="submit" value="Save">
 </form>"""
 
-class TestAutoTableForm1Elixir(ElixirBase, AutoTableFormT1): pass
+if el:
+    class TestAutoTableForm1Elixir(ElixirBase, AutoTableFormT1): pass
+
 class TestAutoTableForm1SQLA(SQLABase, AutoTableFormT1): pass
 
 
@@ -1310,7 +1343,9 @@ class AutoTableFormT2(WidgetTest):
 </form>
 """
 
-class TestAutoTableForm2Elixir(ElixirBase, AutoTableFormT2): pass
+if el:
+    class TestAutoTableForm2Elixir(ElixirBase, AutoTableFormT2): pass
+
 class TestAutoTableForm2SQLA(SQLABase, AutoTableFormT2): pass
 
 
@@ -1358,7 +1393,9 @@ class AutoTableFormT4(WidgetTest):
         <input type="submit" value="Save" />
     </form>"""
 
-class TestAutoTableForm4Elixir(ElixirBase, AutoTableFormT4): pass
+if el:
+    class TestAutoTableForm4Elixir(ElixirBase, AutoTableFormT4): pass
+
 class TestAutoTableForm4SQLA(SQLABase, AutoTableFormT4): pass
 
 
@@ -1402,7 +1439,9 @@ class AutoTableFormT5(WidgetTest):
         <input type="submit" value="Save" />
     </form>"""
 
-class TestAutoTableForm5Elixir(ElixirBase, AutoTableFormT5): pass
+if el:
+    class TestAutoTableForm5Elixir(ElixirBase, AutoTableFormT5): pass
+
 class TestAutoTableForm5SQLA(SQLABase, AutoTableFormT5): pass
 
 
@@ -1446,7 +1485,9 @@ class AutoTableFormT6(WidgetTest):
     <input type="submit" value="Save">
 </form>"""
 
-class TestAutoTableForm6Elixir(ElixirBase, AutoTableFormT6): pass
+if el:
+    class TestAutoTableForm6Elixir(ElixirBase, AutoTableFormT6): pass
+
 class TestAutoTableForm6SQLA(SQLABase, AutoTableFormT6): pass
 
 
@@ -1487,7 +1528,9 @@ class AutoTableFormT7(WidgetTest):
 </form>
 """
 
-class TestAutoTableForm7Elixir(ElixirBase, AutoTableFormT7): pass
+if el:
+    class TestAutoTableForm7Elixir(ElixirBase, AutoTableFormT7): pass
+
 class TestAutoTableForm7SQLA(SQLABase, AutoTableFormT7): pass
 
 
@@ -1597,7 +1640,9 @@ class AutoViewGridT(WidgetTest):
 </tr>
 </table>""")
 
-class TestAutoViewGridElixir(ElixirBase, AutoViewGridT): pass
+if el:
+    class TestAutoViewGridElixir(ElixirBase, AutoViewGridT): pass
+
 class TestAutoViewGridSQLA(SQLABase, AutoViewGridT): pass
 
 
@@ -1660,7 +1705,9 @@ class AutoGrowingGridT(WidgetTest):
     </tr>
     </table>"""
 
-class TestAutoGrowingGridElixir(ElixirBase, AutoGrowingGridT): pass
+if el:
+    class TestAutoGrowingGridElixir(ElixirBase, AutoGrowingGridT): pass
+
 class TestAutoGrowingGridSQLA(SQLABase, AutoGrowingGridT): pass
 
 
@@ -1726,7 +1773,9 @@ class AutoGrowingGridAsChildT(WidgetTest):
     </tr>
     </table></body></html>"""
 
-class TestAutoGrowingGridAsChildElixir(ElixirBase, AutoGrowingGridAsChildT): pass
+if el:
+    class TestAutoGrowingGridAsChildElixir(ElixirBase, AutoGrowingGridAsChildT): pass
+
 class TestAutoGrowingGridAsChildSQLA(SQLABase, AutoGrowingGridAsChildT): pass
 
 
@@ -1778,9 +1827,11 @@ class AutoGrowingGridAsChildWithRelationshipT(WidgetTest):
     <input type="submit" value="Save">
     </form>"""
 
-class TestAutoGrowingGridAsChildWithRelationshipElixir(
-    ElixirBase, AutoGrowingGridAsChildWithRelationshipT):
-    pass
+if el:
+    class TestAutoGrowingGridAsChildWithRelationshipElixir(
+        ElixirBase, AutoGrowingGridAsChildWithRelationshipT):
+        pass
+
 class TestAutoGrowingGridAsChildWithRelationshipSQLA(
 SQLABase, AutoGrowingGridAsChildWithRelationshipT): pass
 
@@ -1853,7 +1904,9 @@ class AutoEditRelationInTableT(WidgetTest):
         self.widget = self.widget(entity=self.DbTestCls9)
         return super(AutoEditRelationInTableT, self).setup()
 
-class TestAutoEditRelationInTableElixir(ElixirBase, AutoEditRelationInTableT): pass
+if el:
+    class TestAutoEditRelationInTableElixir(ElixirBase, AutoEditRelationInTableT): pass
+
 class TestAutoEditRelationInTableSQLA(SQLABase, AutoEditRelationInTableT): pass
 
 class AutoEditRelationInFormT(WidgetTest):
@@ -2130,7 +2183,9 @@ class AutoEditRelationInFormT(WidgetTest):
         updated = updated.one()
         assert(updated.account_name == 'account2')
 
-class TestAutoEditRelationInFromElixir(ElixirBase, AutoEditRelationInFormT): pass
+if el:
+    class TestAutoEditRelationInFromElixir(ElixirBase, AutoEditRelationInFormT): pass
+
 class TestAutoEditRelationInFormSQLA(SQLABase, AutoEditRelationInFormT): pass
 
 
@@ -2391,7 +2446,9 @@ class AutoTableFormAsChildT(WidgetTest):
         r = self.widget().request(req)
         assert(self.DbTestCls1.query.count() == 2)
 
-class TestAutoTableFormAsChildTElixir(ElixirBase, AutoTableFormAsChildT): pass
+if el:
+    class TestAutoTableFormAsChildTElixir(ElixirBase, AutoTableFormAsChildT): pass
+
 class TestAutoTableFormAsChildTSQLA(SQLABase, AutoTableFormAsChildT): pass
 
 class FormPageRequiredCheckboxT(WidgetTest):
@@ -2659,7 +2716,9 @@ class FormPageRequiredCheckboxT(WidgetTest):
         r = self.widget().request(req)
         assert(self.DbTestCls1.query.count() == 2)
 
-class TestFormPageRequiredCheckboxTElixir(ElixirBase, FormPageRequiredCheckboxT): pass
+if el:
+    class TestFormPageRequiredCheckboxTElixir(ElixirBase, FormPageRequiredCheckboxT): pass
+
 class TestFormPageRequiredCheckboxTSQLA(SQLABase, FormPageRequiredCheckboxT): pass
 
 
@@ -2738,5 +2797,7 @@ class DbLinkFieldT(WidgetTest):
 """)
 
 
-class TestLinkFieldElixir(ElixirBase, DbLinkFieldT): pass
+if el:
+    class TestLinkFieldElixir(ElixirBase, DbLinkFieldT): pass
+
 class TestLinkFieldSQLA(SQLABase, DbLinkFieldT): pass
