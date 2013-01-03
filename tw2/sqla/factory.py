@@ -1,6 +1,13 @@
 import tw2.core as twc, tw2.forms as twf, sqlalchemy as sa, sys
 import sqlalchemy.types as sat, tw2.dynforms as twd
 from widgets import *
+from utils import (
+    is_relation,
+    is_onetoone,
+    is_manytomany,
+    is_manytoone,
+    is_onetomany,
+)
 import compat
 
 
@@ -12,53 +19,6 @@ except ImportError:
         for i in x:
             for j in y:
                 yield (i,j)
-
-def is_relation(prop):
-    return isinstance(prop, sa.orm.RelationshipProperty)
-
-def is_onetoone(prop):
-    if not is_relation(prop):
-        return False
-
-    if prop.direction == sa.orm.interfaces.ONETOMANY:
-        if not prop.uselist:
-            return True
-    
-    if prop.direction == sa.orm.interfaces.MANYTOONE:
-        lis = list(prop._reverse_property)
-        assert len(lis) == 1
-        if not lis[0].uselist:
-            return True
-
-    return False
-
-def is_manytomany(prop):
-    return is_relation(prop) and \
-            prop.direction == sa.orm.interfaces.MANYTOMANY
-
-def is_manytoone(prop):
-    if not is_relation(prop):
-        return False
-
-    if not prop.direction == sa.orm.interfaces.MANYTOONE:
-        return False
-
-    if is_onetoone(prop):
-        return False
-
-    return True
-
-def is_onetomany(prop):
-    if not is_relation(prop):
-        return False
-
-    if not prop.direction == sa.orm.interfaces.ONETOMANY:
-        return False
-
-    if is_onetoone(prop):
-        return False
-
-    return True
 
 def sort_properties(localname_from_relationname, localname_creation_order):
     """Returns a function which will sort the SQLAlchemy properties
