@@ -163,6 +163,10 @@ class WidgetPolicy(object):
         If the property does not match any of the other selectors, this is used.
         If this is None then an error is raised for properties that do not match.
 
+    `add_edit_link`
+        Boolean. If True and tws_edit_link is defined as param on the class, we
+        add a link to edit this object.
+
     Alternatively, the `factory` method can be overriden to provide completely
     customised widget selection.
     """
