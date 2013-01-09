@@ -1,6 +1,58 @@
 import sqlalchemy as sa
 
 
+def is_relation(prop):
+    return isinstance(prop, sa.orm.RelationshipProperty)
+
+
+def is_onetoone(prop):
+    if not is_relation(prop):
+        return False
+
+    if prop.direction == sa.orm.interfaces.ONETOMANY:
+        if not prop.uselist:
+            return True
+
+    if prop.direction == sa.orm.interfaces.MANYTOONE:
+        lis = list(prop._reverse_property)
+        assert len(lis) == 1
+        if not lis[0].uselist:
+            return True
+
+    return False
+
+
+def is_manytomany(prop):
+    return is_relation(prop) and \
+            prop.direction == sa.orm.interfaces.MANYTOMANY
+
+
+def is_manytoone(prop):
+    if not is_relation(prop):
+        return False
+
+    if not prop.direction == sa.orm.interfaces.MANYTOONE:
+        return False
+
+    if is_onetoone(prop):
+        return False
+
+    return True
+
+
+def is_onetomany(prop):
+    if not is_relation(prop):
+        return False
+
+    if not prop.direction == sa.orm.interfaces.ONETOMANY:
+        return False
+
+    if is_onetoone(prop):
+        return False
+
+    return True
+
+
 def from_dict(obj, data, protect_prm_tamp=True):
     """
     Update a mapped object with data from a JSON-style nested dict/list
@@ -9,16 +61,16 @@ def from_dict(obj, data, protect_prm_tamp=True):
     To protect against parameter tampering attacks, primary key fields are
     never overwritten.
     """
-
     mapper = sa.orm.object_mapper(obj)
     pk_props = set(p.key for p in mapper.primary_key)
 
     for key, value in data.iteritems():
+        prop = mapper.get_property(key)
         if isinstance(value, dict):
             if hasattr(obj, key):
                 record = getattr(obj, key)
                 if not record:
-                    record = mapper.get_property(key).mapper.class_()
+                    record = prop.mapper.class_()
                     setattr(obj, key, record)
                 from_dict(record, value, protect_prm_tamp)
             else:
@@ -28,12 +80,17 @@ def from_dict(obj, data, protect_prm_tamp=True):
         elif isinstance(value, list) and \
              value and isinstance(value[0], dict):
             from_list(
-                mapper.get_property(key).mapper.class_,
+                prop.mapper.class_,
                 getattr(obj, key),
                 value,
                 protect_prm_tamp=protect_prm_tamp
             )
         elif key not in pk_props:
+            if value is None:
+                old_v = getattr(obj, key, None)
+                if is_onetoone(prop) and old_v is not None:
+                    # Delete the old value from the DB
+                    old_v.query.delete()
             setattr(obj, key, value)
 
     return obj

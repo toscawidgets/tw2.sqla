@@ -18,8 +18,7 @@ class BaseObject(object):
             'id': 1,
         }
         e = twsu.from_dict(self.DBTestCls1.query.filter_by(**d).first(), d)
-        if hasattr(self, 'session'):
-            self.session.flush()
+        self.session.flush()
         assert(e.id == 1)
         assert(e.name == 'foo')
         assert(len(e.others) == 1)
@@ -32,8 +31,7 @@ class BaseObject(object):
         x = self.DBTestCls1()
         self.session.add(x)
         e = twsu.from_dict(x, d)
-        if hasattr(self, 'session'):
-            self.session.flush()
+        self.session.flush()
 
         assert(e.id == 2)
         assert(e.name == None)
@@ -65,31 +63,113 @@ class BaseObject(object):
         }
         x = self.DBTestCls1.query.filter_by(id=2).first()
         e = twsu.from_dict(x, d)
-        if hasattr(self, 'session'):
-            self.session.flush()
+        self.session.flush()
 
         eq_(e.id, 2)
         eq_(e.name, None)
         eq_(len(e.others), 0)
 
-##
-## Not sure if this test should even be possible, but its sure broken now
-##
-#def test_from_dict_new_many_to_one_by_id(self):
-#    #d = {
-#    #    #'id': None,
-#    #    #'nick': 'bazaar',
-#    #    #'other_id': 1,
-#    #}
-#    #e = twsu.from_dict(self.DBTestCls2(), d, getattr(self, 'session', None))
-#    #if hasattr(self, 'session'):
-#    #    #self.session.flush()
-#    #assert(e.id == 3)
-#    #assert(e.nick == 'bazaar')
-#    #print e.id, e.nick, e.other
-#    #for q in e.other.others:
-#    #    #print "", q.id, q.nick, q.other
-#    #assert(e in e.other.others)
+    def test_from_dict_modify_many_to_many(self):
+        d = {
+            'id': 1,
+            'surname': 'user1',
+            'roles': [],
+        }
+        u = twsu.from_dict(self.session.query(self.DBTestCls3).one(), d)
+        self.session.add(u)
+        self.session.flush()
+
+        assert(self.session.query(self.DBTestCls3).count() == 1)
+        assert(self.session.query(self.DBTestCls4).count() == 1)
+        assert(u.id == 1)
+        assert(u.surname == 'user1')
+        assert(u.roles == [])
+
+    def test_from_dict_modify_one_to_one(self):
+        d = {
+            'id': None,
+            'name': 'user1',
+            'account': {
+                'account_name': 'account2',
+            }
+        }
+        u = twsu.from_dict(self.session.query(self.DBTestCls6).one(), d)
+        self.session.add(u)
+        self.session.flush()
+
+        assert(u.id == 1)
+        assert(u.name == 'user1')
+        assert(u.account.account_name == 'account2')
+        assert(self.session.query(self.DBTestCls5).count() == 1)
+
+    def test_from_dict_modify_one_to_one_to_none(self):
+        d = {
+            'id': None,
+            'name': 'user1',
+            'account': None
+        }
+        u = twsu.from_dict(self.session.query(self.DBTestCls6).one(), d)
+        self.session.flush()
+
+        assert(u.id == 1)
+        assert(u.name == 'user1')
+        assert(u.account == None)
+        assert(self.session.query(self.DBTestCls5).count() == 0)
+
+    def test_from_dict_new_many_to_one_by_id(self):
+        d = {
+            'id': None,
+            'nick': 'bazaar',
+            'other_id': 1,
+        }
+        e = twsu.from_dict(self.DBTestCls2(), d)
+        self.session.add(e)
+        self.session.flush()
+        assert(e.id == 3)
+        assert(e.nick == 'bazaar')
+        assert(len(e.other.others) == 2)
+        assert(e in e.other.others)
+
+    def test_from_dict_new_many_to_many_by_id(self):
+        d = {
+            'id': None,
+            'surname': 'user1',
+            'roles': [self.admin_role],
+        }
+        u = twsu.from_dict(self.DBTestCls3(), d)
+        self.session.add(u)
+        self.session.flush()
+        assert(u.id == 2)
+        assert(u.surname == 'user1')
+        assert(u.roles == [self.admin_role])
+
+    def test_from_dict_new_one_to_one_by_id(self):
+        d = {
+            'id': None,
+            'name': 'user1',
+            'account': self.DBTestCls5(account_name='account2'),
+        }
+        u = twsu.from_dict(self.DBTestCls6(), d)
+        self.session.add(u)
+        self.session.flush()
+        assert(u.id == 2)
+        assert(u.name == 'user1')
+        assert(u.account.account_name == 'account2')
+        assert(self.session.query(self.DBTestCls5).count() == 2)
+
+    def test_from_dict_new_one_to_one_by_id_no_account(self):
+        d = {
+            'id': None,
+            'name': 'user1',
+            'account': None,
+        }
+        u = twsu.from_dict(self.DBTestCls6(), d)
+        self.session.add(u)
+        self.session.flush()
+        assert(u.id == 2)
+        assert(u.name == 'user1')
+        assert(u.account == None)
+        assert(self.session.query(self.DBTestCls5).count() == 1)
 
     def test_from_dict_old_many_to_one_by_dict_recall(self):
         assert(self.DBTestCls2.query.first().nick == 'bob')
@@ -101,8 +181,7 @@ class BaseObject(object):
         }
 
         e = twsu.from_dict(self.DBTestCls2.query.first(), d)
-        if hasattr(self, 'session'):
-            self.session.flush()
+        self.session.flush()
         assert(self.DBTestCls2.query.first().nick == 'updated')
         assert(self.DBTestCls1.query.first().others[0].nick == 'updated')
 
@@ -118,8 +197,7 @@ class BaseObject(object):
         x = self.DBTestCls2()
         self.session.add(x)
         e = twsu.from_dict(x, d)
-        if hasattr(self, 'session'):
-            self.session.flush()
+        self.session.flush()
         assert(e.id == 3)
         assert(e.nick == 'bazaar')
         assert(e.other.name == 'foo')
@@ -136,11 +214,7 @@ class BaseObject(object):
         x = self.DBTestCls2()
         self.session.add(x)
         e = twsu.from_dict(x, d)
-        if hasattr(self, 'session'):
-            self.session.flush()
-        print e.id
-        print e.nick
-        print e.other
+        self.session.flush()
         assert(e.id == 3)
         assert(e.nick == 'bazaar')
         assert(e in e.other.others)
@@ -160,11 +234,7 @@ class BaseObject(object):
         x = self.DBTestCls1()
         self.session.add(x)
         e = twsu.from_dict(x, d)
-        if hasattr(self, 'session'):
-            self.session.flush()
-        print e.id
-        print e.name
-        print e.others
+        self.session.flush()
         assert(e.id == 2)
         assert(e.name == 'qatar')
         assert(e.others[0].nick == 'blang')
@@ -270,16 +340,43 @@ class TestElixir(BaseObject):
                                  field=other_id,
                                  backref='others')
 
+        class DBTestCls3(el.Entity):
+            surname = el.Field(el.String)
+            roles = el.ManyToMany('DBTestCls4')
+
+        class DBTestCls4(el.Entity):
+            rolename = el.Field(el.String)
+            users = el.ManyToMany('DBTestCls3')
+
+        class DBTestCls5(el.Entity):
+            account_name = el.Field(el.String, required=True)
+            user = el.OneToOne('DBTestCls6', inverse='account')
+
+        class DBTestCls6(el.Entity):
+            name = el.Field(el.String)
+            account_id = el.Field(el.Integer, required=False)
+            account = el.ManyToOne(DBTestCls5, field=account_id, inverse='user', uselist=False)
+
         self.DBTestCls1 = DBTestCls1
         self.DBTestCls2 = DBTestCls2
+        self.DBTestCls3 = DBTestCls3
+        self.DBTestCls4 = DBTestCls4
+        self.DBTestCls5 = DBTestCls5
+        self.DBTestCls6 = DBTestCls6
 
         el.setup_all()
         el.metadata.create_all()
         foo = self.DBTestCls1(id=1, name='foo')
         bob = self.DBTestCls2(id=1, nick='bob', other=foo)
         george = self.DBTestCls2(id=2, nick='george')
+        fred = self.DBTestCls3(id=1, surname='fred')
+        admin = self.DBTestCls4(id=1, rolename='admin')
+        fred.roles.append(admin)
+        account1 = self.DbTestCls5(id=1, account_name='account1')
+        bob1 = self.DbTestCls6(id=1, name='bob1', account_id=1)
 
         testapi.setup()
+        self.admin_role = admin
 
     #def tearDown(self):
     #    import elixir as el
@@ -318,10 +415,44 @@ class TestSQLA(BaseObject):
             other = sa.orm.relation(DBTestCls1,
                                     backref=sa.orm.backref('others'))
 
+        join_table = sa.Table('Test3_Test4', Base.metadata,
+            sa.Column('Test3', sa.Integer, sa.ForeignKey('Test3.id'), primary_key=True),
+            sa.Column('Test4', sa.Integer, sa.ForeignKey('Test4.id'), primary_key=True)
+        )
+        class DBTestCls3(Base):
+            __tablename__ = 'Test3'
+            id = sa.Column(sa.Integer, primary_key=True)
+            surname = sa.Column(sa.String(50))
+            def __unicode__(self):
+                return self.surname
+        class DBTestCls4(Base):
+            __tablename__ = 'Test4'
+            id = sa.Column(sa.Integer, primary_key=True)
+            rolename = sa.Column(sa.String(50))
+            users = sa.orm.relationship('DBTestCls3', secondary=join_table, backref='roles')
+            def __unicode__(self):
+                return self.rolename
+
+        class DBTestCls5(Base):
+            __tablename__ = 'Test5'
+            id = sa.Column(sa.Integer, primary_key=True)
+            account_name = sa.Column(sa.String(50), nullable=False)
+
+        class DBTestCls6(Base):
+            __tablename__ = 'Test6'
+            id = sa.Column(sa.Integer, primary_key=True)
+            name = sa.Column(sa.String(50))
+            account_id = sa.Column(sa.Integer, sa.ForeignKey('Test5.id'), nullable=True)
+            account = sa.orm.relation(DBTestCls5, backref=sa.orm.backref('user', uselist=False))
+
         Base.metadata.create_all()
 
         self.DBTestCls1 = DBTestCls1
         self.DBTestCls2 = DBTestCls2
+        self.DBTestCls3 = DBTestCls3
+        self.DBTestCls4 = DBTestCls4
+        self.DBTestCls5 = DBTestCls5
+        self.DBTestCls6 = DBTestCls6
 
         foo = self.DBTestCls1(id=1, name='foo')
         self.session.add(foo)
@@ -331,6 +462,17 @@ class TestSQLA(BaseObject):
         self.session.add(bob)
         george = self.DBTestCls2(id=2, nick='george')
         self.session.add(george)
+
+        fred = self.DBTestCls3(id=1, surname='fred')
+        admin = self.DBTestCls4(id=1, rolename='admin')
+        fred.roles.append(admin)
+        self.session.add(fred)
+        self.admin_role = admin
+
+        account1 = self.DBTestCls5(id=1, account_name='account1')
+        self.session.add(account1)
+        bob1 = self.DBTestCls6(id=1, name='bob1', account_id=1)
+        self.session.add(bob1)
 
         transaction.commit()
 

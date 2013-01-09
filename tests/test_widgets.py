@@ -85,6 +85,22 @@ class ElixirBase(object):
             def __unicode__(self):
                 return self.name
 
+        class DbTestCls11(el.Entity):
+            account_name = el.Field(el.String, required=True)
+            account_number = el.Field(el.String, required=True)
+            user = el.OneToOne('DbTestCls12', inverse='account')
+            def __unicode__(self):
+                return self.account_name
+
+        class DbTestCls12(el.Entity):
+            name = el.Field(el.String, required=True)
+            account_id = el.Field(el.Integer, required=False)
+            account = el.ManyToOne(DbTestCls11, field=account_id,
+                                   inverse='user', uselist=False)
+            def __unicode__(self):
+                return self.name
+
+
         self.DbTestCls1 = DbTestCls1
         self.DbTestCls2 = DbTestCls2
         self.DbTestCls3 = DbTestCls3
@@ -95,6 +111,8 @@ class ElixirBase(object):
         self.DbTestCls8 = DbTestCls8
         self.DbTestCls9 = DbTestCls9
         self.DbTestCls10 = DbTestCls10
+        self.DbTestCls11 = DbTestCls11
+        self.DbTestCls12 = DbTestCls12
 
         el.setup_all()
         el.metadata.create_all()
@@ -121,6 +139,11 @@ class ElixirBase(object):
         bob1 = self.DbTestCls9(id=1, name='bob1', account_id=2)
         assert(self.DbTestCls8.query.first().user == bob1)
         assert(self.DbTestCls9.query.first().account == account1)
+        account1 = self.DbTestCls11(
+            id=2, account_name='account1', account_number='number1')
+        bob1 = self.DbTestCls12(id=1, name='bob1', account_id=2)
+        assert(self.DbTestCls11.query.first().user == bob1)
+        assert(self.DbTestCls12.query.first().account == account1)
         transaction.commit()
 
         return super(ElixirBase, self).setup()
@@ -206,6 +229,23 @@ class SQLABase(object):
             def __unicode__(self):
                 return self.name
 
+        class DbTestCls11(Base):
+            __tablename__ = 'Test11'
+            id = sa.Column(sa.Integer, primary_key=True)
+            account_name = sa.Column(sa.String(50), nullable=False)
+            account_number = sa.Column(sa.String(50), nullable=False)
+            def __unicode__(self):
+                return self.account_name
+        class DbTestCls12(Base):
+            __tablename__ = 'Test12'
+            id = sa.Column(sa.Integer, primary_key=True)
+            name = sa.Column(sa.String(50), nullable=False)
+            account_id = sa.Column(sa.Integer, sa.ForeignKey('Test11.id'),
+                                   nullable=True)
+            account = sa.orm.relation(DbTestCls11, backref=sa.orm.backref('user', uselist=False))
+            def __unicode__(self):
+                return self.name
+
 
         self.DbTestCls1 = DbTestCls1
         self.DbTestCls2 = DbTestCls2
@@ -217,6 +257,8 @@ class SQLABase(object):
         self.DbTestCls8 = DbTestCls8
         self.DbTestCls9 = DbTestCls9
         self.DbTestCls10 = DbTestCls10
+        self.DbTestCls11 = DbTestCls11
+        self.DbTestCls12 = DbTestCls12
 
         Base.metadata.create_all()
 
@@ -248,6 +290,13 @@ class SQLABase(object):
         self.session.add(bob1)
         assert(self.DbTestCls8.query.first().user == bob1)
         assert(self.DbTestCls9.query.first().account == account1)
+        account1 = self.DbTestCls11(
+            id=2, account_name='account1', account_number='number1')
+        self.session.add(account1)
+        bob1 = self.DbTestCls12(id=1, name='bob1', account_id=2)
+        self.session.add(bob1)
+        assert(self.DbTestCls11.query.first().user == bob1)
+        assert(self.DbTestCls12.query.first().account == account1)
         transaction.commit()
 
         return super(SQLABase, self).setup()
@@ -2187,6 +2236,413 @@ if el:
     class TestAutoEditRelationInFromElixir(ElixirBase, AutoEditRelationInFormT): pass
 
 class TestAutoEditRelationInFormSQLA(SQLABase, AutoEditRelationInFormT): pass
+
+
+class NonRequiredOneToOneRelationT(WidgetTest):
+
+    def setup(self):
+        self.widget = self.widget(entity=self.DbTestCls12)
+        return super(NonRequiredOneToOneRelationT, self).setup()
+
+    widget = tws.DbFormPage
+    attrs = { 'id' : 'autoedit', 'title' : 'Test',
+              'child' : tws.AutoTableForm}
+
+    expected = """
+<html>
+<head><title>Test</title></head>
+<body id="autoedit:page"><h1>Test</h1><form method="post" id="autoedit:form" enctype="multipart/form-data">
+    <span class="error"></span>
+    <table id="autoedit">
+    <tr class="odd required" id="autoedit:name:container">
+        <th>Name</th>
+        <td>
+            <input name="dbformpage_d:name" type="text" id="autoedit:name" />
+            <span id="autoedit:name:error"></span>
+        </td>
+    </tr><tr class="even" id="autoedit:account:fieldset:container">
+        <th>Account</th>
+        <td>
+            <fieldset id="autoedit:account:fieldset">
+                <legend></legend>
+                <table id="autoedit:account">
+                <tr class="odd" id="autoedit:account:account_name:container">
+                    <th>Account Name</th>
+                    <td>
+                        <input name="account:account_name" type="text" id="autoedit:account:account_name" />
+                        <span id="autoedit:account:account_name:error"></span>
+                    </td>
+                </tr>
+                <tr class="even" id="autoedit:account:account_number:container">
+                  <th>Account Number</th>
+                  <td>
+                    <input name="account:account_number" type="text" id="autoedit:account:account_number" />
+                    <span id="autoedit:account:account_number:error"></span>
+                  </td>
+                </tr>
+                <tr class="error"><td colspan="2">
+                    <span id="autoedit:account:error"></span>
+                </td></tr>
+                </table>
+            </fieldset>
+            <span id="autoedit:account:fieldset:error"></span>
+        </td>
+    </tr>
+    <tr class="error"><td colspan="2">
+        <span id="autoedit:error"></span>
+    </td></tr>
+    </table>
+    <input type="submit" value="Save" />
+</form></body>
+</html>
+"""
+
+    declarative = True
+    def test_request_get_edit(self):
+        environ = {'REQUEST_METHOD': 'GET', 'QUERY_STRING' :'id=1'}
+        req=Request(environ)
+        assert(req.GET)
+        r = self.widget().request(req)
+        tw2test.assert_eq_xml(r.body, """
+<html>
+<head><title>Test</title></head>
+<body id="autoedit:page"><h1>Test</h1><form method="post" id="autoedit:form" enctype="multipart/form-data">
+    <span class="error"></span>
+    <table id="autoedit">
+    <tr class="odd required" id="autoedit:name:container">
+        <th>Name</th>
+        <td>
+            <input name="dbformpage_d:name" type="text" value="bob1" id="autoedit:name" />
+            <span id="autoedit:name:error"></span>
+        </td>
+    </tr><tr class="even" id="autoedit:account:fieldset:container">
+        <th>Account</th>
+        <td>
+            <fieldset id="autoedit:account:fieldset">
+                <legend></legend>
+                <table id="autoedit:account">
+                <tr class="odd" id="autoedit:account:account_name:container">
+                    <th>Account Name</th>
+                    <td>
+                        <input name="account:account_name" type="text" value="account1" id="autoedit:account:account_name" />
+                        <span id="autoedit:account:account_name:error"></span>
+                    </td>
+                </tr>
+                <tr class="even" id="autoedit:account:account_number:container">
+                  <th>Account Number</th>
+                  <td>
+                    <input name="account:account_number" type="text" value="number1" id="autoedit:account:account_number" />
+                    <span id="autoedit:account:account_number:error"></span>
+                  </td>
+                </tr>
+                <tr class="error"><td colspan="2">
+                    <span id="autoedit:account:error"></span>
+                </td></tr>
+                </table>
+            </fieldset>
+            <span id="autoedit:account:fieldset:error"></span>
+        </td>
+    </tr>
+    <tr class="error"><td colspan="2">
+        <span id="autoedit:error"></span>
+    </td></tr>
+    </table>
+    <input type="submit" value="Save" />
+</form></body>
+</html> 
+""")
+
+    def test_request_post_redirect(self):
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='autoedit:name=toto&autoedit:account:account_name=plop&autoedit:account:account_number=num'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        r = self.widget(redirect="/foo").request(req)
+        assert( r.status_int == 302 and r.location=="/foo" )
+
+    def test_request_get(self):
+        environ = {'REQUEST_METHOD': 'GET'}
+        req=Request(environ)
+        r = self.widget().request(req)
+        tw2test.assert_eq_xml(r.body, """
+<html>
+<head><title>Test</title></head>
+<body id="autoedit:page"><h1>Test</h1><form method="post" id="autoedit:form" enctype="multipart/form-data">
+    <span class="error"></span>
+    <table id="autoedit">
+    <tr class="odd required" id="autoedit:name:container">
+        <th>Name</th>
+        <td>
+            <input name="dbformpage_d:name" type="text" id="autoedit:name" />
+            <span id="autoedit:name:error"></span>
+        </td>
+    </tr><tr class="even" id="autoedit:account:fieldset:container">
+        <th>Account</th>
+        <td>
+            <fieldset id="autoedit:account:fieldset">
+                <legend></legend>
+                <table id="autoedit:account">
+                <tr class="odd" id="autoedit:account:account_name:container">
+                  <th>Account Name</th>
+                  <td>
+                      <input name="account:account_name" type="text" id="autoedit:account:account_name" />
+                      <span id="autoedit:account:account_name:error"></span>
+                  </td>
+                </tr>
+                <tr class="even" id="autoedit:account:account_number:container">
+                  <th>Account Number</th>
+                  <td>
+                    <input name="account:account_number" type="text" id="autoedit:account:account_number" />
+                    <span id="autoedit:account:account_number:error"></span>
+                  </td>
+                </tr>
+                <tr class="error"><td colspan="2">
+                    <span id="autoedit:account:error"></span>
+                </td></tr>
+                </table>
+            </fieldset>
+            <span id="autoedit:account:fieldset:error"></span>
+        </td>
+    </tr>
+    <tr class="error"><td colspan="2">
+        <span id="autoedit:error"></span>
+    </td></tr>
+    </table>
+    <input type="submit" value="Save" />
+</form></body>
+</html>
+""")
+
+    def test_request_post_invalid(self):
+        environ = {'REQUEST_METHOD': 'POST',
+                   'wsgi.input': StringIO(''),
+                   }
+        req=Request(environ)
+        r = self.widget().request(req)
+        tw2test.assert_eq_xml(r.body, """<html>
+<head><title>Test</title></head>
+<body id="autoedit:page"><h1>Test</h1><form method="post" id="autoedit:form" enctype="multipart/form-data">
+  <span class="error"></span>
+  <table id="autoedit">
+  <tr class="odd required error" id="autoedit:name:container">
+    <th>Name</th>
+    <td>
+        <input name="dbformpage_d:name" type="text" value="" id="autoedit:name" />
+        <span id="autoedit:name:error">Enter a value</span>
+    </td>
+  </tr>
+  <tr class="even" id="autoedit:account:fieldset:container">
+    <th>Account</th>
+    <td>
+      <fieldset id="autoedit:account:fieldset">
+        <legend></legend>
+        <table id="autoedit:account">
+        <tr class="odd" id="autoedit:account:account_name:container">
+          <th>Account Name</th>
+          <td>
+              <input name="account:account_name" type="text" value="" id="autoedit:account:account_name" />
+              <span id="autoedit:account:account_name:error"></span>
+          </td>
+        </tr><tr class="even" id="autoedit:account:account_number:container">
+          <th>Account Number</th>
+          <td>
+              <input name="account:account_number" type="text" value="" id="autoedit:account:account_number" />
+              <span id="autoedit:account:account_number:error"></span>
+          </td>
+        </tr>
+        <tr class="error"><td colspan="2">
+          <span id="autoedit:account:error"></span>
+        </td></tr>
+        </table>
+      </fieldset>
+      <span id="autoedit:account:fieldset:error"></span>
+    </td>
+  </tr>
+  <tr class="error"><td colspan="2">
+      <span id="autoedit:error"></span>
+  </td></tr>
+  </table>
+  <input type="submit" value="Save" />
+</form></body>
+</html>""")
+
+    def test_request_post_partial_onetoone_invalid(self):
+        environ = {'REQUEST_METHOD': 'POST',
+                   'wsgi.input': StringIO(''),
+                   }
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='autoedit:account:account_name=account2&autoedit:name=name2'
+        r = self.widget().request(req)
+        tw2test.assert_eq_xml(r.body, """<html>
+<head>
+  <title>Test</title>
+</head>
+<body id="autoedit:page"><h1>Test</h1><form method="post" id="autoedit:form" enctype="multipart/form-data">
+  <span class="error"></span>
+  <table id="autoedit">
+  <tr class="odd required" id="autoedit:name:container">
+      <th>Name</th>
+      <td>
+          <input name="dbformpage_d:name" type="text" value="name2" id="autoedit:name" />
+          <span id="autoedit:name:error"></span>
+      </td>
+  </tr><tr class="even" id="autoedit:account:fieldset:container">
+      <th>Account</th>
+      <td>
+        <fieldset id="autoedit:account:fieldset">
+          <legend></legend>
+          <table id="autoedit:account">
+          <tr class="odd" id="autoedit:account:account_name:container">
+              <th>Account Name</th>
+              <td>
+                  <input name="account:account_name" type="text" value="account2" id="autoedit:account:account_name" />
+                  <span id="autoedit:account:account_name:error"></span>
+              </td>
+          </tr><tr class="even error" id="autoedit:account:account_number:container">
+              <th>Account Number</th>
+              <td>
+                  <input name="account:account_number" type="text" value="" id="autoedit:account:account_number" />
+                  <span id="autoedit:account:account_number:error">Enter a value</span>
+              </td>
+          </tr>
+          <tr class="error"><td colspan="2">
+              <span id="autoedit:account:error"></span>
+          </td></tr>
+          </table>
+        </fieldset>
+        <span id="autoedit:account:fieldset:error"></span>
+      </td>
+    </tr>
+    <tr class="error"><td colspan="2">
+        <span id="autoedit:error"></span>
+    </td></tr>
+</table>
+    <input type="submit" value="Save" />
+</form></body>
+</html>""")
+
+    def test_request_post_valid(self):
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='autoedit:name=name2'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        r = self.widget().request(req)
+        assert r.body == """Form posted successfully {'account': None, 'name': u'name2'}""", r.body
+
+    def test_request_post_full_valid(self):
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='autoedit:account:account_name=account2&autoedit:account:account_number=number2&autoedit:name=name2'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        r = self.widget().request(req)
+        assert r.body == """Form posted successfully {'account': {'account_name': u'account2', 'account_number': u'number2'}, 'name': u'name2'}""", r.body
+
+    def test_request_post_counts_new(self):
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='autoedit:account:account_name=account2&autoedit:account:account_number=number2&autoedit:name=name2'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        assert(self.DbTestCls12.query.count() == 1)
+        assert(self.DbTestCls11.query.count() == 1)
+        r = self.widget().request(req)
+        assert(self.DbTestCls12.query.count() == 2)
+        assert(self.DbTestCls11.query.count() == 2)
+
+    def test_request_post_counts_new_no_onetoone(self):
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='autoedit:name=name2'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        assert(self.DbTestCls12.query.count() == 1)
+        assert(self.DbTestCls11.query.count() == 1)
+        r = self.widget().request(req)
+        assert(self.DbTestCls12.query.count() == 2)
+        assert(self.DbTestCls11.query.count() == 1)
+
+    def test_request_post_counts_update(self):
+        environ = {'wsgi.input': StringIO(''), 'QUERY_STRING': 'id=1'}
+        req=Request(environ)
+        # req.GET['id'] = '1'
+        req.method = 'POST'
+        req.body='autoedit:account:account_name=account2&autoedit:account:account_number=number2&autoedit:name=bob2'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        assert(self.DbTestCls12.query.count() == 1)
+        assert(self.DbTestCls11.query.count() == 1)
+        r = self.widget().request(req)
+        assert(self.DbTestCls12.query.count() == 1)
+        assert(self.DbTestCls11.query.count() == 1)
+
+    def test_request_post_counts_update_no_onetoone(self):
+        environ = {'wsgi.input': StringIO(''), 'QUERY_STRING': 'id=1'}
+        req=Request(environ)
+        # req.GET['id'] = '1'
+        req.method = 'POST'
+        req.body='autoedit:name=bob2'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        assert(self.DbTestCls12.query.count() == 1)
+        assert(self.DbTestCls11.query.count() == 1)
+        r = self.widget().request(req)
+        assert(self.DbTestCls12.query.count() == 1)
+        assert(self.DbTestCls11.query.count() == 0)
+
+    def test_request_post_content_update(self):
+        environ = {'wsgi.input': StringIO(''), 'QUERY_STRING': 'id=1'}
+        req=Request(environ)
+        # req.GET['id'] = '1'
+        req.method = 'POST'
+        req.body='autoedit:account:account_name=account2&autoedit:account:account_number=number2&autoedit:name=bob2'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        original = self.DbTestCls12.query.filter(self.DbTestCls12.id==1).one()
+        assert(original.name == 'bob1')
+        original = self.DbTestCls11.query.filter(self.DbTestCls11.id==2).one()
+        assert(original.account_name == 'account1')
+        r = self.widget().request(req)
+        updated = self.DbTestCls12.query.filter(self.DbTestCls12.id==1)
+        assert(updated.count() == 1)
+        updated = updated.one()
+        assert(updated.name == 'bob2')
+        updated = self.DbTestCls11.query.filter(self.DbTestCls11.id==2)
+        assert(updated.count() == 1)
+        updated = updated.one()
+        assert(updated.account_name == 'account2')
+        assert(updated.account_number == 'number2')
+
+if el:
+    class TestNonRequiredOneToOneRelationElixir(
+        ElixirBase, NonRequiredOneToOneRelationT): pass
+
+class TestNonRequiredOneToOneRelationSQLA(SQLABase,
+                                          NonRequiredOneToOneRelationT): pass
 
 
 class AutoTableFormAsChildT(WidgetTest):
