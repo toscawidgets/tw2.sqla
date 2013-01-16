@@ -22,7 +22,7 @@ requires = [
 
 setup(
     name='tw2.sqla',
-    version='2.0.4',
+    version='2.0.5',
     description='SQLAlchemy database layer for ToscaWidgets 2',
     long_description=open('README.rst').read().split('.. split here', 1)[1],
     author='Paul Johnston',
@@ -51,7 +51,7 @@ setup(
         'genshi': _extra_genshi,
         'mako': _extra_mako,
     },
-    entry_point="""
+    entry_points="""
         [tw2.widgets]
         # Register your widgets so they can be listed in the WidgetBrowser
         widgets = tw2.sqla

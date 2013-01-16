@@ -1,7 +1,7 @@
 """ Copied from tw2.core """
 
 import tw2.core as twc
-from tw2.core.template import reset_engine_name_cache
+import tw2.core.templating
 import tw2.core.testbase.base as tw2test
 
 twc.core.request_local = tw2test.request_local_tst
@@ -10,7 +10,7 @@ tw2test._request_local = {}
 def setup():
     tw2test._request_local = {}
     tw2test._request_id = None
-    reset_engine_name_cache()
+    tw2.core.templating.engine_name_cache = {}
 
 
 def request(requestid, mw=None):

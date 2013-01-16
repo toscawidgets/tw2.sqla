@@ -1,26 +1,7 @@
 import tw2.core as twc, tw2.forms as twf, webob, sqlalchemy as sa, sys
 import sqlalchemy.types as sat, tw2.dynforms as twd
 from zope.sqlalchemy import ZopeTransactionExtension
-import transaction, utils
-
-
-try:
-    from itertools import product
-except ImportError:
-    # Python 2.5 support
-    def product(x, y):
-        for i in x:
-            for j in y:
-                yield (i,j)
-
-
-def is_manytoone(prop):
-    return isinstance(prop, sa.orm.RelationshipProperty) and \
-            prop.direction.name == 'MANYTOONE'
-
-def is_onetomany(prop):
-    return isinstance(prop, sa.orm.RelationshipProperty) and \
-            prop.direction.name == 'ONETOMANY'
+import transaction, utils, urllib
 
 
 class RelatedValidator(twc.IntValidator):
@@ -35,16 +16,19 @@ class RelatedValidator(twc.IntValidator):
         'norel': 'No related object found',
     }
 
-    def __init__(self, entity, **kw):
+    def __init__(self, entity, required=False, **kw):
         super(RelatedValidator, self).__init__(**kw)
         cols = sa.orm.class_mapper(entity).primary_key
         if len(cols) != 1:
             raise twc.WidgetError('RelatedValidator can only act on tables that have a single primary key column')
         self.entity = entity
         self.primary_key = cols[0]
+        self.required=required
 
-    def to_python(self, value):
+    def to_python(self, value, state=None):
         if not value:
+            if self.required:
+                raise twc.ValidationError('required', self)
             return None
 
         # How could this happen (that we are already to_python'd)?
@@ -61,7 +45,7 @@ class RelatedValidator(twc.IntValidator):
             raise twc.ValidationError('norel', self)
         return value
 
-    def from_python(self, value):
+    def from_python(self, value, state=None):
         if not value:
             return value
         if not isinstance(value, self.entity):
@@ -70,6 +54,74 @@ class RelatedValidator(twc.IntValidator):
                 'instead "%s" of type "%s".' % (str(value), str(type(value))))
         return value and unicode(sa.orm.object_mapper(value).primary_key_from_instance(value)[0])
 
+
+class RelatedItemValidator(twc.Validator):
+    """Validator for related object
+
+    `entity`
+        The SQLAlchemy class to use. This must be mapped to a single table with a single primary key column.
+        It must also have the SQLAlchemy `query` property; this will be the case for Elixir classes,
+        and can be specified using DeclarativeBase (and is in the TG2 default setup).
+
+    This validator is used to make sure at least one value of the list is defined.
+    """
+
+    def __init__(self, entity, required=False, **kw):
+        super(RelatedItemValidator, self).__init__(**kw)
+        self.required=required
+        self.entity = entity
+        self.item_validator = RelatedValidator(entity=self.entity)
+
+    def to_python(self, value, state=None):
+        value = [twc.safe_validate(self.item_validator, v) for v in value]
+        value = [v for v in value if v is not twc.Invalid]
+        if not value and self.required:
+            raise twc.ValidationError('required', self)
+        return value
+
+    def from_python(self, value, state=None):
+        return value
+
+class RelatedOneToOneValidator(twc.Validator):
+    """Validator for related object
+
+    `entity`
+        The SQLAlchemy class to use. This must be mapped to a single table with a single primary key column.
+        It must also have the SQLAlchemy `query` property; this will be the case for Elixir classes,
+        and can be specified using DeclarativeBase (and is in the TG2 default setup).
+
+    This validator should be used for the one to one relation.
+    """
+
+    def __init__(self, entity, required=False, **kw):
+        super(RelatedOneToOneValidator, self).__init__(**kw)
+        self.required=required
+        self.entity = entity
+
+    def to_python(self, value, state=None):
+        """We just validate, there is at least one value
+        """
+        def has_value(dic):
+            """Returns bool
+
+            Returns True if there is at least one value defined in the given
+            dic
+            """
+            for v in dic.values():
+                if type(v) == dict:
+                    if has_value(v):
+                        return True
+                if v:
+                    return True
+            return False
+        
+        if self.required:
+            if not has_value(value):
+                raise twc.ValidationError('required', self)
+        return value
+
+    def from_python(self, value, state=None):
+        return value
 
 
 class DbPage(twc.Page):
@@ -90,13 +142,16 @@ class DbFormPage(DbPage, twf.FormPage):
     _no_autoid = True
 
     def fetch_data(self, req):
-        filter = dict([
-            (key.__str__(), value) for key, value in req.GET.mixed().items()
-        ])
+        data = req.GET.mixed()
+        filter = dict((col.name, data.get(col.name))
+                        for col in sa.orm.class_mapper(self.entity).primary_key)
         self.value = req.GET and self.entity.query.filter_by(**filter).first() or None
 
     @classmethod
     def validated_request(cls, req, data, protect_prm_tamp=True, do_commit=True):
+        if 'id' not in data and 'id' in req.GET:
+            # If the 'id' is in the query string, we get it
+            data['id'] = req.GET['id']
         utils.update_or_create(cls.entity, data,
                                protect_prm_tamp=protect_prm_tamp)
         if do_commit:
@@ -160,231 +215,107 @@ class DbListPage(DbPage, twc.Page):
             self.newlink.prepare()
 
 
-class DbSelectionField(twf.SelectionField):
+# Note: this does not inherit from LinkField, as few of the parameters apply
+class DbLinkField(twc.Widget):
+    template = "tw2.forms.templates.link_field"
+    link = twc.Param('Path to link to', default=None)
+    text = twc.Param('Link text', default='')
+    entity = twc.Param('SQLAlchemy mapped class to use', request_local=False)
+
+    def encode(self, value):
+        return urllib.quote(unicode(value).encode('utf-8'))
+
+    def prepare(self):
+        super(DbLinkField, self).prepare()
+        if not self.value:
+            # The value can be defined on the parent
+            self.value = self.parent and self.parent.value or None
+
+        if self.link and self.value:
+            self.safe_modify('attrs')
+            pkeys = sa.orm.class_mapper(self.entity).primary_key
+            if '$' in self.link:
+                if len(pkeys) != 1:
+                    raise twc.WidgetError(
+                        "Can't replace '$' in %s "
+                        "since there is many primary keys. "
+                        "For this special case remove the '$' and let the "
+                        "widget making the query string." % self.link)
+
+                ident = getattr(self.value, pkeys[0].name)
+                self.attrs['href'] = self.link.replace('$', unicode(ident))
+            else:
+                qs = '&'.join(col.name + "=" + self.encode(getattr(self.value, col.name))
+                                for col in pkeys)
+                self.attrs['href'] = self.link + '?' + qs
+
+        if not self.text:
+            self.text = unicode(self.value or '')
+
+
+class DbListLinkField(twc.RepeatingWidget):
+    """A container of DbLinkFields use for the onetomany/manytomany relations
+    """
+    child = DbLinkField
+
+    link = twc.Param('Path to link to')
     entity = twc.Param('SQLAlchemy mapped class to use', request_local=False)
 
     def prepare(self):
-        # avoid hardcoded id
-        self.options = [(x.id, unicode(x)) for x in self.entity.query.all()]
-        super(DbSelectionField, self).prepare()
+        self.child.entity = self.entity
+        self.child.link = self.link
+        super(DbListLinkField, self).prepare()
 
 
-class DbSingleSelectField(DbSelectionField, twf.SingleSelectField):
+class DbSelectionField(twf.SelectionField):
+    entity = twc.Param('SQLAlchemy mapped class to use', request_local=False)
+
+
+class DbSingleSelectionField(DbSelectionField):
+    def prepare(self):
+        self.options = [(getattr(x, self.validator.primary_key.name), unicode(x)) for x in self.entity.query.all()]
+        super(DbSingleSelectionField, self).prepare()
+
     @classmethod
     def post_define(cls):
         if getattr(cls, 'entity', None):
-            cls.validator = RelatedValidator(entity=cls.entity)
+            required = getattr(cls.validator, 'required', None)
+            cls.validator = RelatedValidator(entity=cls.entity, required=required)
 
-class DbCheckBoxList(DbSelectionField, twf.CheckBoxList):
+
+class DbMultipleSelectionField(DbSelectionField):
+    def prepare(self):
+        self.options = [(getattr(x, self.item_validator.primary_key.name), unicode(x)) for x in self.entity.query.all()]
+        super(DbMultipleSelectionField, self).prepare()
+
     @classmethod
     def post_define(cls):
         if getattr(cls, 'entity', None):
+            required = getattr(cls.validator, 'required', None)
+            cls.validator = RelatedItemValidator(required=required, entity=cls.entity)
+            # We should keep item_validator to make sure the values are well transformed.
             cls.item_validator = RelatedValidator(entity=cls.entity)
 
-class DbRadioButtonList(DbSelectionField, twf.RadioButtonList):
-    @classmethod
-    def post_define(cls):
-        if getattr(cls, 'entity', None):
-            cls.validator = RelatedValidator(entity=cls.entity)
 
-class DbCheckBoxTable(DbSelectionField, twf.CheckBoxTable):
-    @classmethod
-    def post_define(cls):
-        if getattr(cls, 'entity', None):
-            cls.item_validator = RelatedValidator(entity=cls.entity)
-
-
-class WidgetPolicy(object):
-    """
-    A policy object is used to generate widgets from SQLAlchemy properties.
-
-    In general, the widget's id is set to the name of the property, and if the
-    property is not nullable, the validator is set as required. If the desired
-    widget is None, then no widget is used for that property.
-
-    Several parameters can be overridden to select the widget to use:
-
-    `pkey_widget`
-        For primary key properties
-
-    `onetomany_widget`
-        For foreign key properties. In this case the widget's id is set to the
-        name of the relation, and its entity is set to the target class.
-
-    `manytoone_widget`
-        For foreign key properties. In this case the widget's id is set to the
-        name of the relation, and its entity is set to the target class.
-
-    `name_widgets`
-        A dictionary mapping property names to the desired widget. This can be
-        used for names like "password" or "email".
-
-    `type_widgets`
-        A dictionary mapping SQLAlchemy property types to the desired widget.
-
-    `default_widget`
-        If the property does not match any of the other selectors, this is used.
-        If this is None then an error is raised for properties that do not match.
-
-    Alternatively, the `factory` method can be overriden to provide completely
-    customised widget selection.
-    """
-
-    pkey_widget = None
-    onetomany_widget = None
-    manytoone_widget = None
-    name_widgets = {}
-    type_widgets = {}
-    default_widget = None
-
-    @classmethod
-    def factory(cls, prop):
-        widget = None
-        if is_onetomany(prop):
-            if not cls.onetomany_widget:
-                raise twc.WidgetError(
-                    "Cannot automatically create a widget " +
-                    "for one-to-many relation '%s'" % prop.key)
-            widget = cls.onetomany_widget(id=prop.key,entity=prop.mapper.class_)
-        elif sum([c.primary_key for c in getattr(prop, 'columns', [])]):
-            widget = cls.pkey_widget
-        elif is_manytoone(prop):
-            if not cls.manytoone_widget:
-                raise twc.WidgetError(
-                    "Cannot automatically create a widget " +
-                    "for many-to-one relation '%s'" % prop.key)
-            widget = cls.manytoone_widget(id=prop.key,entity=prop.mapper.class_)
-        elif prop.key in cls.name_widgets:
-            widget = cls.name_widgets[prop.key]
-        else:
-            for t, c in product(cls.type_widgets,
-                                getattr(prop, 'columns', [])):
-                if isinstance(c.type, t):
-                    widget = cls.type_widgets[t]
-                    break
-            else:
-                if not cls.default_widget:
-                    raise twc.WidgetError(
-                        "Cannot automatically create a widget " +
-                        "for '%s'" % prop.key)
-                widget = cls.default_widget
-
-        if widget:
-            args = {'id': prop.key}
-            if not sum([c.nullable for c in getattr(prop, 'columns', [])]):
-                args['validator'] = twc.Required
-            widget = widget(**args)
-
-        return widget
-
-
-class NoWidget(twc.Widget):
+class DbSingleSelectField(DbSingleSelectionField, twf.SingleSelectField):
     pass
 
+class DbRadioButtonList(DbSingleSelectionField, twf.RadioButtonList):
+    pass
 
-class ViewPolicy(WidgetPolicy):
-    """Base WidgetPolicy for viewing data."""
-    manytoone_widget = twf.LabelField
-    default_widget = twf.LabelField
+class DbCheckBoxList(DbMultipleSelectionField, twf.CheckBoxList):
+    pass
+    
+class DbCheckBoxTable(DbMultipleSelectionField, twf.CheckBoxTable):
+    pass
+    
 
-    ## This gets assigned further down in the file.  It must, because of an
-    ## otherwise circular dependency.
-    #onetomany_widget = AutoViewGrid
-
-
-class EditPolicy(WidgetPolicy):
-    """Base WidgetPolicy for editing data."""
-    # TODO -- actually set this to something sensible
-    onetomany_widget = DbSingleSelectField
-    manytoone_widget = DbSingleSelectField
-    name_widgets = {
-        'password':     twf.PasswordField,
-        'email':        twf.TextField(validator=twc.EmailValidator),
-        'ipaddress':    twf.TextField(validator=twc.IpAddressValidator),
-    }
-    type_widgets = {
-        sat.String:     twf.TextField,
-        sat.Integer:    twf.TextField(validator=twc.IntValidator),
-        sat.DateTime:   twd.CalendarDateTimePicker,
-        sat.Date:       twd.CalendarDatePicker,
-        sat.Binary:     twf.FileField,
-        sat.Boolean:    twf.CheckBox,
-    }
-
-
-class AutoContainer(twc.Widget):
-    """
-    An AutoContainer has its children automatically created from an SQLAlchemy entity,
-    using a widget policy.
-    """
-    entity = twc.Param('SQLAlchemy mapped class to use', request_local=False)
-    policy = twc.Param('WidgetPolicy to use')
-
-    @classmethod
-    def post_define(cls):
-        if not hasattr(cls, 'entity') and hasattr(cls, 'parent') and hasattr(cls.parent, 'entity'):
-            cls.entity = cls.parent.entity
-
-        if hasattr(cls, 'entity') and not getattr(cls, '_auto_widgets', False):
-            cls._auto_widgets = True
-            fkey = dict((p.local_side[0].name, p)
-                        for p in sa.orm.class_mapper(cls.entity).iterate_properties
-                        if is_manytoone(p))
-            new_children = []
-            used_children = set()
-            orig_children = getattr(cls.child, 'children', [])
-
-            for prop in sa.orm.class_mapper(cls.entity).iterate_properties:
-                if is_manytoone(prop):
-                    continue
-
-                # Swap ids and objs
-                prop = fkey.get(prop.key, prop)
-
-                widget_name = prop.key
-                if isinstance(prop, sa.orm.RelationshipProperty):
-                    widget_name = prop.local_side[0].name
-
-                matches = [w for w in orig_children if w.key == widget_name]
-                widget = len(matches) and matches[0] or None
-                if widget:
-                    if not issubclass(widget, NoWidget):
-                        new_children.append(widget)
-                    used_children.add(widget_name)
-                else:
-                    new_widget = cls.policy.factory(prop)
-                    if new_widget:
-                        new_children.append(new_widget)
-
-            def child_filter(w):
-                return w.key not in used_children and \
-                       w.key not in [W.key for W in new_children]
-
-            new_children.extend(filter(child_filter, orig_children))
-            cls.child = cls.child(children=new_children, entity=cls.entity)
-
-
-class AutoTableForm(AutoContainer, twf.TableForm):
-    policy = EditPolicy
-
-class AutoGrowingGrid(twd.GrowingGridLayout, AutoContainer):
-    policy = EditPolicy
-
-class AutoViewGrid(AutoContainer, twf.GridLayout):
-    policy = ViewPolicy
-
-# This is assigned here and not above because of a circular dep.
-ViewPolicy.onetomany_widget = AutoViewGrid
-
-class AutoListPage(DbListPage):
-    _no_autoid = True
-    class child(AutoViewGrid):
-        pass
-
-class AutoListPageEdit(AutoListPage):
-    class edit(DbFormPage):
-        _no_autoid = True
-        child = AutoTableForm
+class DbSingleSelectLink(twd.LinkContainer):
+    class child(DbSingleSelectField):
+        @classmethod
+        def post_define(cls):
+            if hasattr(cls.parent, 'entity') and not hasattr(cls, 'entity'):
+                cls.entity = cls.parent.entity
 
 
 # Borrowed from TG2
