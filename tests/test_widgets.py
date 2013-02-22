@@ -1197,7 +1197,7 @@ class AutoListPageT(WidgetTest):
     <tr><th>Name</th><th>Others</th></tr>
     <tr id="autolistpage_d:0" class="odd">
     <td>
-        <span>foo1<input name="name" type="hidden" id="autolistpage_d:0:name" value="foo1"></span>
+        <span>foo1<input name="autolistpage_d:0:name" type="hidden" id="autolistpage_d:0:name" value="foo1"></span>
     </td>
     <td>
       <div id="autolistpage_d:0:others">
@@ -1209,7 +1209,7 @@ class AutoListPageT(WidgetTest):
 </tr>
 <tr id="autolistpage_d:1" class="even">
     <td>
-        <span>foo2<input name="name" type="hidden" id="autolistpage_d:1:name" value="foo2"></span>
+        <span>foo2<input name="autolistpage_d:1:name" type="hidden" id="autolistpage_d:1:name" value="foo2"></span>
     </td>
     <td>
       <div id="autolistpage_d:1:others">
@@ -1269,14 +1269,14 @@ class AutoListPageOneToOneRelationT(WidgetTest):
             <tr><th>Name</th><th>Account</th></tr>
             <tr id="autolistpage_d:0" class="odd">
             <td>
-                <span>bob1<input type="hidden" name="name" value="bob1" id="autolistpage_d:0:name"/></span>
+                <span>bob1<input type="hidden" name="autolistpage_d:0:name" value="bob1" id="autolistpage_d:0:name"/></span>
             </td>
             <td>
                 <fieldset id="autolistpage_d:0:account:fieldset">
                     <legend></legend>
                     <table id="autolistpage_d:0:account">
                     <tr class="odd required"  id="autolistpage_d:0:account:account_name:container">
-                        <th>Account Name</th>
+                        <th><label for="account_name">Account Name</label></th>
                         <td >
                             <span>account1<input type="hidden" name="account:account_name" value="account1" id="autolistpage_d:0:account:account_name"/></span>
 
@@ -1318,14 +1318,14 @@ class AutoTableFormT1(WidgetTest):
      <span class="error"></span>
     <table id="foo_form">
     <tr class="odd" id="foo_form:name:container">
-        <th>Name</th>
+        <th><label for="name">Name</label></th>
         <td>
             <input name="foo_form:name" id="foo_form:name" type="text">
             <span id="foo_form:name:error"></span>
         </td>
         </tr>
     <tr class="even" id="foo_form:others:container">
-        <th>Others</th>
+        <th><label for="others">Others</label></th>
         <td>
             <ul id="foo_form:others">
                 <li>
@@ -1367,14 +1367,14 @@ class AutoTableFormT2(WidgetTest):
      <span class="error"></span>
     <table id="foo_form">
     <tr class="odd"  id="foo_form:nick:container">
-        <th>Nick</th>
+        <th><label for="nick">Nick</label></th>
         <td >
-            <input name="foo_form:nick" type="text" value="" id="foo_form:nick"/>
+            <input name="foo_form:nick" type="text" id="foo_form:nick"/>
             <span id="foo_form:nick:error"></span>
         </td>
     </tr>
      <tr class="even"  id="foo_form:other:container">
-        <th>Other</th>
+        <th><label for="other">Other</label></th>
         <td >
             <select name="foo_form:other" id="foo_form:other">
          <option ></option>
@@ -1410,13 +1410,13 @@ class AutoTableFormT4(WidgetTest):
         <span class="error"></span>
         <table id="foo_form">
             <tr class="odd" id="foo_form:surname:container">
-                <th>Surname</th>
+                <th><label for="surname">Surname</label></th>
                 <td>
                     <input name="foo_form:surname" id="foo_form:surname" type="text" />
                     <span id="foo_form:surname:error"></span>
                 </td>
             </tr><tr class="even" id="foo_form:roles:container">
-                <th>Roles</th>
+                <th><label for="roles">Roles</label></th>
                 <td>
                     <ul id="foo_form:roles">
                         <li>
@@ -1460,13 +1460,13 @@ class AutoTableFormT5(WidgetTest):
         <span class="error"></span>
         <table id="foo_form">
         <tr class="odd" id="foo_form:rolename:container">
-            <th>Rolename</th>
+            <th><label for="rolename">Rolename</label></th>
             <td>
                 <input name="foo_form:rolename" id="foo_form:rolename" type="text" />
                 <span id="foo_form:rolename:error"></span>
             </td>
         </tr><tr class="even" id="foo_form:users:container">
-            <th>Users</th>
+            <th><label for="users">Users</label></th>
             <td>
                 <ul id="foo_form:users">
                     <li>
@@ -1506,14 +1506,14 @@ class AutoTableFormT6(WidgetTest):
     <span class="error"></span>
     <table id="foo_form">
     <tr class="odd" id="foo_form:name:container">
-        <th>Name</th>
+        <th><label for="name">Name</label></th>
         <td>
             <input name="foo_form:name" id="foo_form:name" type="text">
             <span id="foo_form:name:error"></span>
         </td>
         </tr>
     <tr class="even" id="foo_form:others:container">
-        <th>Others</th>
+        <th><label for="others">Others</label></th>
         <td>
             <ul id="foo_form:others">
                 <li>
@@ -1711,7 +1711,7 @@ class AutoGrowingGridT(WidgetTest):
         </tr>
         <tr style="display:none;" id="autogrid:0" class="odd">
         <td>
-            <input name="autogrid:0:name" type="text" value="" id="autogrid:0:name" onchange="twd_grow_add(this);" />
+            <input name="autogrid:0:name" type="text" id="autogrid:0:name" onchange="twd_grow_add(this);" />
         </td><td>
             <ul onchange="twd_grow_add(this);" id="autogrid:0:others">
                 <li>
@@ -1726,13 +1726,13 @@ class AutoGrowingGridT(WidgetTest):
                 </li>
             </ul>
         </td><td>
-            <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" name="del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image" id="autogrid:0:del" />
+            <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" value="" name="autogrid:0:del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image" id="autogrid:0:del" />
         </td>
         <td>
         </td>
     </tr><tr id="autogrid:1" class="even">
         <td>
-            <input name="autogrid:1:name" type="text" value="" id="autogrid:1:name" onchange="twd_grow_add(this);" />
+            <input name="autogrid:1:name" type="text" id="autogrid:1:name" onchange="twd_grow_add(this);" />
         </td><td>
             <ul onchange="twd_grow_add(this);" id="autogrid:1:others">
                 <li>
@@ -1747,7 +1747,7 @@ class AutoGrowingGridT(WidgetTest):
                 </li>
             </ul>
         </td><td>
-            <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" name="del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image" id="autogrid:1:del" />
+            <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" value="" name="autogrid:1:del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image" id="autogrid:1:del" />
         </td>
         <td>
         </td>
@@ -1794,7 +1794,7 @@ class AutoGrowingGridAsChildT(WidgetTest):
                 </li>
             </ul>
         </td><td>
-            <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" name="del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image" id="autogrid:0:del" />
+        <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" value="" name="autogrid:0:del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image" id="autogrid:0:del" />
         </td>
         <td>
         </td>
@@ -1815,7 +1815,7 @@ class AutoGrowingGridAsChildT(WidgetTest):
                 </li>
             </ul>
         </td><td>
-            <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" name="del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image" id="autogrid:1:del" />
+            <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" value="" name="autogrid:1:del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image" id="autogrid:1:del" />
         </td>
         <td>
         </td>
@@ -1847,27 +1847,27 @@ class AutoGrowingGridAsChildWithRelationshipT(WidgetTest):
         </tr>
         <tr style="display:none;" id="others:0" class="odd">
         <td>
-        <input name="nick" id="others:0:nick" onchange="twd_grow_add(this);" type="text">
+        <input name="others:0:nick" id="others:0:nick" onchange="twd_grow_add(this);" type="text">
         </td>
         <td>
-        <select onchange="twd_grow_add(this);" id="others:0:other" name="other">
+        <select onchange="twd_grow_add(this);" id="others:0:other" name="others:0:other">
         <option></option><option value="1">foo1</option><option value="2">foo2</option>
 </select>
         </td><td>
-            <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" name="del" id="others:0:del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image">
+        <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" value="" name="others:0:del" id="others:0:del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image">
         </td>
         <td>
         </td>
     </tr><tr id="others:1" class="even">
         <td>
-        <input name="nick" id="others:1:nick" onchange="twd_grow_add(this);" type="text">
+        <input name="others:1:nick" id="others:1:nick" onchange="twd_grow_add(this);" type="text">
         </td>
         <td>
-        <select onchange="twd_grow_add(this);" id="others:1:other" name="other">
+        <select onchange="twd_grow_add(this);" id="others:1:other" name="others:1:other">
         <option></option><option value="1">foo1</option><option value="2">foo2</option>
 </select>
         </td><td>
-            <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" name="del" id="others:1:del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image">
+            <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" value="" name="others:1:del" id="others:1:del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image">
         </td>
         <td>
         </td>
@@ -1895,19 +1895,19 @@ class AutoEditRelationInTableT(WidgetTest):
      <span class="error"></span>
     <table id="something">
     <tr class="odd" id="something:name:container">
-        <th>Name</th>
+        <th><label for="name">Name</label></th>
         <td>
-            <input name="something:name" type="text" value="" id="something:name" />
+            <input name="something:name" type="text" id="something:name" />
             <span id="something:name:error"></span>
         </td>
     </tr><tr class="even required" id="something:account:fieldset:container">
-        <th>Account</th>
+        <th><label for="account">Account</label></th>
         <td>
             <fieldset id="something:account:fieldset">
     <legend></legend>
     <table id="something:account">
     <tr class="odd required" id="something:account:account_name:container">
-        <th>Account Name</th>
+        <th><label for="account_name">Account Name</label></th>
         <td>
             <input name="account:account_name" type="text" value="" id="something:account:account_name" />
             <span id="something:account:account_name:error"></span>
@@ -1974,19 +1974,19 @@ class AutoEditRelationInFormT(WidgetTest):
     <span class="error"></span>
     <table id="autoedit">
     <tr class="odd" id="autoedit:name:container">
-        <th>Name</th>
+        <th><label for="name">Name</label></th>
         <td>
-            <input name="dbformpage_d:name" type="text" value="" id="autoedit:name" />
+            <input name="dbformpage_d:name" type="text" id="autoedit:name" />
             <span id="autoedit:name:error"></span>
         </td>
     </tr><tr class="even required" id="autoedit:account:fieldset:container">
-        <th>Account</th>
+        <th><label for="account">Account</label></th>
         <td>
             <fieldset id="autoedit:account:fieldset">
                 <legend></legend>
                 <table id="autoedit:account">
                 <tr class="odd required" id="autoedit:account:account_name:container">
-                    <th>Account Name</th>
+                    <th><label for="account_name">Account Name</label></th>
                     <td>
                         <input name="account:account_name" type="text" value="" id="autoedit:account:account_name" />
                         <span id="autoedit:account:account_name:error"></span>
@@ -2022,19 +2022,19 @@ class AutoEditRelationInFormT(WidgetTest):
     <span class="error"></span>
     <table id="autoedit">
     <tr class="odd" id="autoedit:name:container">
-        <th>Name</th>
+        <th><label for="name">Name</label></th>
         <td>
             <input name="dbformpage_d:name" type="text" value="bob1" id="autoedit:name" />
             <span id="autoedit:name:error"></span>
         </td>
     </tr><tr class="even required" id="autoedit:account:fieldset:container">
-        <th>Account</th>
+        <th><label for="account">Account</label></th>
         <td>
             <fieldset id="autoedit:account:fieldset">
                 <legend></legend>
                 <table id="autoedit:account">
                 <tr class="odd required" id="autoedit:account:account_name:container">
-                    <th>Account Name</th>
+                    <th><label for="account_name">Account Name</label></th>
                     <td>
                         <input name="account:account_name" type="text" value="account1" id="autoedit:account:account_name" />
                         <span id="autoedit:account:account_name:error"></span>
@@ -2080,19 +2080,19 @@ class AutoEditRelationInFormT(WidgetTest):
     <span class="error"></span>
     <table id="autoedit">
     <tr class="odd" id="autoedit:name:container">
-        <th>Name</th>
+        <th><label for="name">Name</label></th>
         <td>
-            <input name="dbformpage_d:name" type="text" value="" id="autoedit:name" />
+            <input name="dbformpage_d:name" type="text" id="autoedit:name" />
             <span id="autoedit:name:error"></span>
         </td>
     </tr><tr class="even required" id="autoedit:account:fieldset:container">
-        <th>Account</th>
+        <th><label for="account">Account</label></th>
         <td>
             <fieldset id="autoedit:account:fieldset">
                 <legend></legend>
                 <table id="autoedit:account">
                 <tr class="odd required" id="autoedit:account:account_name:container">
-                    <th>Account Name</th>
+                    <th><label for="account_name">Account Name</label></th>
                     <td>
                         <input name="account:account_name" type="text" value="" id="autoedit:account:account_name" />
                         <span id="autoedit:account:account_name:error"></span>
