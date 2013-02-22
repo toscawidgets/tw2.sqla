@@ -613,7 +613,7 @@ class ListPageT(WidgetTest):
                 <tr><th>Name</th><th>Edit</th></tr>
                 <tr id="dblistpage_d:0" class="odd">
                 <td>
-                    <span>foo1<input type="hidden" name="name" value="foo1" id="dblistpage_d:0:name"/></span>
+                    <span>foo1<input type="hidden" name="dblistpage_d:0:name" value="foo1" id="dblistpage_d:0:name"/></span>
                 </td>
                 <td>
                     <a href="foo?id=1" id="dblistpage_d:0:id">Edit</a>
@@ -623,7 +623,7 @@ class ListPageT(WidgetTest):
             </tr>
             <tr id="dblistpage_d:1" class="even">
                 <td>
-                    <span>foo2<input type="hidden" name="name" value="foo2" id="dblistpage_d:1:name"/></span>
+                    <span>foo2<input type="hidden" name="dblistpage_d:1:name" value="foo2" id="dblistpage_d:1:name"/></span>
                 </td>
                 <td>
                     <a href="foo?id=2" id="dblistpage_d:1:id">Edit</a>
@@ -663,7 +663,7 @@ class FormPageT(WidgetTest):
      <span class="error"></span>
     <table id="dbformpage_d">
     <tr class="odd" id="dbformpage_d:name:container">
-        <th>Name</th>
+        <th><label for="name">Name</label></th>
         <td>
             <input name="dbformpage_d:name" id="dbformpage_d:name" type="text">
             <span id="dbformpage_d:name:error"></span>
@@ -694,7 +694,7 @@ class FormPageT(WidgetTest):
      <span class="error"></span>
     <table id="dbformpage_d">
     <tr class="odd" id="dbformpage_d:name:container">
-        <th>Name</th>
+        <th><label for="name">Name</label></th>
         <td>
             <input name="dbformpage_d:name" value="foo1" id="dbformpage_d:name" type="text">
             <span id="dbformpage_d:name:error"></span>
@@ -733,7 +733,7 @@ class FormPageT(WidgetTest):
      <span class="error"></span>
     <table id="dbformpage_d">
     <tr class="odd" id="dbformpage_d:name:container">
-        <th>Name</th>
+        <th><label for="name">Name</label></th>
         <td>
             <input name="dbformpage_d:name" value="foo2" id="dbformpage_d:name" type="text">
             <span id="dbformpage_d:name:error"></span>
@@ -764,7 +764,7 @@ class FormPageT(WidgetTest):
      <span class="error"></span>
     <table id="dbformpage_d">
     <tr class="odd" id="dbformpage_d:name:container">
-        <th>Name</th>
+        <th><label for="name">Name</label></th>
         <td>
             <input name="dbformpage_d:name" id="dbformpage_d:name" type="text">
             <span id="dbformpage_d:name:error"></span>
@@ -903,18 +903,18 @@ class ListFormT(WidgetTest):
     <tr><th>Name</th></tr>
     <tr id="dblistform_d:0" class="odd">
     <td>
-        <input name="name" value="foo1" id="dblistform_d:0:name" type="text">
+        <input name="dblistform_d:0:name" value="foo1" id="dblistform_d:0:name" type="text">
     </td>
     <td>
-        <input name="id" type="hidden" id="dblistform_d:0:id" value="1">
+        <input name="dblistform_d:0:id" type="hidden" id="dblistform_d:0:id" value="1">
     </td>
 </tr>
 <tr id="dblistform_d:1" class="even">
     <td>
-        <input name="name" value="foo2" id="dblistform_d:1:name" type="text">
+        <input name="dblistform_d:1:name" value="foo2" id="dblistform_d:1:name" type="text">
     </td>
     <td>
-        <input name="id" type="hidden" id="dblistform_d:1:id" value="2">
+        <input name="dblistform_d:1:id" type="hidden" id="dblistform_d:1:id" value="2">
     </td>
 </tr>
     <tr class="error"><td colspan="2" id="dblistform_d:error">
@@ -950,18 +950,18 @@ class ListFormT(WidgetTest):
     <tr><th>Name</th></tr>
     <tr id="dblistform_d:0" class="odd">
     <td>
-        <input name="name" value="foo1" id="dblistform_d:0:name" type="text">
+        <input name="dblistform_d:0:name" value="foo1" id="dblistform_d:0:name" type="text">
     </td>
     <td>
-        <input name="id" type="hidden" id="dblistform_d:0:id" value="1">
+        <input name="dblistform_d:0:id" type="hidden" id="dblistform_d:0:id" value="1">
     </td>
 </tr>
 <tr id="dblistform_d:1" class="even">
     <td>
-        <input name="name" value="foo2" id="dblistform_d:1:name" type="text">
+        <input name="dblistform_d:1:name" value="foo2" id="dblistform_d:1:name" type="text">
     </td>
     <td>
-        <input name="id" type="hidden" id="dblistform_d:1:id" value="2">
+        <input name="dblistform_d:1:id" type="hidden" id="dblistform_d:1:id" value="2">
     </td>
 </tr>
     <tr class="error"><td colspan="2" id="dblistform_d:error">
@@ -1160,7 +1160,7 @@ class AutoListPageT(WidgetTest):
     <tr><th>Name</th><th>Others</th></tr>
     <tr id="0" class="odd">
     <td>
-        <input type="text" name="name" value="foo1" id="0:name"/>
+        <input type="text" name="0:name" value="foo1" id="0:name"/>
     </td>
     <td>
       <div id="0:others">
@@ -1169,7 +1169,7 @@ class AutoListPageT(WidgetTest):
     </td><td></td></tr>
 <tr id="1" class="even">
     <td>
-        <input type="text" name="name" value="foo2" id="1:name"/>
+        <input type="text" name="1:name" value="foo2" id="1:name"/>
     </td><td>
       <div id="1:others">
       </div>
@@ -1249,7 +1249,7 @@ class AutoListPageOneToOneRelationT(WidgetTest):
         </td></tr>
     </table>
     </body>
-    </html> 
+    </html>
     """
 
     declarative = True
@@ -1279,7 +1279,7 @@ class AutoListPageOneToOneRelationT(WidgetTest):
                         <th>Account Name</th>
                         <td >
                             <span>account1<input type="hidden" name="account:account_name" value="account1" id="autolistpage_d:0:account:account_name"/></span>
-                            
+
                             <span id="autolistpage_d:0:account:account_name:error"></span>
                         </td>
                     </tr>
@@ -1369,7 +1369,7 @@ class AutoTableFormT2(WidgetTest):
     <tr class="odd"  id="foo_form:nick:container">
         <th>Nick</th>
         <td >
-            <input name="foo_form:nick" type="text" id="foo_form:nick"/>
+            <input name="foo_form:nick" type="text" value="" id="foo_form:nick"/>
             <span id="foo_form:nick:error"></span>
         </td>
     </tr>
@@ -1552,14 +1552,14 @@ class AutoTableFormT7(WidgetTest):
     <span class="error"></span>
     <table id="foo_form">
     <tr class="odd"  id="foo_form:nick:container">
-        <th>Nick</th>
+        <th><label for="nick">Nick</label></th>
         <td >
             <input name="foo_form:nick" type="text" id="foo_form:nick"/>
             <span id="foo_form:nick:error"></span>
         </td>
     </tr>
      <tr class="even required"  id="foo_form:other:container">
-        <th>Other</th>
+        <th><label for="other">Other</label></th>
         <td >
             <select name="foo_form:other" id="foo_form:other">
          <option ></option>
@@ -1610,7 +1610,7 @@ class AutoViewGridT(WidgetTest):
 </tr>
 <tr id="autogrid:0" class="odd">
   <td>
-    <span>foo1<input type="hidden" name="name" value="foo1" id="autogrid:0:name"/></span>
+    <span>foo1<input type="hidden" name="autogrid:0:name" value="foo1" id="autogrid:0:name"/></span>
   </td>
   <td>
     <div id="autogrid:0:others">
@@ -1626,7 +1626,7 @@ class AutoViewGridT(WidgetTest):
 </tr>
 <tr id="autogrid:1" class="even">
   <td>
-    <span>foo2<input type="hidden" name="name" value="foo2" id="autogrid:1:name"/></span>
+    <span>foo2<input type="hidden" name="autogrid:1:name" value="foo2" id="autogrid:1:name"/></span>
   </td>
   <td>
     <div id="autogrid:1:others">
@@ -1657,7 +1657,7 @@ class AutoViewGridT(WidgetTest):
 </tr>
 <tr id="autogrid:0" class="odd">
   <td>
-    <span>foo1<input type="hidden" name="name" value="foo1" id="autogrid:0:name"/></span>
+    <span>foo1<input type="hidden" name="autogrid:0:name" value="foo1" id="autogrid:0:name"/></span>
   </td>
   <td>
     <div id="autogrid:0:others">
@@ -1673,7 +1673,7 @@ class AutoViewGridT(WidgetTest):
 </tr>
 <tr id="autogrid:1" class="even">
   <td>
-    <span>foo2<input type="hidden" name="name" value="foo2" id="autogrid:1:name"/></span>
+    <span>foo2<input type="hidden" name="autogrid:1:name" value="foo2" id="autogrid:1:name"/></span>
   </td>
   <td>
     <div id="autogrid:1:others">
@@ -1711,7 +1711,7 @@ class AutoGrowingGridT(WidgetTest):
         </tr>
         <tr style="display:none;" id="autogrid:0" class="odd">
         <td>
-            <input name="name" type="text" id="autogrid:0:name" onchange="twd_grow_add(this);" />
+            <input name="autogrid:0:name" type="text" value="" id="autogrid:0:name" onchange="twd_grow_add(this);" />
         </td><td>
             <ul onchange="twd_grow_add(this);" id="autogrid:0:others">
                 <li>
@@ -1732,7 +1732,7 @@ class AutoGrowingGridT(WidgetTest):
         </td>
     </tr><tr id="autogrid:1" class="even">
         <td>
-            <input name="name" type="text" id="autogrid:1:name" onchange="twd_grow_add(this);" />
+            <input name="autogrid:1:name" type="text" value="" id="autogrid:1:name" onchange="twd_grow_add(this);" />
         </td><td>
             <ul onchange="twd_grow_add(this);" id="autogrid:1:others">
                 <li>
@@ -1779,7 +1779,7 @@ class AutoGrowingGridAsChildT(WidgetTest):
         </tr>
         <tr style="display:none;" id="autogrid:0" class="odd">
         <td>
-            <input name="name" id="autogrid:0:name" onchange="twd_grow_add(this);" type="text" />
+            <input name="autogrid:0:name" id="autogrid:0:name" onchange="twd_grow_add(this);" type="text" />
         </td><td>
             <ul onchange="twd_grow_add(this);" id="autogrid:0:others">
                 <li>
@@ -1800,7 +1800,7 @@ class AutoGrowingGridAsChildT(WidgetTest):
         </td>
     </tr><tr id="autogrid:1" class="even">
         <td>
-            <input name="name" id="autogrid:1:name" onchange="twd_grow_add(this);" type="text" />
+            <input name="autogrid:1:name" id="autogrid:1:name" onchange="twd_grow_add(this);" type="text" />
         </td><td>
             <ul onchange="twd_grow_add(this);" id="autogrid:1:others">
                 <li>
@@ -1897,7 +1897,7 @@ class AutoEditRelationInTableT(WidgetTest):
     <tr class="odd" id="something:name:container">
         <th>Name</th>
         <td>
-            <input name="something:name" type="text" id="something:name" />
+            <input name="something:name" type="text" value="" id="something:name" />
             <span id="something:name:error"></span>
         </td>
     </tr><tr class="even required" id="something:account:fieldset:container">
@@ -1909,7 +1909,7 @@ class AutoEditRelationInTableT(WidgetTest):
     <tr class="odd required" id="something:account:account_name:container">
         <th>Account Name</th>
         <td>
-            <input name="account:account_name" type="text" id="something:account:account_name" />
+            <input name="account:account_name" type="text" value="" id="something:account:account_name" />
             <span id="something:account:account_name:error"></span>
         </td>
     </tr>
@@ -1976,7 +1976,7 @@ class AutoEditRelationInFormT(WidgetTest):
     <tr class="odd" id="autoedit:name:container">
         <th>Name</th>
         <td>
-            <input name="dbformpage_d:name" type="text" id="autoedit:name" />
+            <input name="dbformpage_d:name" type="text" value="" id="autoedit:name" />
             <span id="autoedit:name:error"></span>
         </td>
     </tr><tr class="even required" id="autoedit:account:fieldset:container">
@@ -1988,7 +1988,7 @@ class AutoEditRelationInFormT(WidgetTest):
                 <tr class="odd required" id="autoedit:account:account_name:container">
                     <th>Account Name</th>
                     <td>
-                        <input name="account:account_name" type="text" id="autoedit:account:account_name" />
+                        <input name="account:account_name" type="text" value="" id="autoedit:account:account_name" />
                         <span id="autoedit:account:account_name:error"></span>
                     </td>
                 </tr>
@@ -2006,8 +2006,8 @@ class AutoEditRelationInFormT(WidgetTest):
     </table>
     <input type="submit" value="Save" />
 </form></body>
-</html> 
-"""    
+</html>
+"""
 
     declarative = True
     def test_request_get_edit(self):
@@ -2054,7 +2054,7 @@ class AutoEditRelationInFormT(WidgetTest):
     </table>
     <input type="submit" value="Save" />
 </form></body>
-</html> 
+</html>
 """)
 
     def test_request_post_redirect(self):
@@ -2082,7 +2082,7 @@ class AutoEditRelationInFormT(WidgetTest):
     <tr class="odd" id="autoedit:name:container">
         <th>Name</th>
         <td>
-            <input name="dbformpage_d:name" type="text" id="autoedit:name" />
+            <input name="dbformpage_d:name" type="text" value="" id="autoedit:name" />
             <span id="autoedit:name:error"></span>
         </td>
     </tr><tr class="even required" id="autoedit:account:fieldset:container">
@@ -2094,7 +2094,7 @@ class AutoEditRelationInFormT(WidgetTest):
                 <tr class="odd required" id="autoedit:account:account_name:container">
                     <th>Account Name</th>
                     <td>
-                        <input name="account:account_name" type="text" id="autoedit:account:account_name" />
+                        <input name="account:account_name" type="text" value="" id="autoedit:account:account_name" />
                         <span id="autoedit:account:account_name:error"></span>
                     </td>
                 </tr>
@@ -2112,8 +2112,8 @@ class AutoEditRelationInFormT(WidgetTest):
     </table>
     <input type="submit" value="Save" />
 </form></body>
-</html> 
-""")        
+</html>
+""")
 
     def _test_request_post_invalid(self):
         environ = {'REQUEST_METHOD': 'POST',
@@ -2129,8 +2129,8 @@ class AutoEditRelationInFormT(WidgetTest):
     <tr class="odd"  id="autoedit:name:container">
         <th>Name</th>
         <td >
-            <input name="autoedit:name" type="text" id="autoedit:name" value=""/>
-            
+            <input name="autoedit:name" type="text" value="" id="autoedit:name"/>
+
             <span id="autoedit:name:error"></span>
         </td>
     </tr>
@@ -2143,8 +2143,8 @@ class AutoEditRelationInFormT(WidgetTest):
                 <tr class="odd required error"  id="autoedit:account:account_name:container">
                     <th>Account Name</th>
                     <td >
-                        <input name="autoedit:account:account_name" type="text" id="autoedit:account:account_name" value=""/>
-                        
+                        <input name="autoedit:account:account_name" type="text" value="" id="autoedit:account:account_name"/>
+
                         <span id="autoedit:account:account_name:error">Enter a value</span>
                     </td>
                 </tr>
@@ -2255,28 +2255,28 @@ class NonRequiredOneToOneRelationT(WidgetTest):
     <span class="error"></span>
     <table id="autoedit">
     <tr class="odd required" id="autoedit:name:container">
-        <th>Name</th>
+        <th><label for="name">Name</label></th>
         <td>
-            <input name="dbformpage_d:name" type="text" id="autoedit:name" />
+            <input name="dbformpage_d:name" type="text" value="" id="autoedit:name" />
             <span id="autoedit:name:error"></span>
         </td>
     </tr><tr class="even" id="autoedit:account:fieldset:container">
-        <th>Account</th>
+        <th><label for="account">Account</label></th>
         <td>
             <fieldset id="autoedit:account:fieldset">
                 <legend></legend>
                 <table id="autoedit:account">
                 <tr class="odd" id="autoedit:account:account_name:container">
-                    <th>Account Name</th>
+                    <th><label for="account_name">Account Name</label></th>
                     <td>
-                        <input name="account:account_name" type="text" id="autoedit:account:account_name" />
+                        <input name="account:account_name" type="text" value="" id="autoedit:account:account_name" />
                         <span id="autoedit:account:account_name:error"></span>
                     </td>
                 </tr>
                 <tr class="even" id="autoedit:account:account_number:container">
-                  <th>Account Number</th>
+                  <th><label for="account_number">Account Number</label></th>
                   <td>
-                    <input name="account:account_number" type="text" id="autoedit:account:account_number" />
+                    <input name="account:account_number" type="text" value="" id="autoedit:account:account_number" />
                     <span id="autoedit:account:account_number:error"></span>
                   </td>
                 </tr>
@@ -2310,26 +2310,26 @@ class NonRequiredOneToOneRelationT(WidgetTest):
     <span class="error"></span>
     <table id="autoedit">
     <tr class="odd required" id="autoedit:name:container">
-        <th>Name</th>
+        <th><label for="name">Name</label></th>
         <td>
             <input name="dbformpage_d:name" type="text" value="bob1" id="autoedit:name" />
             <span id="autoedit:name:error"></span>
         </td>
     </tr><tr class="even" id="autoedit:account:fieldset:container">
-        <th>Account</th>
+        <th><label for="account">Account</label></th>
         <td>
             <fieldset id="autoedit:account:fieldset">
                 <legend></legend>
                 <table id="autoedit:account">
                 <tr class="odd" id="autoedit:account:account_name:container">
-                    <th>Account Name</th>
+                    <th><label for="account_name">Account Name</label></th>
                     <td>
                         <input name="account:account_name" type="text" value="account1" id="autoedit:account:account_name" />
                         <span id="autoedit:account:account_name:error"></span>
                     </td>
                 </tr>
                 <tr class="even" id="autoedit:account:account_number:container">
-                  <th>Account Number</th>
+                  <th><label for="account_number">Account Number</label></th>
                   <td>
                     <input name="account:account_number" type="text" value="number1" id="autoedit:account:account_number" />
                     <span id="autoedit:account:account_number:error"></span>
@@ -2349,7 +2349,7 @@ class NonRequiredOneToOneRelationT(WidgetTest):
     </table>
     <input type="submit" value="Save" />
 </form></body>
-</html> 
+</html>
 """)
 
     def test_request_post_redirect(self):
@@ -2375,28 +2375,28 @@ class NonRequiredOneToOneRelationT(WidgetTest):
     <span class="error"></span>
     <table id="autoedit">
     <tr class="odd required" id="autoedit:name:container">
-        <th>Name</th>
+        <th><label for="name">Name</label></th>
         <td>
-            <input name="dbformpage_d:name" type="text" id="autoedit:name" />
+            <input name="dbformpage_d:name" type="text" value="" id="autoedit:name" />
             <span id="autoedit:name:error"></span>
         </td>
     </tr><tr class="even" id="autoedit:account:fieldset:container">
-        <th>Account</th>
+        <th><label for="account">Account</label></th>
         <td>
             <fieldset id="autoedit:account:fieldset">
                 <legend></legend>
                 <table id="autoedit:account">
                 <tr class="odd" id="autoedit:account:account_name:container">
-                  <th>Account Name</th>
+                  <th><label for="account_name">Account Name</label></th>
                   <td>
-                      <input name="account:account_name" type="text" id="autoedit:account:account_name" />
+                      <input name="account:account_name" type="text" value="" id="autoedit:account:account_name" />
                       <span id="autoedit:account:account_name:error"></span>
                   </td>
                 </tr>
                 <tr class="even" id="autoedit:account:account_number:container">
-                  <th>Account Number</th>
+                  <th><label for="account_number">Account Number</label></th>
                   <td>
-                    <input name="account:account_number" type="text" id="autoedit:account:account_number" />
+                    <input name="account:account_number" type="text" value="" id="autoedit:account:account_number" />
                     <span id="autoedit:account:account_number:error"></span>
                   </td>
                 </tr>
@@ -2429,26 +2429,26 @@ class NonRequiredOneToOneRelationT(WidgetTest):
   <span class="error"></span>
   <table id="autoedit">
   <tr class="odd required error" id="autoedit:name:container">
-    <th>Name</th>
+    <th><label for="name">Name</label></th>
     <td>
         <input name="dbformpage_d:name" type="text" value="" id="autoedit:name" />
         <span id="autoedit:name:error">Enter a value</span>
     </td>
   </tr>
   <tr class="even" id="autoedit:account:fieldset:container">
-    <th>Account</th>
+    <th><label for="account">Account</label></th>
     <td>
       <fieldset id="autoedit:account:fieldset">
         <legend></legend>
         <table id="autoedit:account">
         <tr class="odd" id="autoedit:account:account_name:container">
-          <th>Account Name</th>
+        <th><label for="account_name">Account Name</label></th>
           <td>
               <input name="account:account_name" type="text" value="" id="autoedit:account:account_name" />
               <span id="autoedit:account:account_name:error"></span>
           </td>
         </tr><tr class="even" id="autoedit:account:account_number:container">
-          <th>Account Number</th>
+          <th><label for="account_number">Account Number</label></th>
           <td>
               <input name="account:account_number" type="text" value="" id="autoedit:account:account_number" />
               <span id="autoedit:account:account_number:error"></span>
@@ -2486,25 +2486,25 @@ class NonRequiredOneToOneRelationT(WidgetTest):
   <span class="error"></span>
   <table id="autoedit">
   <tr class="odd required" id="autoedit:name:container">
-      <th>Name</th>
+      <th><label for="name">Name</label></th>
       <td>
           <input name="dbformpage_d:name" type="text" value="name2" id="autoedit:name" />
           <span id="autoedit:name:error"></span>
       </td>
   </tr><tr class="even" id="autoedit:account:fieldset:container">
-      <th>Account</th>
+      <th><label for="account">Account</label></th>
       <td>
         <fieldset id="autoedit:account:fieldset">
           <legend></legend>
           <table id="autoedit:account">
           <tr class="odd" id="autoedit:account:account_name:container">
-              <th>Account Name</th>
+              <th><label for="account_name">Account Name</label></th>
               <td>
                   <input name="account:account_name" type="text" value="account2" id="autoedit:account:account_name" />
                   <span id="autoedit:account:account_name:error"></span>
               </td>
           </tr><tr class="even error" id="autoedit:account:account_number:container">
-              <th>Account Number</th>
+              <th><label for="account_number">Account Number</label></th>
               <td>
                   <input name="account:account_number" type="text" value="" id="autoedit:account:account_number" />
                   <span id="autoedit:account:account_number:error">Enter a value</span>
@@ -2660,13 +2660,13 @@ class AutoTableFormAsChildT(WidgetTest):
     <span class="error"></span>
     <table id="autotable">
     <tr class="odd" id="autotable:nick:container">
-        <th>Nick</th>
+        <th><label for="nick">Nick</label></th>
         <td>
             <input name="dbformpage_d:nick" type="text" id="autotable:nick" />
             <span id="autotable:nick:error"></span>
         </td>
     </tr><tr class="even required" id="autotable:other:container">
-        <th>Other</th>
+        <th><label for="other">Other</label></th>
         <td>
             <select id="autotable:other" name="dbformpage_d:other">
                 <option></option>
@@ -2700,13 +2700,13 @@ class AutoTableFormAsChildT(WidgetTest):
     <span class="error"></span>
     <table id="autotable">
     <tr class="odd" id="autotable:nick:container">
-        <th>Nick</th>
+        <th><label for="nick">Nick</label></th>
         <td>
             <input name="dbformpage_d:nick" type="text" id="autotable:nick" />
             <span id="autotable:nick:error"></span>
         </td>
     </tr><tr class="even required" id="autotable:other:container">
-        <th>Other</th>
+        <th><label for="other">Other</label></th>
         <td>
             <select id="autotable:other" name="dbformpage_d:other">
                 <option></option>
@@ -2749,15 +2749,15 @@ class AutoTableFormAsChildT(WidgetTest):
     <span class="error"></span>
     <table id="autotable">
     <tr class="odd"  id="autotable:nick:container">
-        <th>Nick</th>
+        <th><label for="nick">Nick</label></th>
         <td >
             <input name="dbformpage_d:nick" type="text" id="autotable:nick" value="bob1"/>
-            
+
             <span id="autotable:nick:error"></span>
         </td>
     </tr>
     <tr class="even required"  id="autotable:other:container">
-        <th>Other</th>
+        <th><label for="other">Other</label></th>
         <td >
             <select name="dbformpage_d:other" id="autotable:other">
                 <option ></option>
@@ -2805,15 +2805,15 @@ class AutoTableFormAsChildT(WidgetTest):
      <span class="error"></span>
     <table id="autotable">
     <tr class="odd"  id="autotable:nick:container">
-        <th>Nick</th>
+        <th><label for="nick">Nick</label></th>
         <td >
             <input name="dbformpage_d:nick" type="text" id="autotable:nick" value="toto1"/>
-            
+
             <span id="autotable:nick:error"></span>
         </td>
     </tr>
     <tr class="even required error"  id="autotable:other:container">
-        <th>Other</th>
+        <th><label for="other">Other</label></th>
         <td >
             <select name="dbformpage_d:other" id="autotable:other">
                 <option ></option>
@@ -2849,15 +2849,15 @@ class AutoTableFormAsChildT(WidgetTest):
     <span class="error"></span>
     <table id="autotable">
     <tr class="odd"  id="autotable:nick:container">
-        <th>Nick</th>
+        <th><label for="nick">Nick</label></th>
         <td >
             <input name="dbformpage_d:nick" type="text" id="autotable:nick" value="toto1"/>
-            
+
             <span id="autotable:nick:error"></span>
         </td>
     </tr>
     <tr class="even required error"  id="autotable:other:container">
-        <th>Other</th>
+        <th><label for="other">Other</label></th>
         <td >
             <select name="dbformpage_d:other" id="autotable:other">
                 <option ></option>
@@ -2930,13 +2930,13 @@ class FormPageRequiredCheckboxT(WidgetTest):
     <span class="error"></span>
     <table id="dbformpage_d">
     <tr class="odd" id="dbformpage_d:name:container">
-        <th>Name</th>
+        <th><label for="name">Name</label></th>
         <td>
             <input name="dbformpage_d:name" id="dbformpage_d:name" type="text" />
             <span id="dbformpage_d:name:error"></span>
         </td>
     </tr><tr class="even required" id="dbformpage_d:others:container">
-        <th>Others</th>
+        <th><label for="others">Others</label></th>
         <td>
             <ul id="dbformpage_d:others">
             <li>
@@ -2960,8 +2960,8 @@ class FormPageRequiredCheckboxT(WidgetTest):
     </table>
     <input type="submit" value="Save" />
 </form></body>
-</html> 
-"""    
+</html>
+"""
     def test_request_post_redirect(self):
         environ = {'wsgi.input': StringIO('')}
         req=Request(environ)
@@ -2986,15 +2986,15 @@ class FormPageRequiredCheckboxT(WidgetTest):
     <span class="error"></span>
     <table id="dbformpage_d">
     <tr class="odd"  id="dbformpage_d:name:container">
-        <th>Name</th>
+        <th><label for="name">Name</label></th>
         <td >
-            <input name="dbformpage_d:name" type="text" id="dbformpage_d:name" value="foo1"/>
-            
+            <input name="dbformpage_d:name" type="text" value="" id="dbformpage_d:name" value="foo1"/>
+
             <span id="dbformpage_d:name:error"></span>
         </td>
     </tr>
     <tr class="even required"  id="dbformpage_d:others:container">
-        <th>Others</th>
+        <th><label for="others">Others</label></th>
         <td >
             <ul id="dbformpage_d:others">
                 <li>
@@ -3053,15 +3053,15 @@ class FormPageRequiredCheckboxT(WidgetTest):
     <span class="error"></span>
     <table id="dbformpage_d">
     <tr class="odd"  id="dbformpage_d:name:container">
-        <th>Name</th>
+        <th><label for="name">Name</label></th>
         <td >
-            <input name="dbformpage_d:name" type="text" id="dbformpage_d:name" value="toto1"/>
-            
+            <input name="dbformpage_d:name" type="text" value="" id="dbformpage_d:name" value="toto1"/>
+
             <span id="dbformpage_d:name:error"></span>
         </td>
     </tr>
     <tr class="even required error"  id="dbformpage_d:others:container">
-        <th>Others</th>
+        <th><label for="others">Others</label></th>
         <td >
             <ul id="dbformpage_d:others">
                 <li>
@@ -3108,15 +3108,15 @@ class FormPageRequiredCheckboxT(WidgetTest):
      <span class="error"></span>
     <table id="dbformpage_d">
     <tr class="odd"  id="dbformpage_d:name:container">
-        <th>Name</th>
+        <th><label for="name">Name</label></th>
         <td >
-            <input name="dbformpage_d:name" type="text" id="dbformpage_d:name" value="toto1"/>
-            
+            <input name="dbformpage_d:name" type="text" value="" id="dbformpage_d:name" value="toto1"/>
+
             <span id="dbformpage_d:name:error"></span>
         </td>
     </tr>
     <tr class="even required error"  id="dbformpage_d:others:container">
-        <th>Others</th>
+        <th><label for="others">Others</label></th>
         <td >
             <ul id="dbformpage_d:others">
                 <li>
@@ -3238,7 +3238,7 @@ class DbLinkFieldT(WidgetTest):
   <span class="error"></span>
   <table>
   <tr class="odd"  id="edit:container">
-      <th>Edit</th>
+      <th><label for="edit">Edit</label></th>
       <td>
           <a href="/test/fred" id="edit">fred</a>
           <span id="edit:error"></span>
