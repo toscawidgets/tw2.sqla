@@ -85,6 +85,22 @@ class ElixirBase(object):
             def __unicode__(self):
                 return self.name
 
+        class DbTestCls11(el.Entity):
+            account_name = el.Field(el.String, required=True)
+            account_number = el.Field(el.String, required=True)
+            user = el.OneToOne('DbTestCls12', inverse='account')
+            def __unicode__(self):
+                return self.account_name
+
+        class DbTestCls12(el.Entity):
+            name = el.Field(el.String, required=True)
+            account_id = el.Field(el.Integer, required=False)
+            account = el.ManyToOne(DbTestCls11, field=account_id,
+                                   inverse='user', uselist=False)
+            def __unicode__(self):
+                return self.name
+
+
         self.DbTestCls1 = DbTestCls1
         self.DbTestCls2 = DbTestCls2
         self.DbTestCls3 = DbTestCls3
@@ -95,6 +111,8 @@ class ElixirBase(object):
         self.DbTestCls8 = DbTestCls8
         self.DbTestCls9 = DbTestCls9
         self.DbTestCls10 = DbTestCls10
+        self.DbTestCls11 = DbTestCls11
+        self.DbTestCls12 = DbTestCls12
 
         el.setup_all()
         el.metadata.create_all()
@@ -121,6 +139,11 @@ class ElixirBase(object):
         bob1 = self.DbTestCls9(id=1, name='bob1', account_id=2)
         assert(self.DbTestCls8.query.first().user == bob1)
         assert(self.DbTestCls9.query.first().account == account1)
+        account1 = self.DbTestCls11(
+            id=2, account_name='account1', account_number='number1')
+        bob1 = self.DbTestCls12(id=1, name='bob1', account_id=2)
+        assert(self.DbTestCls11.query.first().user == bob1)
+        assert(self.DbTestCls12.query.first().account == account1)
         transaction.commit()
 
         return super(ElixirBase, self).setup()
@@ -206,6 +229,23 @@ class SQLABase(object):
             def __unicode__(self):
                 return self.name
 
+        class DbTestCls11(Base):
+            __tablename__ = 'Test11'
+            id = sa.Column(sa.Integer, primary_key=True)
+            account_name = sa.Column(sa.String(50), nullable=False)
+            account_number = sa.Column(sa.String(50), nullable=False)
+            def __unicode__(self):
+                return self.account_name
+        class DbTestCls12(Base):
+            __tablename__ = 'Test12'
+            id = sa.Column(sa.Integer, primary_key=True)
+            name = sa.Column(sa.String(50), nullable=False)
+            account_id = sa.Column(sa.Integer, sa.ForeignKey('Test11.id'),
+                                   nullable=True)
+            account = sa.orm.relation(DbTestCls11, backref=sa.orm.backref('user', uselist=False))
+            def __unicode__(self):
+                return self.name
+
 
         self.DbTestCls1 = DbTestCls1
         self.DbTestCls2 = DbTestCls2
@@ -217,6 +257,8 @@ class SQLABase(object):
         self.DbTestCls8 = DbTestCls8
         self.DbTestCls9 = DbTestCls9
         self.DbTestCls10 = DbTestCls10
+        self.DbTestCls11 = DbTestCls11
+        self.DbTestCls12 = DbTestCls12
 
         Base.metadata.create_all()
 
@@ -248,6 +290,13 @@ class SQLABase(object):
         self.session.add(bob1)
         assert(self.DbTestCls8.query.first().user == bob1)
         assert(self.DbTestCls9.query.first().account == account1)
+        account1 = self.DbTestCls11(
+            id=2, account_name='account1', account_number='number1')
+        self.session.add(account1)
+        bob1 = self.DbTestCls12(id=1, name='bob1', account_id=2)
+        self.session.add(bob1)
+        assert(self.DbTestCls11.query.first().user == bob1)
+        assert(self.DbTestCls12.query.first().account == account1)
         transaction.commit()
 
         return super(SQLABase, self).setup()
@@ -564,7 +613,7 @@ class ListPageT(WidgetTest):
                 <tr><th>Name</th><th>Edit</th></tr>
                 <tr id="dblistpage_d:0" class="odd">
                 <td>
-                    <span>foo1<input type="hidden" name="name" value="foo1" id="dblistpage_d:0:name"/></span>
+                    <span>foo1<input type="hidden" name="dblistpage_d:0:name" value="foo1" id="dblistpage_d:0:name"/></span>
                 </td>
                 <td>
                     <a href="foo?id=1" id="dblistpage_d:0:id">Edit</a>
@@ -574,7 +623,7 @@ class ListPageT(WidgetTest):
             </tr>
             <tr id="dblistpage_d:1" class="even">
                 <td>
-                    <span>foo2<input type="hidden" name="name" value="foo2" id="dblistpage_d:1:name"/></span>
+                    <span>foo2<input type="hidden" name="dblistpage_d:1:name" value="foo2" id="dblistpage_d:1:name"/></span>
                 </td>
                 <td>
                     <a href="foo?id=2" id="dblistpage_d:1:id">Edit</a>
@@ -614,7 +663,7 @@ class FormPageT(WidgetTest):
      <span class="error"></span>
     <table id="dbformpage_d">
     <tr class="odd" id="dbformpage_d:name:container">
-        <th>Name</th>
+        <th><label for="name">Name</label></th>
         <td>
             <input name="dbformpage_d:name" id="dbformpage_d:name" type="text">
             <span id="dbformpage_d:name:error"></span>
@@ -645,7 +694,7 @@ class FormPageT(WidgetTest):
      <span class="error"></span>
     <table id="dbformpage_d">
     <tr class="odd" id="dbformpage_d:name:container">
-        <th>Name</th>
+        <th><label for="name">Name</label></th>
         <td>
             <input name="dbformpage_d:name" value="foo1" id="dbformpage_d:name" type="text">
             <span id="dbformpage_d:name:error"></span>
@@ -684,7 +733,7 @@ class FormPageT(WidgetTest):
      <span class="error"></span>
     <table id="dbformpage_d">
     <tr class="odd" id="dbformpage_d:name:container">
-        <th>Name</th>
+        <th><label for="name">Name</label></th>
         <td>
             <input name="dbformpage_d:name" value="foo2" id="dbformpage_d:name" type="text">
             <span id="dbformpage_d:name:error"></span>
@@ -715,7 +764,7 @@ class FormPageT(WidgetTest):
      <span class="error"></span>
     <table id="dbformpage_d">
     <tr class="odd" id="dbformpage_d:name:container">
-        <th>Name</th>
+        <th><label for="name">Name</label></th>
         <td>
             <input name="dbformpage_d:name" id="dbformpage_d:name" type="text">
             <span id="dbformpage_d:name:error"></span>
@@ -854,18 +903,18 @@ class ListFormT(WidgetTest):
     <tr><th>Name</th></tr>
     <tr id="dblistform_d:0" class="odd">
     <td>
-        <input name="name" value="foo1" id="dblistform_d:0:name" type="text">
+        <input name="dblistform_d:0:name" value="foo1" id="dblistform_d:0:name" type="text">
     </td>
     <td>
-        <input name="id" type="hidden" id="dblistform_d:0:id" value="1">
+        <input name="dblistform_d:0:id" type="hidden" id="dblistform_d:0:id" value="1">
     </td>
 </tr>
 <tr id="dblistform_d:1" class="even">
     <td>
-        <input name="name" value="foo2" id="dblistform_d:1:name" type="text">
+        <input name="dblistform_d:1:name" value="foo2" id="dblistform_d:1:name" type="text">
     </td>
     <td>
-        <input name="id" type="hidden" id="dblistform_d:1:id" value="2">
+        <input name="dblistform_d:1:id" type="hidden" id="dblistform_d:1:id" value="2">
     </td>
 </tr>
     <tr class="error"><td colspan="2" id="dblistform_d:error">
@@ -901,18 +950,18 @@ class ListFormT(WidgetTest):
     <tr><th>Name</th></tr>
     <tr id="dblistform_d:0" class="odd">
     <td>
-        <input name="name" value="foo1" id="dblistform_d:0:name" type="text">
+        <input name="dblistform_d:0:name" value="foo1" id="dblistform_d:0:name" type="text">
     </td>
     <td>
-        <input name="id" type="hidden" id="dblistform_d:0:id" value="1">
+        <input name="dblistform_d:0:id" type="hidden" id="dblistform_d:0:id" value="1">
     </td>
 </tr>
 <tr id="dblistform_d:1" class="even">
     <td>
-        <input name="name" value="foo2" id="dblistform_d:1:name" type="text">
+        <input name="dblistform_d:1:name" value="foo2" id="dblistform_d:1:name" type="text">
     </td>
     <td>
-        <input name="id" type="hidden" id="dblistform_d:1:id" value="2">
+        <input name="dblistform_d:1:id" type="hidden" id="dblistform_d:1:id" value="2">
     </td>
 </tr>
     <tr class="error"><td colspan="2" id="dblistform_d:error">
@@ -1111,7 +1160,7 @@ class AutoListPageT(WidgetTest):
     <tr><th>Name</th><th>Others</th></tr>
     <tr id="0" class="odd">
     <td>
-        <input type="text" name="name" value="foo1" id="0:name"/>
+        <input type="text" name="0:name" value="foo1" id="0:name"/>
     </td>
     <td>
       <div id="0:others">
@@ -1120,7 +1169,7 @@ class AutoListPageT(WidgetTest):
     </td><td></td></tr>
 <tr id="1" class="even">
     <td>
-        <input type="text" name="name" value="foo2" id="1:name"/>
+        <input type="text" name="1:name" value="foo2" id="1:name"/>
     </td><td>
       <div id="1:others">
       </div>
@@ -1148,7 +1197,7 @@ class AutoListPageT(WidgetTest):
     <tr><th>Name</th><th>Others</th></tr>
     <tr id="autolistpage_d:0" class="odd">
     <td>
-        <span>foo1<input name="name" type="hidden" id="autolistpage_d:0:name" value="foo1"></span>
+        <span>foo1<input name="autolistpage_d:0:name" type="hidden" id="autolistpage_d:0:name" value="foo1"></span>
     </td>
     <td>
       <div id="autolistpage_d:0:others">
@@ -1160,7 +1209,7 @@ class AutoListPageT(WidgetTest):
 </tr>
 <tr id="autolistpage_d:1" class="even">
     <td>
-        <span>foo2<input name="name" type="hidden" id="autolistpage_d:1:name" value="foo2"></span>
+        <span>foo2<input name="autolistpage_d:1:name" type="hidden" id="autolistpage_d:1:name" value="foo2"></span>
     </td>
     <td>
       <div id="autolistpage_d:1:others">
@@ -1200,7 +1249,7 @@ class AutoListPageOneToOneRelationT(WidgetTest):
         </td></tr>
     </table>
     </body>
-    </html> 
+    </html>
     """
 
     declarative = True
@@ -1220,17 +1269,17 @@ class AutoListPageOneToOneRelationT(WidgetTest):
             <tr><th>Name</th><th>Account</th></tr>
             <tr id="autolistpage_d:0" class="odd">
             <td>
-                <span>bob1<input type="hidden" name="name" value="bob1" id="autolistpage_d:0:name"/></span>
+                <span>bob1<input type="hidden" name="autolistpage_d:0:name" value="bob1" id="autolistpage_d:0:name"/></span>
             </td>
             <td>
                 <fieldset id="autolistpage_d:0:account:fieldset">
                     <legend></legend>
                     <table id="autolistpage_d:0:account">
                     <tr class="odd required"  id="autolistpage_d:0:account:account_name:container">
-                        <th>Account Name</th>
+                        <th><label for="account_name">Account Name</label></th>
                         <td >
                             <span>account1<input type="hidden" name="account:account_name" value="account1" id="autolistpage_d:0:account:account_name"/></span>
-                            
+
                             <span id="autolistpage_d:0:account:account_name:error"></span>
                         </td>
                     </tr>
@@ -1269,14 +1318,14 @@ class AutoTableFormT1(WidgetTest):
      <span class="error"></span>
     <table id="foo_form">
     <tr class="odd" id="foo_form:name:container">
-        <th>Name</th>
+        <th><label for="name">Name</label></th>
         <td>
             <input name="foo_form:name" id="foo_form:name" type="text">
             <span id="foo_form:name:error"></span>
         </td>
         </tr>
     <tr class="even" id="foo_form:others:container">
-        <th>Others</th>
+        <th><label for="others">Others</label></th>
         <td>
             <ul id="foo_form:others">
                 <li>
@@ -1318,14 +1367,14 @@ class AutoTableFormT2(WidgetTest):
      <span class="error"></span>
     <table id="foo_form">
     <tr class="odd"  id="foo_form:nick:container">
-        <th>Nick</th>
+        <th><label for="nick">Nick</label></th>
         <td >
             <input name="foo_form:nick" type="text" id="foo_form:nick"/>
             <span id="foo_form:nick:error"></span>
         </td>
     </tr>
      <tr class="even"  id="foo_form:other:container">
-        <th>Other</th>
+        <th><label for="other">Other</label></th>
         <td >
             <select name="foo_form:other" id="foo_form:other">
          <option ></option>
@@ -1361,13 +1410,13 @@ class AutoTableFormT4(WidgetTest):
         <span class="error"></span>
         <table id="foo_form">
             <tr class="odd" id="foo_form:surname:container">
-                <th>Surname</th>
+                <th><label for="surname">Surname</label></th>
                 <td>
                     <input name="foo_form:surname" id="foo_form:surname" type="text" />
                     <span id="foo_form:surname:error"></span>
                 </td>
             </tr><tr class="even" id="foo_form:roles:container">
-                <th>Roles</th>
+                <th><label for="roles">Roles</label></th>
                 <td>
                     <ul id="foo_form:roles">
                         <li>
@@ -1411,13 +1460,13 @@ class AutoTableFormT5(WidgetTest):
         <span class="error"></span>
         <table id="foo_form">
         <tr class="odd" id="foo_form:rolename:container">
-            <th>Rolename</th>
+            <th><label for="rolename">Rolename</label></th>
             <td>
                 <input name="foo_form:rolename" id="foo_form:rolename" type="text" />
                 <span id="foo_form:rolename:error"></span>
             </td>
         </tr><tr class="even" id="foo_form:users:container">
-            <th>Users</th>
+            <th><label for="users">Users</label></th>
             <td>
                 <ul id="foo_form:users">
                     <li>
@@ -1457,14 +1506,14 @@ class AutoTableFormT6(WidgetTest):
     <span class="error"></span>
     <table id="foo_form">
     <tr class="odd" id="foo_form:name:container">
-        <th>Name</th>
+        <th><label for="name">Name</label></th>
         <td>
             <input name="foo_form:name" id="foo_form:name" type="text">
             <span id="foo_form:name:error"></span>
         </td>
         </tr>
     <tr class="even" id="foo_form:others:container">
-        <th>Others</th>
+        <th><label for="others">Others</label></th>
         <td>
             <ul id="foo_form:others">
                 <li>
@@ -1503,14 +1552,14 @@ class AutoTableFormT7(WidgetTest):
     <span class="error"></span>
     <table id="foo_form">
     <tr class="odd"  id="foo_form:nick:container">
-        <th>Nick</th>
+        <th><label for="nick">Nick</label></th>
         <td >
             <input name="foo_form:nick" type="text" id="foo_form:nick"/>
             <span id="foo_form:nick:error"></span>
         </td>
     </tr>
      <tr class="even required"  id="foo_form:other:container">
-        <th>Other</th>
+        <th><label for="other">Other</label></th>
         <td >
             <select name="foo_form:other" id="foo_form:other">
          <option ></option>
@@ -1561,7 +1610,7 @@ class AutoViewGridT(WidgetTest):
 </tr>
 <tr id="autogrid:0" class="odd">
   <td>
-    <span>foo1<input type="hidden" name="name" value="foo1" id="autogrid:0:name"/></span>
+    <span>foo1<input type="hidden" name="autogrid:0:name" value="foo1" id="autogrid:0:name"/></span>
   </td>
   <td>
     <div id="autogrid:0:others">
@@ -1577,7 +1626,7 @@ class AutoViewGridT(WidgetTest):
 </tr>
 <tr id="autogrid:1" class="even">
   <td>
-    <span>foo2<input type="hidden" name="name" value="foo2" id="autogrid:1:name"/></span>
+    <span>foo2<input type="hidden" name="autogrid:1:name" value="foo2" id="autogrid:1:name"/></span>
   </td>
   <td>
     <div id="autogrid:1:others">
@@ -1608,7 +1657,7 @@ class AutoViewGridT(WidgetTest):
 </tr>
 <tr id="autogrid:0" class="odd">
   <td>
-    <span>foo1<input type="hidden" name="name" value="foo1" id="autogrid:0:name"/></span>
+    <span>foo1<input type="hidden" name="autogrid:0:name" value="foo1" id="autogrid:0:name"/></span>
   </td>
   <td>
     <div id="autogrid:0:others">
@@ -1624,7 +1673,7 @@ class AutoViewGridT(WidgetTest):
 </tr>
 <tr id="autogrid:1" class="even">
   <td>
-    <span>foo2<input type="hidden" name="name" value="foo2" id="autogrid:1:name"/></span>
+    <span>foo2<input type="hidden" name="autogrid:1:name" value="foo2" id="autogrid:1:name"/></span>
   </td>
   <td>
     <div id="autogrid:1:others">
@@ -1662,7 +1711,7 @@ class AutoGrowingGridT(WidgetTest):
         </tr>
         <tr style="display:none;" id="autogrid:0" class="odd">
         <td>
-            <input name="name" type="text" id="autogrid:0:name" onchange="twd_grow_add(this);" />
+            <input name="autogrid:0:name" type="text" id="autogrid:0:name" onchange="twd_grow_add(this);" />
         </td><td>
             <ul onchange="twd_grow_add(this);" id="autogrid:0:others">
                 <li>
@@ -1677,13 +1726,13 @@ class AutoGrowingGridT(WidgetTest):
                 </li>
             </ul>
         </td><td>
-            <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" name="del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image" id="autogrid:0:del" />
+            <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" value="" name="autogrid:0:del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image" id="autogrid:0:del" />
         </td>
         <td>
         </td>
     </tr><tr id="autogrid:1" class="even">
         <td>
-            <input name="name" type="text" id="autogrid:1:name" onchange="twd_grow_add(this);" />
+            <input name="autogrid:1:name" type="text" id="autogrid:1:name" onchange="twd_grow_add(this);" />
         </td><td>
             <ul onchange="twd_grow_add(this);" id="autogrid:1:others">
                 <li>
@@ -1698,7 +1747,7 @@ class AutoGrowingGridT(WidgetTest):
                 </li>
             </ul>
         </td><td>
-            <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" name="del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image" id="autogrid:1:del" />
+            <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" value="" name="autogrid:1:del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image" id="autogrid:1:del" />
         </td>
         <td>
         </td>
@@ -1730,7 +1779,7 @@ class AutoGrowingGridAsChildT(WidgetTest):
         </tr>
         <tr style="display:none;" id="autogrid:0" class="odd">
         <td>
-            <input name="name" id="autogrid:0:name" onchange="twd_grow_add(this);" type="text" />
+            <input name="autogrid:0:name" id="autogrid:0:name" onchange="twd_grow_add(this);" type="text" />
         </td><td>
             <ul onchange="twd_grow_add(this);" id="autogrid:0:others">
                 <li>
@@ -1745,13 +1794,13 @@ class AutoGrowingGridAsChildT(WidgetTest):
                 </li>
             </ul>
         </td><td>
-            <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" name="del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image" id="autogrid:0:del" />
+        <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" value="" name="autogrid:0:del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image" id="autogrid:0:del" />
         </td>
         <td>
         </td>
     </tr><tr id="autogrid:1" class="even">
         <td>
-            <input name="name" id="autogrid:1:name" onchange="twd_grow_add(this);" type="text" />
+            <input name="autogrid:1:name" id="autogrid:1:name" onchange="twd_grow_add(this);" type="text" />
         </td><td>
             <ul onchange="twd_grow_add(this);" id="autogrid:1:others">
                 <li>
@@ -1766,7 +1815,7 @@ class AutoGrowingGridAsChildT(WidgetTest):
                 </li>
             </ul>
         </td><td>
-            <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" name="del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image" id="autogrid:1:del" />
+            <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" value="" name="autogrid:1:del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image" id="autogrid:1:del" />
         </td>
         <td>
         </td>
@@ -1798,27 +1847,27 @@ class AutoGrowingGridAsChildWithRelationshipT(WidgetTest):
         </tr>
         <tr style="display:none;" id="others:0" class="odd">
         <td>
-        <input name="nick" id="others:0:nick" onchange="twd_grow_add(this);" type="text">
+        <input name="others:0:nick" id="others:0:nick" onchange="twd_grow_add(this);" type="text">
         </td>
         <td>
-        <select onchange="twd_grow_add(this);" id="others:0:other" name="other">
+        <select onchange="twd_grow_add(this);" id="others:0:other" name="others:0:other">
         <option></option><option value="1">foo1</option><option value="2">foo2</option>
 </select>
         </td><td>
-            <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" name="del" id="others:0:del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image">
+        <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" value="" name="others:0:del" id="others:0:del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image">
         </td>
         <td>
         </td>
     </tr><tr id="others:1" class="even">
         <td>
-        <input name="nick" id="others:1:nick" onchange="twd_grow_add(this);" type="text">
+        <input name="others:1:nick" id="others:1:nick" onchange="twd_grow_add(this);" type="text">
         </td>
         <td>
-        <select onchange="twd_grow_add(this);" id="others:1:other" name="other">
+        <select onchange="twd_grow_add(this);" id="others:1:other" name="others:1:other">
         <option></option><option value="1">foo1</option><option value="2">foo2</option>
 </select>
         </td><td>
-            <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" name="del" id="others:1:del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image">
+            <input src="/resources/tw2.dynforms.widgets/static/del.png" style="display:none;" value="" name="others:1:del" id="others:1:del" onclick="twd_grow_del(this); return false;" alt="Delete row" type="image">
         </td>
         <td>
         </td>
@@ -1846,21 +1895,21 @@ class AutoEditRelationInTableT(WidgetTest):
      <span class="error"></span>
     <table id="something">
     <tr class="odd" id="something:name:container">
-        <th>Name</th>
+        <th><label for="name">Name</label></th>
         <td>
             <input name="something:name" type="text" id="something:name" />
             <span id="something:name:error"></span>
         </td>
     </tr><tr class="even required" id="something:account:fieldset:container">
-        <th>Account</th>
+        <th><label for="account">Account</label></th>
         <td>
             <fieldset id="something:account:fieldset">
     <legend></legend>
     <table id="something:account">
     <tr class="odd required" id="something:account:account_name:container">
-        <th>Account Name</th>
+        <th><label for="account_name">Account Name</label></th>
         <td>
-            <input name="account:account_name" type="text" id="something:account:account_name" />
+            <input name="account:account_name" type="text" value="" id="something:account:account_name" />
             <span id="something:account:account_name:error"></span>
         </td>
     </tr>
@@ -1925,21 +1974,21 @@ class AutoEditRelationInFormT(WidgetTest):
     <span class="error"></span>
     <table id="autoedit">
     <tr class="odd" id="autoedit:name:container">
-        <th>Name</th>
+        <th><label for="name">Name</label></th>
         <td>
             <input name="dbformpage_d:name" type="text" id="autoedit:name" />
             <span id="autoedit:name:error"></span>
         </td>
     </tr><tr class="even required" id="autoedit:account:fieldset:container">
-        <th>Account</th>
+        <th><label for="account">Account</label></th>
         <td>
             <fieldset id="autoedit:account:fieldset">
                 <legend></legend>
                 <table id="autoedit:account">
                 <tr class="odd required" id="autoedit:account:account_name:container">
-                    <th>Account Name</th>
+                    <th><label for="account_name">Account Name</label></th>
                     <td>
-                        <input name="account:account_name" type="text" id="autoedit:account:account_name" />
+                        <input name="account:account_name" type="text" value="" id="autoedit:account:account_name" />
                         <span id="autoedit:account:account_name:error"></span>
                     </td>
                 </tr>
@@ -1957,8 +2006,8 @@ class AutoEditRelationInFormT(WidgetTest):
     </table>
     <input type="submit" value="Save" />
 </form></body>
-</html> 
-"""    
+</html>
+"""
 
     declarative = True
     def test_request_get_edit(self):
@@ -1973,19 +2022,19 @@ class AutoEditRelationInFormT(WidgetTest):
     <span class="error"></span>
     <table id="autoedit">
     <tr class="odd" id="autoedit:name:container">
-        <th>Name</th>
+        <th><label for="name">Name</label></th>
         <td>
             <input name="dbformpage_d:name" type="text" value="bob1" id="autoedit:name" />
             <span id="autoedit:name:error"></span>
         </td>
     </tr><tr class="even required" id="autoedit:account:fieldset:container">
-        <th>Account</th>
+        <th><label for="account">Account</label></th>
         <td>
             <fieldset id="autoedit:account:fieldset">
                 <legend></legend>
                 <table id="autoedit:account">
                 <tr class="odd required" id="autoedit:account:account_name:container">
-                    <th>Account Name</th>
+                    <th><label for="account_name">Account Name</label></th>
                     <td>
                         <input name="account:account_name" type="text" value="account1" id="autoedit:account:account_name" />
                         <span id="autoedit:account:account_name:error"></span>
@@ -2005,7 +2054,7 @@ class AutoEditRelationInFormT(WidgetTest):
     </table>
     <input type="submit" value="Save" />
 </form></body>
-</html> 
+</html>
 """)
 
     def test_request_post_redirect(self):
@@ -2031,21 +2080,21 @@ class AutoEditRelationInFormT(WidgetTest):
     <span class="error"></span>
     <table id="autoedit">
     <tr class="odd" id="autoedit:name:container">
-        <th>Name</th>
+        <th><label for="name">Name</label></th>
         <td>
             <input name="dbformpage_d:name" type="text" id="autoedit:name" />
             <span id="autoedit:name:error"></span>
         </td>
     </tr><tr class="even required" id="autoedit:account:fieldset:container">
-        <th>Account</th>
+        <th><label for="account">Account</label></th>
         <td>
             <fieldset id="autoedit:account:fieldset">
                 <legend></legend>
                 <table id="autoedit:account">
                 <tr class="odd required" id="autoedit:account:account_name:container">
-                    <th>Account Name</th>
+                    <th><label for="account_name">Account Name</label></th>
                     <td>
-                        <input name="account:account_name" type="text" id="autoedit:account:account_name" />
+                        <input name="account:account_name" type="text" value="" id="autoedit:account:account_name" />
                         <span id="autoedit:account:account_name:error"></span>
                     </td>
                 </tr>
@@ -2063,8 +2112,8 @@ class AutoEditRelationInFormT(WidgetTest):
     </table>
     <input type="submit" value="Save" />
 </form></body>
-</html> 
-""")        
+</html>
+""")
 
     def _test_request_post_invalid(self):
         environ = {'REQUEST_METHOD': 'POST',
@@ -2080,8 +2129,8 @@ class AutoEditRelationInFormT(WidgetTest):
     <tr class="odd"  id="autoedit:name:container">
         <th>Name</th>
         <td >
-            <input name="autoedit:name" type="text" id="autoedit:name" value=""/>
-            
+            <input name="autoedit:name" type="text" value="" id="autoedit:name"/>
+
             <span id="autoedit:name:error"></span>
         </td>
     </tr>
@@ -2094,8 +2143,8 @@ class AutoEditRelationInFormT(WidgetTest):
                 <tr class="odd required error"  id="autoedit:account:account_name:container">
                     <th>Account Name</th>
                     <td >
-                        <input name="autoedit:account:account_name" type="text" id="autoedit:account:account_name" value=""/>
-                        
+                        <input name="autoedit:account:account_name" type="text" value="" id="autoedit:account:account_name"/>
+
                         <span id="autoedit:account:account_name:error">Enter a value</span>
                     </td>
                 </tr>
@@ -2189,6 +2238,413 @@ if el:
 class TestAutoEditRelationInFormSQLA(SQLABase, AutoEditRelationInFormT): pass
 
 
+class NonRequiredOneToOneRelationT(WidgetTest):
+
+    def setup(self):
+        self.widget = self.widget(entity=self.DbTestCls12)
+        return super(NonRequiredOneToOneRelationT, self).setup()
+
+    widget = tws.DbFormPage
+    attrs = { 'id' : 'autoedit', 'title' : 'Test',
+              'child' : tws.AutoTableForm}
+
+    expected = """
+<html>
+<head><title>Test</title></head>
+<body id="autoedit:page"><h1>Test</h1><form method="post" id="autoedit:form" enctype="multipart/form-data">
+    <span class="error"></span>
+    <table id="autoedit">
+    <tr class="odd required" id="autoedit:name:container">
+        <th><label for="name">Name</label></th>
+        <td>
+            <input name="dbformpage_d:name" type="text" value="" id="autoedit:name" />
+            <span id="autoedit:name:error"></span>
+        </td>
+    </tr><tr class="even" id="autoedit:account:fieldset:container">
+        <th><label for="account">Account</label></th>
+        <td>
+            <fieldset id="autoedit:account:fieldset">
+                <legend></legend>
+                <table id="autoedit:account">
+                <tr class="odd" id="autoedit:account:account_name:container">
+                    <th><label for="account_name">Account Name</label></th>
+                    <td>
+                        <input name="account:account_name" type="text" value="" id="autoedit:account:account_name" />
+                        <span id="autoedit:account:account_name:error"></span>
+                    </td>
+                </tr>
+                <tr class="even" id="autoedit:account:account_number:container">
+                  <th><label for="account_number">Account Number</label></th>
+                  <td>
+                    <input name="account:account_number" type="text" value="" id="autoedit:account:account_number" />
+                    <span id="autoedit:account:account_number:error"></span>
+                  </td>
+                </tr>
+                <tr class="error"><td colspan="2">
+                    <span id="autoedit:account:error"></span>
+                </td></tr>
+                </table>
+            </fieldset>
+            <span id="autoedit:account:fieldset:error"></span>
+        </td>
+    </tr>
+    <tr class="error"><td colspan="2">
+        <span id="autoedit:error"></span>
+    </td></tr>
+    </table>
+    <input type="submit" value="Save" />
+</form></body>
+</html>
+"""
+
+    declarative = True
+    def test_request_get_edit(self):
+        environ = {'REQUEST_METHOD': 'GET', 'QUERY_STRING' :'id=1'}
+        req=Request(environ)
+        assert(req.GET)
+        r = self.widget().request(req)
+        tw2test.assert_eq_xml(r.body, """
+<html>
+<head><title>Test</title></head>
+<body id="autoedit:page"><h1>Test</h1><form method="post" id="autoedit:form" enctype="multipart/form-data">
+    <span class="error"></span>
+    <table id="autoedit">
+    <tr class="odd required" id="autoedit:name:container">
+        <th><label for="name">Name</label></th>
+        <td>
+            <input name="dbformpage_d:name" type="text" value="bob1" id="autoedit:name" />
+            <span id="autoedit:name:error"></span>
+        </td>
+    </tr><tr class="even" id="autoedit:account:fieldset:container">
+        <th><label for="account">Account</label></th>
+        <td>
+            <fieldset id="autoedit:account:fieldset">
+                <legend></legend>
+                <table id="autoedit:account">
+                <tr class="odd" id="autoedit:account:account_name:container">
+                    <th><label for="account_name">Account Name</label></th>
+                    <td>
+                        <input name="account:account_name" type="text" value="account1" id="autoedit:account:account_name" />
+                        <span id="autoedit:account:account_name:error"></span>
+                    </td>
+                </tr>
+                <tr class="even" id="autoedit:account:account_number:container">
+                  <th><label for="account_number">Account Number</label></th>
+                  <td>
+                    <input name="account:account_number" type="text" value="number1" id="autoedit:account:account_number" />
+                    <span id="autoedit:account:account_number:error"></span>
+                  </td>
+                </tr>
+                <tr class="error"><td colspan="2">
+                    <span id="autoedit:account:error"></span>
+                </td></tr>
+                </table>
+            </fieldset>
+            <span id="autoedit:account:fieldset:error"></span>
+        </td>
+    </tr>
+    <tr class="error"><td colspan="2">
+        <span id="autoedit:error"></span>
+    </td></tr>
+    </table>
+    <input type="submit" value="Save" />
+</form></body>
+</html>
+""")
+
+    def test_request_post_redirect(self):
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='autoedit:name=toto&autoedit:account:account_name=plop&autoedit:account:account_number=num'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        r = self.widget(redirect="/foo").request(req)
+        assert( r.status_int == 302 and r.location=="/foo" )
+
+    def test_request_get(self):
+        environ = {'REQUEST_METHOD': 'GET'}
+        req=Request(environ)
+        r = self.widget().request(req)
+        tw2test.assert_eq_xml(r.body, """
+<html>
+<head><title>Test</title></head>
+<body id="autoedit:page"><h1>Test</h1><form method="post" id="autoedit:form" enctype="multipart/form-data">
+    <span class="error"></span>
+    <table id="autoedit">
+    <tr class="odd required" id="autoedit:name:container">
+        <th><label for="name">Name</label></th>
+        <td>
+            <input name="dbformpage_d:name" type="text" value="" id="autoedit:name" />
+            <span id="autoedit:name:error"></span>
+        </td>
+    </tr><tr class="even" id="autoedit:account:fieldset:container">
+        <th><label for="account">Account</label></th>
+        <td>
+            <fieldset id="autoedit:account:fieldset">
+                <legend></legend>
+                <table id="autoedit:account">
+                <tr class="odd" id="autoedit:account:account_name:container">
+                  <th><label for="account_name">Account Name</label></th>
+                  <td>
+                      <input name="account:account_name" type="text" value="" id="autoedit:account:account_name" />
+                      <span id="autoedit:account:account_name:error"></span>
+                  </td>
+                </tr>
+                <tr class="even" id="autoedit:account:account_number:container">
+                  <th><label for="account_number">Account Number</label></th>
+                  <td>
+                    <input name="account:account_number" type="text" value="" id="autoedit:account:account_number" />
+                    <span id="autoedit:account:account_number:error"></span>
+                  </td>
+                </tr>
+                <tr class="error"><td colspan="2">
+                    <span id="autoedit:account:error"></span>
+                </td></tr>
+                </table>
+            </fieldset>
+            <span id="autoedit:account:fieldset:error"></span>
+        </td>
+    </tr>
+    <tr class="error"><td colspan="2">
+        <span id="autoedit:error"></span>
+    </td></tr>
+    </table>
+    <input type="submit" value="Save" />
+</form></body>
+</html>
+""")
+
+    def test_request_post_invalid(self):
+        environ = {'REQUEST_METHOD': 'POST',
+                   'wsgi.input': StringIO(''),
+                   }
+        req=Request(environ)
+        r = self.widget().request(req)
+        tw2test.assert_eq_xml(r.body, """<html>
+<head><title>Test</title></head>
+<body id="autoedit:page"><h1>Test</h1><form method="post" id="autoedit:form" enctype="multipart/form-data">
+  <span class="error"></span>
+  <table id="autoedit">
+  <tr class="odd required error" id="autoedit:name:container">
+    <th><label for="name">Name</label></th>
+    <td>
+        <input name="dbformpage_d:name" type="text" value="" id="autoedit:name" />
+        <span id="autoedit:name:error">Enter a value</span>
+    </td>
+  </tr>
+  <tr class="even" id="autoedit:account:fieldset:container">
+    <th><label for="account">Account</label></th>
+    <td>
+      <fieldset id="autoedit:account:fieldset">
+        <legend></legend>
+        <table id="autoedit:account">
+        <tr class="odd" id="autoedit:account:account_name:container">
+        <th><label for="account_name">Account Name</label></th>
+          <td>
+              <input name="account:account_name" type="text" value="" id="autoedit:account:account_name" />
+              <span id="autoedit:account:account_name:error"></span>
+          </td>
+        </tr><tr class="even" id="autoedit:account:account_number:container">
+          <th><label for="account_number">Account Number</label></th>
+          <td>
+              <input name="account:account_number" type="text" value="" id="autoedit:account:account_number" />
+              <span id="autoedit:account:account_number:error"></span>
+          </td>
+        </tr>
+        <tr class="error"><td colspan="2">
+          <span id="autoedit:account:error"></span>
+        </td></tr>
+        </table>
+      </fieldset>
+      <span id="autoedit:account:fieldset:error"></span>
+    </td>
+  </tr>
+  <tr class="error"><td colspan="2">
+      <span id="autoedit:error"></span>
+  </td></tr>
+  </table>
+  <input type="submit" value="Save" />
+</form></body>
+</html>""")
+
+    def test_request_post_partial_onetoone_invalid(self):
+        environ = {'REQUEST_METHOD': 'POST',
+                   'wsgi.input': StringIO(''),
+                   }
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='autoedit:account:account_name=account2&autoedit:name=name2'
+        r = self.widget().request(req)
+        tw2test.assert_eq_xml(r.body, """<html>
+<head>
+  <title>Test</title>
+</head>
+<body id="autoedit:page"><h1>Test</h1><form method="post" id="autoedit:form" enctype="multipart/form-data">
+  <span class="error"></span>
+  <table id="autoedit">
+  <tr class="odd required" id="autoedit:name:container">
+      <th><label for="name">Name</label></th>
+      <td>
+          <input name="dbformpage_d:name" type="text" value="name2" id="autoedit:name" />
+          <span id="autoedit:name:error"></span>
+      </td>
+  </tr><tr class="even" id="autoedit:account:fieldset:container">
+      <th><label for="account">Account</label></th>
+      <td>
+        <fieldset id="autoedit:account:fieldset">
+          <legend></legend>
+          <table id="autoedit:account">
+          <tr class="odd" id="autoedit:account:account_name:container">
+              <th><label for="account_name">Account Name</label></th>
+              <td>
+                  <input name="account:account_name" type="text" value="account2" id="autoedit:account:account_name" />
+                  <span id="autoedit:account:account_name:error"></span>
+              </td>
+          </tr><tr class="even error" id="autoedit:account:account_number:container">
+              <th><label for="account_number">Account Number</label></th>
+              <td>
+                  <input name="account:account_number" type="text" value="" id="autoedit:account:account_number" />
+                  <span id="autoedit:account:account_number:error">Enter a value</span>
+              </td>
+          </tr>
+          <tr class="error"><td colspan="2">
+              <span id="autoedit:account:error"></span>
+          </td></tr>
+          </table>
+        </fieldset>
+        <span id="autoedit:account:fieldset:error"></span>
+      </td>
+    </tr>
+    <tr class="error"><td colspan="2">
+        <span id="autoedit:error"></span>
+    </td></tr>
+</table>
+    <input type="submit" value="Save" />
+</form></body>
+</html>""")
+
+    def test_request_post_valid(self):
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='autoedit:name=name2'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        r = self.widget().request(req)
+        assert r.body == """Form posted successfully {'account': None, 'name': u'name2'}""", r.body
+
+    def test_request_post_full_valid(self):
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='autoedit:account:account_name=account2&autoedit:account:account_number=number2&autoedit:name=name2'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        r = self.widget().request(req)
+        assert r.body == """Form posted successfully {'account': {'account_name': u'account2', 'account_number': u'number2'}, 'name': u'name2'}""", r.body
+
+    def test_request_post_counts_new(self):
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='autoedit:account:account_name=account2&autoedit:account:account_number=number2&autoedit:name=name2'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        assert(self.DbTestCls12.query.count() == 1)
+        assert(self.DbTestCls11.query.count() == 1)
+        r = self.widget().request(req)
+        assert(self.DbTestCls12.query.count() == 2)
+        assert(self.DbTestCls11.query.count() == 2)
+
+    def test_request_post_counts_new_no_onetoone(self):
+        environ = {'wsgi.input': StringIO('')}
+        req=Request(environ)
+        req.method = 'POST'
+        req.body='autoedit:name=name2'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        assert(self.DbTestCls12.query.count() == 1)
+        assert(self.DbTestCls11.query.count() == 1)
+        r = self.widget().request(req)
+        assert(self.DbTestCls12.query.count() == 2)
+        assert(self.DbTestCls11.query.count() == 1)
+
+    def test_request_post_counts_update(self):
+        environ = {'wsgi.input': StringIO(''), 'QUERY_STRING': 'id=1'}
+        req=Request(environ)
+        # req.GET['id'] = '1'
+        req.method = 'POST'
+        req.body='autoedit:account:account_name=account2&autoedit:account:account_number=number2&autoedit:name=bob2'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        assert(self.DbTestCls12.query.count() == 1)
+        assert(self.DbTestCls11.query.count() == 1)
+        r = self.widget().request(req)
+        assert(self.DbTestCls12.query.count() == 1)
+        assert(self.DbTestCls11.query.count() == 1)
+
+    def test_request_post_counts_update_no_onetoone(self):
+        environ = {'wsgi.input': StringIO(''), 'QUERY_STRING': 'id=1'}
+        req=Request(environ)
+        # req.GET['id'] = '1'
+        req.method = 'POST'
+        req.body='autoedit:name=bob2'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        assert(self.DbTestCls12.query.count() == 1)
+        assert(self.DbTestCls11.query.count() == 1)
+        r = self.widget().request(req)
+        assert(self.DbTestCls12.query.count() == 1)
+        assert(self.DbTestCls11.query.count() == 0)
+
+    def test_request_post_content_update(self):
+        environ = {'wsgi.input': StringIO(''), 'QUERY_STRING': 'id=1'}
+        req=Request(environ)
+        # req.GET['id'] = '1'
+        req.method = 'POST'
+        req.body='autoedit:account:account_name=account2&autoedit:account:account_number=number2&autoedit:name=bob2'
+        req.environ['CONTENT_LENGTH'] = str(len(req.body))
+        req.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+
+        self.mw.config.debug = True
+        original = self.DbTestCls12.query.filter(self.DbTestCls12.id==1).one()
+        assert(original.name == 'bob1')
+        original = self.DbTestCls11.query.filter(self.DbTestCls11.id==2).one()
+        assert(original.account_name == 'account1')
+        r = self.widget().request(req)
+        updated = self.DbTestCls12.query.filter(self.DbTestCls12.id==1)
+        assert(updated.count() == 1)
+        updated = updated.one()
+        assert(updated.name == 'bob2')
+        updated = self.DbTestCls11.query.filter(self.DbTestCls11.id==2)
+        assert(updated.count() == 1)
+        updated = updated.one()
+        assert(updated.account_name == 'account2')
+        assert(updated.account_number == 'number2')
+
+if el:
+    class TestNonRequiredOneToOneRelationElixir(
+        ElixirBase, NonRequiredOneToOneRelationT): pass
+
+class TestNonRequiredOneToOneRelationSQLA(SQLABase,
+                                          NonRequiredOneToOneRelationT): pass
+
+
 class AutoTableFormAsChildT(WidgetTest):
     def setup(self):
         self.widget = self.widget(entity=self.DbTestCls7)
@@ -2204,13 +2660,13 @@ class AutoTableFormAsChildT(WidgetTest):
     <span class="error"></span>
     <table id="autotable">
     <tr class="odd" id="autotable:nick:container">
-        <th>Nick</th>
+        <th><label for="nick">Nick</label></th>
         <td>
             <input name="dbformpage_d:nick" type="text" id="autotable:nick" />
             <span id="autotable:nick:error"></span>
         </td>
     </tr><tr class="even required" id="autotable:other:container">
-        <th>Other</th>
+        <th><label for="other">Other</label></th>
         <td>
             <select id="autotable:other" name="dbformpage_d:other">
                 <option></option>
@@ -2244,13 +2700,13 @@ class AutoTableFormAsChildT(WidgetTest):
     <span class="error"></span>
     <table id="autotable">
     <tr class="odd" id="autotable:nick:container">
-        <th>Nick</th>
+        <th><label for="nick">Nick</label></th>
         <td>
             <input name="dbformpage_d:nick" type="text" id="autotable:nick" />
             <span id="autotable:nick:error"></span>
         </td>
     </tr><tr class="even required" id="autotable:other:container">
-        <th>Other</th>
+        <th><label for="other">Other</label></th>
         <td>
             <select id="autotable:other" name="dbformpage_d:other">
                 <option></option>
@@ -2293,15 +2749,15 @@ class AutoTableFormAsChildT(WidgetTest):
     <span class="error"></span>
     <table id="autotable">
     <tr class="odd"  id="autotable:nick:container">
-        <th>Nick</th>
+        <th><label for="nick">Nick</label></th>
         <td >
             <input name="dbformpage_d:nick" type="text" id="autotable:nick" value="bob1"/>
-            
+
             <span id="autotable:nick:error"></span>
         </td>
     </tr>
     <tr class="even required"  id="autotable:other:container">
-        <th>Other</th>
+        <th><label for="other">Other</label></th>
         <td >
             <select name="dbformpage_d:other" id="autotable:other">
                 <option ></option>
@@ -2349,15 +2805,15 @@ class AutoTableFormAsChildT(WidgetTest):
      <span class="error"></span>
     <table id="autotable">
     <tr class="odd"  id="autotable:nick:container">
-        <th>Nick</th>
+        <th><label for="nick">Nick</label></th>
         <td >
             <input name="dbformpage_d:nick" type="text" id="autotable:nick" value="toto1"/>
-            
+
             <span id="autotable:nick:error"></span>
         </td>
     </tr>
     <tr class="even required error"  id="autotable:other:container">
-        <th>Other</th>
+        <th><label for="other">Other</label></th>
         <td >
             <select name="dbformpage_d:other" id="autotable:other">
                 <option ></option>
@@ -2393,15 +2849,15 @@ class AutoTableFormAsChildT(WidgetTest):
     <span class="error"></span>
     <table id="autotable">
     <tr class="odd"  id="autotable:nick:container">
-        <th>Nick</th>
+        <th><label for="nick">Nick</label></th>
         <td >
             <input name="dbformpage_d:nick" type="text" id="autotable:nick" value="toto1"/>
-            
+
             <span id="autotable:nick:error"></span>
         </td>
     </tr>
     <tr class="even required error"  id="autotable:other:container">
-        <th>Other</th>
+        <th><label for="other">Other</label></th>
         <td >
             <select name="dbformpage_d:other" id="autotable:other">
                 <option ></option>
@@ -2474,13 +2930,13 @@ class FormPageRequiredCheckboxT(WidgetTest):
     <span class="error"></span>
     <table id="dbformpage_d">
     <tr class="odd" id="dbformpage_d:name:container">
-        <th>Name</th>
+        <th><label for="name">Name</label></th>
         <td>
             <input name="dbformpage_d:name" id="dbformpage_d:name" type="text" />
             <span id="dbformpage_d:name:error"></span>
         </td>
     </tr><tr class="even required" id="dbformpage_d:others:container">
-        <th>Others</th>
+        <th><label for="others">Others</label></th>
         <td>
             <ul id="dbformpage_d:others">
             <li>
@@ -2504,8 +2960,8 @@ class FormPageRequiredCheckboxT(WidgetTest):
     </table>
     <input type="submit" value="Save" />
 </form></body>
-</html> 
-"""    
+</html>
+"""
     def test_request_post_redirect(self):
         environ = {'wsgi.input': StringIO('')}
         req=Request(environ)
@@ -2530,15 +2986,15 @@ class FormPageRequiredCheckboxT(WidgetTest):
     <span class="error"></span>
     <table id="dbformpage_d">
     <tr class="odd"  id="dbformpage_d:name:container">
-        <th>Name</th>
+        <th><label for="name">Name</label></th>
         <td >
             <input name="dbformpage_d:name" type="text" id="dbformpage_d:name" value="foo1"/>
-            
+
             <span id="dbformpage_d:name:error"></span>
         </td>
     </tr>
     <tr class="even required"  id="dbformpage_d:others:container">
-        <th>Others</th>
+        <th><label for="others">Others</label></th>
         <td >
             <ul id="dbformpage_d:others">
                 <li>
@@ -2597,15 +3053,15 @@ class FormPageRequiredCheckboxT(WidgetTest):
     <span class="error"></span>
     <table id="dbformpage_d">
     <tr class="odd"  id="dbformpage_d:name:container">
-        <th>Name</th>
+        <th><label for="name">Name</label></th>
         <td >
             <input name="dbformpage_d:name" type="text" id="dbformpage_d:name" value="toto1"/>
-            
+
             <span id="dbformpage_d:name:error"></span>
         </td>
     </tr>
     <tr class="even required error"  id="dbformpage_d:others:container">
-        <th>Others</th>
+        <th><label for="others">Others</label></th>
         <td >
             <ul id="dbformpage_d:others">
                 <li>
@@ -2652,15 +3108,15 @@ class FormPageRequiredCheckboxT(WidgetTest):
      <span class="error"></span>
     <table id="dbformpage_d">
     <tr class="odd"  id="dbformpage_d:name:container">
-        <th>Name</th>
+        <th><label for="name">Name</label></th>
         <td >
             <input name="dbformpage_d:name" type="text" id="dbformpage_d:name" value="toto1"/>
-            
+
             <span id="dbformpage_d:name:error"></span>
         </td>
     </tr>
     <tr class="even required error"  id="dbformpage_d:others:container">
-        <th>Others</th>
+        <th><label for="others">Others</label></th>
         <td >
             <ul id="dbformpage_d:others">
                 <li>
@@ -2782,7 +3238,7 @@ class DbLinkFieldT(WidgetTest):
   <span class="error"></span>
   <table>
   <tr class="odd"  id="edit:container">
-      <th>Edit</th>
+      <th><label for="edit">Edit</label></th>
       <td>
           <a href="/test/fred" id="edit">fred</a>
           <span id="edit:error"></span>
