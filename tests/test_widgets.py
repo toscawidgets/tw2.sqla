@@ -2988,7 +2988,7 @@ class FormPageRequiredCheckboxT(WidgetTest):
     <tr class="odd"  id="dbformpage_d:name:container">
         <th><label for="name">Name</label></th>
         <td >
-            <input name="dbformpage_d:name" type="text" value="" id="dbformpage_d:name" value="foo1"/>
+            <input name="dbformpage_d:name" type="text" id="dbformpage_d:name" value="foo1"/>
 
             <span id="dbformpage_d:name:error"></span>
         </td>
@@ -3055,7 +3055,7 @@ class FormPageRequiredCheckboxT(WidgetTest):
     <tr class="odd"  id="dbformpage_d:name:container">
         <th><label for="name">Name</label></th>
         <td >
-            <input name="dbformpage_d:name" type="text" value="" id="dbformpage_d:name" value="toto1"/>
+            <input name="dbformpage_d:name" type="text" id="dbformpage_d:name" value="toto1"/>
 
             <span id="dbformpage_d:name:error"></span>
         </td>
@@ -3110,7 +3110,7 @@ class FormPageRequiredCheckboxT(WidgetTest):
     <tr class="odd"  id="dbformpage_d:name:container">
         <th><label for="name">Name</label></th>
         <td >
-            <input name="dbformpage_d:name" type="text" value="" id="dbformpage_d:name" value="toto1"/>
+            <input name="dbformpage_d:name" type="text" id="dbformpage_d:name" value="toto1"/>
 
             <span id="dbformpage_d:name:error"></span>
         </td>
