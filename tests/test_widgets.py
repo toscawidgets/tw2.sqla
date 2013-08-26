@@ -1238,22 +1238,7 @@ class AutoListPageOneToOneRelationT(WidgetEntityTest):
                 <span>bob1<input type="hidden" name="autolistpage_d:0:name" value="bob1" id="autolistpage_d:0:name"/></span>
             </td>
             <td>
-                <fieldset id="autolistpage_d:0:account:fieldset">
-                    <legend></legend>
-                    <table id="autolistpage_d:0:account">
-                    <tr class="odd required"  id="autolistpage_d:0:account:account_name:container">
-                        <th><label for="account_name">Account Name</label></th>
-                        <td >
-                            <span>account1<input type="hidden" name="account:account_name" value="account1" id="autolistpage_d:0:account:account_name"/></span>
-
-                            <span id="autolistpage_d:0:account:account_name:error"></span>
-                        </td>
-                    </tr>
-                    <tr class="error"><td colspan="2">
-                        <span id="autolistpage_d:0:account:error"></span>
-                    </td></tr>
-                    </table>
-                </fieldset>
+              <span>account1<input type="hidden" name="autolistpage_d:0:account" value="account1" id="autolistpage_d:0:account"/></span>
             </td>
             <td>
             </td>
