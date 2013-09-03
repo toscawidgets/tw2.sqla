@@ -45,6 +45,7 @@ setup(
         'tw2.core>=2.0.1',
         'tw2.forms',
         'elixir',
+        'sieve',
     ] + _extra_cheetah + _extra_genshi + _extra_kid + _extra_mako,
     extras_require = {
         'cheetah': _extra_cheetah,
