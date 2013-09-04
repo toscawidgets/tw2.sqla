@@ -20,7 +20,7 @@ except ImportError:
 
 
 class ElixirBase(object):
-    def setup(self):
+    def setUp(self):
         el.metadata = sa.MetaData('sqlite:///:memory:')
         el.session = tws.transactional_session()
         # Make sure the DB is clean between the tests
@@ -146,14 +146,14 @@ class ElixirBase(object):
         assert(self.DbTestCls12.query.first().account == account1)
         transaction.commit()
 
-        return super(ElixirBase, self).setup()
+        return super(ElixirBase, self).setUp()
 
     def teardown(self):
         transaction.abort()
 
 
 class SQLABase(object):
-    def setup(self):
+    def setUp(self):
         self.session = tws.transactional_session()
         Base = declarative_base(metadata=sa.MetaData('sqlite:///:memory:'))
         Base.query = self.session.query_property()
@@ -299,7 +299,7 @@ class SQLABase(object):
         assert(self.DbTestCls12.query.first().account == account1)
         transaction.commit()
 
-        return super(SQLABase, self).setup()
+        return super(SQLABase, self).setUp()
 
     def teardown(self):
         transaction.abort()
@@ -326,9 +326,9 @@ class RadioButtonT(WidgetTest):
         value = self.widget.validate({'something':'1'})
         assert(value is self.DbTestCls1.query.get(1))
 
-    def setup(self):
+    def setUp(self):
         self.widget = self.widget(entity=self.DbTestCls1)
-        return super(RadioButtonT, self).setup()
+        return super(RadioButtonT, self).setUp()
 
 if el:
     class TestRadioButtonElixir(ElixirBase, RadioButtonT): pass
@@ -361,9 +361,9 @@ class RadioButtonRequiredT(WidgetTest):
         value = self.widget.validate({'something':'1'})
         assert(value is self.DbTestCls1.query.get(1))
 
-    def setup(self):
+    def setUp(self):
         self.widget = self.widget(entity=self.DbTestCls1, validator=twc.Required)
-        return super(RadioButtonRequiredT, self).setup()
+        return super(RadioButtonRequiredT, self).setUp()
 
 if el:
     class TestRadioButtonRequiredElixir(ElixirBase, RadioButtonRequiredT): pass
@@ -391,9 +391,9 @@ class CheckBoxT(WidgetTest):
         value = self.widget.validate({'something':'1'})
         assert(value == [self.DbTestCls1.query.get(1)])
 
-    def setup(self):
+    def setUp(self):
         self.widget = self.widget(entity=self.DbTestCls1)
-        return super(CheckBoxT, self).setup()
+        return super(CheckBoxT, self).setUp()
 
 if el:
     class TestCheckBoxElixir(ElixirBase, CheckBoxT): pass
@@ -428,9 +428,9 @@ class CheckBoxRequiredT(WidgetTest):
         value = self.widget.validate({'something':['1', '2']})
         assert(value == [self.DbTestCls1.query.get(1), self.DbTestCls1.query.get(2)])
 
-    def setup(self):
+    def setUp(self):
         self.widget = self.widget(entity=self.DbTestCls1, validator=twc.Required)
-        return super(CheckBoxRequiredT, self).setup()
+        return super(CheckBoxRequiredT, self).setUp()
 
 if el:
     class TestCheckBoxRequiredElixir(ElixirBase, CheckBoxRequiredT): pass
@@ -462,9 +462,9 @@ class CheckBoxTableT(WidgetTest):
         value = self.widget.validate({'something':'1'})
         assert(value == [self.DbTestCls1.query.get(1)])
 
-    def setup(self):
+    def setUp(self):
         self.widget = self.widget(entity=self.DbTestCls1)
-        return super(CheckBoxTableT, self).setup()
+        return super(CheckBoxTableT, self).setUp()
 
 if el:
     class TestCheckBoxTableElixir(ElixirBase, CheckBoxTableT): pass
@@ -501,9 +501,9 @@ class CheckBoxTableRequiredT(WidgetTest):
         value = self.widget.validate({'something':'1'})
         assert(value == [self.DbTestCls1.query.get(1)])
 
-    def setup(self):
+    def setUp(self):
         self.widget = self.widget(entity=self.DbTestCls1, validator=twc.Required)
-        return super(CheckBoxTableRequiredT, self).setup()
+        return super(CheckBoxTableRequiredT, self).setUp()
 
 if el:
     class TestCheckBoxTableRequestElixir(ElixirBase, CheckBoxTableRequiredT): pass
@@ -526,9 +526,9 @@ class SingleSelectT(WidgetTest):
         value = self.widget.validate({'something':'1'})
         assert(value is self.DbTestCls1.query.get(1))
 
-    def setup(self):
+    def setUp(self):
         self.widget = self.widget(entity=self.DbTestCls1)
-        return super(SingleSelectT, self).setup()
+        return super(SingleSelectT, self).setUp()
 
 if el:
     class TestSingleSelectElixir(ElixirBase, SingleSelectT): pass
@@ -556,9 +556,9 @@ class SingleSelectRequiredT(WidgetTest):
         value = self.widget.validate({'something':'1'})
         assert(value is self.DbTestCls1.query.get(1))
 
-    def setup(self):
+    def setUp(self):
         self.widget = self.widget(entity=self.DbTestCls1, validator=twc.Required)
-        return super(SingleSelectRequiredT, self).setup()
+        return super(SingleSelectRequiredT, self).setUp()
 
 if el:
     class TestSingleSelectRequiredElixir(ElixirBase, SingleSelectRequiredT): pass
@@ -566,9 +566,9 @@ if el:
 class TestSingleSelectRequiredSQLA(SQLABase, SingleSelectRequiredT): pass
 
 class ListPageT(WidgetTest):
-    def setup(self):
+    def setUp(self):
         self.widget = self.widget(entity=self.DbTestCls1)
-        return super(ListPageT, self).setup()
+        return super(ListPageT, self).setUp()
 
     widget = tws.DbListPage
     attrs = {
@@ -644,9 +644,9 @@ class TestListPageSQLA(SQLABase, ListPageT): pass
 
 
 class FormPageT(WidgetTest):
-    def setup(self):
+    def setUp(self):
         self.widget = self.widget(entity=self.DbTestCls1)
-        return super(FormPageT, self).setup()
+        return super(FormPageT, self).setUp()
 
     widget = tws.DbFormPage
     attrs = {
@@ -859,9 +859,9 @@ class TestFormPageSQLA(SQLABase, FormPageT):
 
 
 class ListFormT(WidgetTest):
-    def setup(self):
+    def setUp(self):
         self.widget = self.widget(entity=self.DbTestCls1)
-        return super(ListFormT, self).setup()
+        return super(ListFormT, self).setUp()
 
     widget = tws.DbListForm
     attrs = {
@@ -1034,9 +1034,9 @@ class TestListFormSQLA(SQLABase, ListFormT): pass
 
 
 class AutoListPageT(WidgetTest):
-    def setup(self):
+    def setUp(self):
         self.widget = self.widget(entity=self.DbTestCls1)
-        return super(AutoListPageT, self).setup()
+        return super(AutoListPageT, self).setUp()
 
 
     widget = tws.AutoListPage
@@ -1230,9 +1230,9 @@ class TestAutoListPageSQLA(SQLABase, AutoListPageT): pass
 
 
 class AutoListPageOneToOneRelationT(WidgetTest):
-    def setup(self):
+    def setUp(self):
         self.widget = self.widget(entity=self.DbTestCls9)
-        return super(AutoListPageOneToOneRelationT, self).setup()
+        return super(AutoListPageOneToOneRelationT, self).setUp()
 
 
     widget = tws.AutoListPage
@@ -1307,9 +1307,9 @@ class TestAutoListPageOneToOneRelationSQLA(SQLABase, AutoListPageOneToOneRelatio
 # TODO -- do AutoListPageEDIT here
 
 class AutoTableFormT1(WidgetTest):
-    def setup(self):
+    def setUp(self):
         self.widget = self.widget(entity=self.DbTestCls1)
-        return super(AutoTableFormT1, self).setup()
+        return super(AutoTableFormT1, self).setUp()
 
     widget = tws.AutoTableForm
     attrs = { 'id' : 'foo_form' }
@@ -1356,9 +1356,9 @@ class TestAutoTableForm1SQLA(SQLABase, AutoTableFormT1): pass
 
 
 class AutoTableFormT2(WidgetTest):
-    def setup(self):
+    def setUp(self):
         self.widget = self.widget(entity=self.DbTestCls2)
-        return super(AutoTableFormT2, self).setup()
+        return super(AutoTableFormT2, self).setUp()
 
     widget = tws.AutoTableForm
     attrs = { 'id' : 'foo_form' }
@@ -1399,9 +1399,9 @@ class TestAutoTableForm2SQLA(SQLABase, AutoTableFormT2): pass
 
 
 class AutoTableFormT4(WidgetTest):
-    def setup(self):
+    def setUp(self):
         self.widget = self.widget(entity=self.DbTestCls4)
-        return super(AutoTableFormT4, self).setup()
+        return super(AutoTableFormT4, self).setUp()
 
     widget = tws.AutoTableForm
     attrs = { 'id' : 'foo_form' }
@@ -1449,9 +1449,9 @@ class TestAutoTableForm4SQLA(SQLABase, AutoTableFormT4): pass
 
 
 class AutoTableFormT5(WidgetTest):
-    def setup(self):
+    def setUp(self):
         self.widget = self.widget(entity=self.DbTestCls5)
-        return super(AutoTableFormT5, self).setup()
+        return super(AutoTableFormT5, self).setUp()
 
     widget = tws.AutoTableForm
     attrs = { 'id' : 'foo_form' }
@@ -1495,9 +1495,9 @@ class TestAutoTableForm5SQLA(SQLABase, AutoTableFormT5): pass
 
 
 class AutoTableFormT6(WidgetTest):
-    def setup(self):
+    def setUp(self):
         self.widget = self.widget(entity=self.DbTestCls6)
-        return super(AutoTableFormT6, self).setup()
+        return super(AutoTableFormT6, self).setUp()
 
     widget = tws.AutoTableForm
     attrs = { 'id' : 'foo_form' }
@@ -1541,9 +1541,9 @@ class TestAutoTableForm6SQLA(SQLABase, AutoTableFormT6): pass
 
 
 class AutoTableFormT7(WidgetTest):
-    def setup(self):
+    def setUp(self):
         self.widget = self.widget(entity=self.DbTestCls7)
-        return super(AutoTableFormT7, self).setup()
+        return super(AutoTableFormT7, self).setUp()
 
     widget = tws.AutoTableForm
     attrs = { 'id' : 'foo_form' }
@@ -1584,9 +1584,9 @@ class TestAutoTableForm7SQLA(SQLABase, AutoTableFormT7): pass
 
 
 class AutoViewGridT(WidgetTest):
-    def setup(self):
+    def setUp(self):
         self.widget = self.widget(entity=self.DbTestCls1)
-        return super(AutoViewGridT, self).setup()
+        return super(AutoViewGridT, self).setUp()
 
     widget = tws.AutoViewGrid
     attrs = { 'id' : 'autogrid' }
@@ -1696,9 +1696,9 @@ class TestAutoViewGridSQLA(SQLABase, AutoViewGridT): pass
 
 
 class AutoGrowingGridT(WidgetTest):
-    def setup(self):
+    def setUp(self):
         self.widget = self.widget(entity=self.DbTestCls1)
-        return super(AutoGrowingGridT, self).setup()
+        return super(AutoGrowingGridT, self).setUp()
 
     widget = tws.AutoGrowingGrid
     attrs = { 'id' : 'autogrid' }
@@ -1761,9 +1761,9 @@ class TestAutoGrowingGridSQLA(SQLABase, AutoGrowingGridT): pass
 
 
 class AutoGrowingGridAsChildT(WidgetTest):
-    def setup(self):
+    def setUp(self):
         self.widget = self.widget(entity=self.DbTestCls1)
-        return super(AutoGrowingGridAsChildT, self).setup()
+        return super(AutoGrowingGridAsChildT, self).setUp()
 
     widget = tws.DbFormPage
     attrs = { 'id' : 'autogrid', 'title' : 'Test',
@@ -1829,9 +1829,9 @@ class TestAutoGrowingGridAsChildSQLA(SQLABase, AutoGrowingGridAsChildT): pass
 
 
 class AutoGrowingGridAsChildWithRelationshipT(WidgetTest):
-    def setup(self):
+    def setUp(self):
         self.widget = self.widget(entity=self.DbTestCls2)
-        return super(AutoGrowingGridAsChildWithRelationshipT, self).setup()
+        return super(AutoGrowingGridAsChildWithRelationshipT, self).setUp()
 
     widget = twf.TableForm
     attrs = { 'title' : 'Test',
@@ -1949,9 +1949,9 @@ class AutoEditRelationInTableT(WidgetTest):
             # The exception is raise but it's very strange that the error was lost
             assert(ve.widget.error_msg == '')
 
-    def setup(self):
+    def setUp(self):
         self.widget = self.widget(entity=self.DbTestCls9)
-        return super(AutoEditRelationInTableT, self).setup()
+        return super(AutoEditRelationInTableT, self).setUp()
 
 if el:
     class TestAutoEditRelationInTableElixir(ElixirBase, AutoEditRelationInTableT): pass
@@ -1959,9 +1959,9 @@ if el:
 class TestAutoEditRelationInTableSQLA(SQLABase, AutoEditRelationInTableT): pass
 
 class AutoEditRelationInFormT(WidgetTest):
-    def setup(self):
+    def setUp(self):
         self.widget = self.widget(entity=self.DbTestCls9)
-        return super(AutoEditRelationInFormT, self).setup()
+        return super(AutoEditRelationInFormT, self).setUp()
 
     widget = tws.DbFormPage
     attrs = { 'id' : 'autoedit', 'title' : 'Test',
@@ -2240,9 +2240,9 @@ class TestAutoEditRelationInFormSQLA(SQLABase, AutoEditRelationInFormT): pass
 
 class NonRequiredOneToOneRelationT(WidgetTest):
 
-    def setup(self):
+    def setUp(self):
         self.widget = self.widget(entity=self.DbTestCls12)
-        return super(NonRequiredOneToOneRelationT, self).setup()
+        return super(NonRequiredOneToOneRelationT, self).setUp()
 
     widget = tws.DbFormPage
     attrs = { 'id' : 'autoedit', 'title' : 'Test',
@@ -2646,9 +2646,9 @@ class TestNonRequiredOneToOneRelationSQLA(SQLABase,
 
 
 class AutoTableFormAsChildT(WidgetTest):
-    def setup(self):
+    def setUp(self):
         self.widget = self.widget(entity=self.DbTestCls7)
-        return super(AutoTableFormAsChildT, self).setup()
+        return super(AutoTableFormAsChildT, self).setUp()
 
     widget = tws.DbFormPage
     attrs = { 'id' : 'autotable', 'title' : 'Test',
@@ -2908,7 +2908,7 @@ if el:
 class TestAutoTableFormAsChildTSQLA(SQLABase, AutoTableFormAsChildT): pass
 
 class FormPageRequiredCheckboxT(WidgetTest):
-    def setup(self):
+    def setUp(self):
         attrs = {
                 'child': twf.TableForm(
                     children=[
@@ -2920,7 +2920,7 @@ class FormPageRequiredCheckboxT(WidgetTest):
                 'entity': self.DbTestCls1,
             }
         self.widget = self.widget(**attrs)
-        return super(FormPageRequiredCheckboxT, self).setup()
+        return super(FormPageRequiredCheckboxT, self).setUp()
 
     widget = tws.DbFormPage
     expected = """
@@ -3184,9 +3184,9 @@ class DbLinkFieldT(WidgetTest):
     params = {'link':'/test'}
     expected = """<a href="/test?id=1">foo1</a>"""
 
-    def setup(self):
+    def setUp(self):
         self.widget = self.widget(entity=self.DbTestCls1, value=self.DbTestCls1.query.get(1))
-        return super(DbLinkFieldT, self).setup()
+        return super(DbLinkFieldT, self).setUp()
 
     def test_encode(self):
         d = self.DbTestCls10(name="fr&ed")
