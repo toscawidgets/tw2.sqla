@@ -275,10 +275,10 @@ class AutoContainer(twc.Widget):
 
     @classmethod
     def post_define(cls):
-        if not hasattr(cls, 'entity') and hasattr(cls, 'parent') and hasattr(cls.parent, 'entity'):
+        if not getattr(cls, 'entity', None) and getattr(cls.parent, 'entity', None):
             cls.entity = cls.parent.entity
 
-        if hasattr(cls, 'entity') and not getattr(cls, '_auto_widgets', False):
+        if getattr(cls, 'entity', None) and not getattr(cls, '_auto_widgets', False):
             cls._auto_widgets = True
             fkey = dict((compat.local_name(p), p)
                         for p in sa.orm.class_mapper(cls.entity).iterate_properties
