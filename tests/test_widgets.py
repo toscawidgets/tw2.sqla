@@ -306,7 +306,7 @@ class SQLABase(object):
 
 
 class RadioButtonT(WidgetTest):
-    widget = tws.DbRadioButtonList
+    _widget_cls = tws.DbRadioButtonList
     declarative = True
     attrs = {'css_class':'something', 'id' : 'something'}
     params = {'checked':None}
@@ -327,7 +327,7 @@ class RadioButtonT(WidgetTest):
         assert(value is self.DbTestCls1.query.get(1))
 
     def setUp(self):
-        self.widget = self.widget(entity=self.DbTestCls1)
+        self.widget = self._widget_cls(entity=self.DbTestCls1)
         return super(RadioButtonT, self).setUp()
 
 if el:
@@ -336,7 +336,7 @@ if el:
 class TestRadioButtonSQLA(SQLABase, RadioButtonT): pass
 
 class RadioButtonRequiredT(WidgetTest):
-    widget = tws.DbRadioButtonList
+    _widget_cls = tws.DbRadioButtonList
     declarative = True
     attrs = {'css_class':'something', 'id' : 'something'}
     params = {'checked':None}
@@ -362,7 +362,7 @@ class RadioButtonRequiredT(WidgetTest):
         assert(value is self.DbTestCls1.query.get(1))
 
     def setUp(self):
-        self.widget = self.widget(entity=self.DbTestCls1, validator=twc.Required)
+        self.widget = self._widget_cls(entity=self.DbTestCls1, validator=twc.Required)
         return super(RadioButtonRequiredT, self).setUp()
 
 if el:
@@ -371,7 +371,7 @@ if el:
 class TestRadioButtonRequiredSQLA(SQLABase, RadioButtonRequiredT): pass
 
 class CheckBoxT(WidgetTest):
-    widget = tws.DbCheckBoxList
+    _widget_cls = tws.DbCheckBoxList
     attrs = {'css_class':'something', 'id' : 'something'}
     declarative = True
     params = {'checked':None}
@@ -392,7 +392,7 @@ class CheckBoxT(WidgetTest):
         assert(value == [self.DbTestCls1.query.get(1)])
 
     def setUp(self):
-        self.widget = self.widget(entity=self.DbTestCls1)
+        self.widget = self._widget_cls(entity=self.DbTestCls1)
         return super(CheckBoxT, self).setUp()
 
 if el:
@@ -401,7 +401,7 @@ if el:
 class TestCheckBoxSQLA(SQLABase, CheckBoxT): pass
 
 class CheckBoxRequiredT(WidgetTest):
-    widget = tws.DbCheckBoxList
+    _widget_cls = tws.DbCheckBoxList
     attrs = {'css_class':'something', 'id' : 'something'}
     declarative = True
     params = {'checked':None}
@@ -429,7 +429,7 @@ class CheckBoxRequiredT(WidgetTest):
         assert(value == [self.DbTestCls1.query.get(1), self.DbTestCls1.query.get(2)])
 
     def setUp(self):
-        self.widget = self.widget(entity=self.DbTestCls1, validator=twc.Required)
+        self.widget = self._widget_cls(entity=self.DbTestCls1, validator=twc.Required)
         return super(CheckBoxRequiredT, self).setUp()
 
 if el:
@@ -438,7 +438,7 @@ if el:
 class TestCheckBoxRequiredSQLA(SQLABase, CheckBoxRequiredT): pass
 
 class CheckBoxTableT(WidgetTest):
-    widget = tws.DbCheckBoxTable
+    _widget_cls = tws.DbCheckBoxTable
     attrs = {'css_class':'something', 'id' : 'something'}
     declarative = True
     params = {'checked':None}
@@ -463,7 +463,7 @@ class CheckBoxTableT(WidgetTest):
         assert(value == [self.DbTestCls1.query.get(1)])
 
     def setUp(self):
-        self.widget = self.widget(entity=self.DbTestCls1)
+        self.widget = self._widget_cls(entity=self.DbTestCls1)
         return super(CheckBoxTableT, self).setUp()
 
 if el:
@@ -472,7 +472,7 @@ if el:
 class TestCheckBoxTableSQLA(SQLABase, CheckBoxTableT): pass
 
 class CheckBoxTableRequiredT(WidgetTest):
-    widget = tws.DbCheckBoxTable
+    _widget_cls = tws.DbCheckBoxTable
     attrs = {'css_class':'something', 'id' : 'something'}
     declarative = True
     params = {'checked':None}
@@ -502,7 +502,7 @@ class CheckBoxTableRequiredT(WidgetTest):
         assert(value == [self.DbTestCls1.query.get(1)])
 
     def setUp(self):
-        self.widget = self.widget(entity=self.DbTestCls1, validator=twc.Required)
+        self.widget = self._widget_cls(entity=self.DbTestCls1, validator=twc.Required)
         return super(CheckBoxTableRequiredT, self).setUp()
 
 if el:
@@ -511,7 +511,7 @@ if el:
 class TestCheckBoxTableRequestSQLA(SQLABase, CheckBoxTableRequiredT): pass
 
 class SingleSelectT(WidgetTest):
-    widget = tws.DbSingleSelectField
+    _widget_cls = tws.DbSingleSelectField
     attrs = {'css_class':'something', 'id' : 'something'}
     declarative = True
     params = {'checked':None}
@@ -527,7 +527,7 @@ class SingleSelectT(WidgetTest):
         assert(value is self.DbTestCls1.query.get(1))
 
     def setUp(self):
-        self.widget = self.widget(entity=self.DbTestCls1)
+        self.widget = self._widget_cls(entity=self.DbTestCls1)
         return super(SingleSelectT, self).setUp()
 
 if el:
@@ -536,7 +536,7 @@ if el:
 class TestSingleSelectSQLA(SQLABase, SingleSelectT): pass
 
 class SingleSelectRequiredT(WidgetTest):
-    widget = tws.DbSingleSelectField
+    _widget_cls = tws.DbSingleSelectField
     attrs = {'css_class':'something', 'id' : 'something'}
     declarative = True
     params = {'checked':None}
@@ -557,7 +557,7 @@ class SingleSelectRequiredT(WidgetTest):
         assert(value is self.DbTestCls1.query.get(1))
 
     def setUp(self):
-        self.widget = self.widget(entity=self.DbTestCls1, validator=twc.Required)
+        self.widget = self._widget_cls(entity=self.DbTestCls1, validator=twc.Required)
         return super(SingleSelectRequiredT, self).setUp()
 
 if el:
@@ -567,10 +567,10 @@ class TestSingleSelectRequiredSQLA(SQLABase, SingleSelectRequiredT): pass
 
 class ListPageT(WidgetTest):
     def setUp(self):
-        self.widget = self.widget(entity=self.DbTestCls1)
+        self.widget = self._widget_cls(entity=self.DbTestCls1)
         return super(ListPageT, self).setUp()
 
-    widget = tws.DbListPage
+    _widget_cls = tws.DbListPage
     attrs = {
         'child': twf.GridLayout(
             children=[
@@ -646,10 +646,10 @@ class TestListPageSQLA(SQLABase, ListPageT): pass
 
 class FormPageT(WidgetTest):
     def setUp(self):
-        self.widget = self.widget(entity=self.DbTestCls1)
+        self.widget = self._widget_cls(entity=self.DbTestCls1)
         return super(FormPageT, self).setUp()
 
-    widget = tws.DbFormPage
+    _widget_cls = tws.DbFormPage
     attrs = {
         'child': twf.TableForm(
             children=[
@@ -861,10 +861,10 @@ class TestFormPageSQLA(SQLABase, FormPageT):
 
 class ListFormT(WidgetTest):
     def setUp(self):
-        self.widget = self.widget(entity=self.DbTestCls1)
+        self.widget = self._widget_cls(entity=self.DbTestCls1)
         return super(ListFormT, self).setUp()
 
-    widget = tws.DbListForm
+    _widget_cls = tws.DbListForm
     attrs = {
         'child': twf.Form(
             child=twf.GridLayout(
@@ -1036,11 +1036,11 @@ class TestListFormSQLA(SQLABase, ListFormT): pass
 
 class AutoListPageT(WidgetTest):
     def setUp(self):
-        self.widget = self.widget(entity=self.DbTestCls1)
+        self.widget = self._widget_cls(entity=self.DbTestCls1)
         return super(AutoListPageT, self).setUp()
 
 
-    widget = tws.AutoListPage
+    _widget_cls = tws.AutoListPage
     attrs = {'title': 'Db Test Cls1'}
 
     # Doesn't make much sense... an AutoList widget with fetch_data not called?
@@ -1234,10 +1234,10 @@ class TestAutoListPageSQLA(SQLABase, AutoListPageT): pass
 
 class AutoListPageOneToOneRelationT(WidgetTest):
     def setUp(self):
-        self.widget = self.widget(entity=self.DbTestCls9)
+        self.widget = self._widget_cls(entity=self.DbTestCls9)
         return super(AutoListPageOneToOneRelationT, self).setUp()
 
-    widget = tws.AutoListPage
+    _widget_cls = tws.AutoListPage
     attrs = {'title': 'Db Test Cls9'}
 
     # Doesn't make much sense... an AutoList widget with fetch_data not called?
@@ -1311,10 +1311,10 @@ class TestAutoListPageOneToOneRelationSQLA(SQLABase, AutoListPageOneToOneRelatio
 
 class AutoTableFormT1(WidgetTest):
     def setUp(self):
-        self.widget = self.widget(entity=self.DbTestCls1)
+        self.widget = self._widget_cls(entity=self.DbTestCls1)
         return super(AutoTableFormT1, self).setUp()
 
-    widget = tws.AutoTableForm
+    _widget_cls = tws.AutoTableForm
     attrs = { 'id' : 'foo_form' }
     expected = """
 <form method="post" id="foo_form:form" enctype="multipart/form-data">
@@ -1360,10 +1360,10 @@ class TestAutoTableForm1SQLA(SQLABase, AutoTableFormT1): pass
 
 class AutoTableFormT2(WidgetTest):
     def setUp(self):
-        self.widget = self.widget(entity=self.DbTestCls2)
+        self.widget = self._widget_cls(entity=self.DbTestCls2)
         return super(AutoTableFormT2, self).setUp()
 
-    widget = tws.AutoTableForm
+    _widget_cls = tws.AutoTableForm
     attrs = { 'id' : 'foo_form' }
     expected = """
 <form id="foo_form:form" enctype="multipart/form-data" method="post">
@@ -1403,10 +1403,10 @@ class TestAutoTableForm2SQLA(SQLABase, AutoTableFormT2): pass
 
 class AutoTableFormT4(WidgetTest):
     def setUp(self):
-        self.widget = self.widget(entity=self.DbTestCls4)
+        self.widget = self._widget_cls(entity=self.DbTestCls4)
         return super(AutoTableFormT4, self).setUp()
 
-    widget = tws.AutoTableForm
+    _widget_cls = tws.AutoTableForm
     attrs = { 'id' : 'foo_form' }
     expected = """
     <form method="post" id="foo_form:form" enctype="multipart/form-data">
@@ -1453,10 +1453,10 @@ class TestAutoTableForm4SQLA(SQLABase, AutoTableFormT4): pass
 
 class AutoTableFormT5(WidgetTest):
     def setUp(self):
-        self.widget = self.widget(entity=self.DbTestCls5)
+        self.widget = self._widget_cls(entity=self.DbTestCls5)
         return super(AutoTableFormT5, self).setUp()
 
-    widget = tws.AutoTableForm
+    _widget_cls = tws.AutoTableForm
     attrs = { 'id' : 'foo_form' }
     expected = """
     <form method="post" id="foo_form:form" enctype="multipart/form-data">
@@ -1499,10 +1499,10 @@ class TestAutoTableForm5SQLA(SQLABase, AutoTableFormT5): pass
 
 class AutoTableFormT6(WidgetTest):
     def setUp(self):
-        self.widget = self.widget(entity=self.DbTestCls6)
+        self.widget = self._widget_cls(entity=self.DbTestCls6)
         return super(AutoTableFormT6, self).setUp()
 
-    widget = tws.AutoTableForm
+    _widget_cls = tws.AutoTableForm
     attrs = { 'id' : 'foo_form' }
     expected = """
 <form method="post" id="foo_form:form" enctype="multipart/form-data">
@@ -1545,10 +1545,10 @@ class TestAutoTableForm6SQLA(SQLABase, AutoTableFormT6): pass
 
 class AutoTableFormT7(WidgetTest):
     def setUp(self):
-        self.widget = self.widget(entity=self.DbTestCls7)
+        self.widget = self._widget_cls(entity=self.DbTestCls7)
         return super(AutoTableFormT7, self).setUp()
 
-    widget = tws.AutoTableForm
+    _widget_cls = tws.AutoTableForm
     attrs = { 'id' : 'foo_form' }
     expected = """
 <form id="foo_form:form" enctype="multipart/form-data" method="post">
@@ -1588,10 +1588,10 @@ class TestAutoTableForm7SQLA(SQLABase, AutoTableFormT7): pass
 
 class AutoViewGridT(WidgetTest):
     def setUp(self):
-        self.widget = self.widget(entity=self.DbTestCls1)
+        self.widget = self._widget_cls(entity=self.DbTestCls1)
         return super(AutoViewGridT, self).setUp()
 
-    widget = tws.AutoViewGrid
+    _widget_cls = tws.AutoViewGrid
     attrs = { 'id' : 'autogrid' }
 
     expected = """
@@ -1700,10 +1700,10 @@ class TestAutoViewGridSQLA(SQLABase, AutoViewGridT): pass
 
 class AutoGrowingGridT(WidgetTest):
     def setUp(self):
-        self.widget = self.widget(entity=self.DbTestCls1)
+        self.widget = self._widget_cls(entity=self.DbTestCls1)
         return super(AutoGrowingGridT, self).setUp()
 
-    widget = tws.AutoGrowingGrid
+    _widget_cls = tws.AutoGrowingGrid
     attrs = { 'id' : 'autogrid' }
     # TBD -- should the values from the db show up here?
     expected = """
@@ -1765,10 +1765,10 @@ class TestAutoGrowingGridSQLA(SQLABase, AutoGrowingGridT): pass
 
 class AutoGrowingGridAsChildT(WidgetTest):
     def setUp(self):
-        self.widget = self.widget(entity=self.DbTestCls1)
+        self.widget = self._widget_cls(entity=self.DbTestCls1)
         return super(AutoGrowingGridAsChildT, self).setUp()
 
-    widget = tws.DbFormPage
+    _widget_cls = tws.DbFormPage
     attrs = { 'id' : 'autogrid', 'title' : 'Test',
               'child' : tws.AutoGrowingGrid}
     # TBD -- should the values from the db show up here?
@@ -1833,10 +1833,10 @@ class TestAutoGrowingGridAsChildSQLA(SQLABase, AutoGrowingGridAsChildT): pass
 
 class AutoGrowingGridAsChildWithRelationshipT(WidgetTest):
     def setUp(self):
-        self.widget = self.widget(entity=self.DbTestCls2)
+        self.widget = self._widget_cls(entity=self.DbTestCls2)
         return super(AutoGrowingGridAsChildWithRelationshipT, self).setUp()
 
-    widget = twf.TableForm
+    _widget_cls = twf.TableForm
     attrs = { 'title' : 'Test',
               'child' : tws.AutoGrowingGrid(id='others')}
     # TBD -- should the values from the db show up here?
@@ -1889,7 +1889,7 @@ SQLABase, AutoGrowingGridAsChildWithRelationshipT): pass
 
 
 class AutoEditRelationInTableT(WidgetTest):
-    widget = tws.AutoTableForm
+    _widget_cls = tws.AutoTableForm
     declarative = True
     attrs = {'css_class':'something', 'id' : 'something'}
     params = {'checked':None}
@@ -1953,7 +1953,7 @@ class AutoEditRelationInTableT(WidgetTest):
             assert(ve.widget.error_msg == '')
 
     def setUp(self):
-        self.widget = self.widget(entity=self.DbTestCls9)
+        self.widget = self._widget_cls(entity=self.DbTestCls9)
         return super(AutoEditRelationInTableT, self).setUp()
 
 if el:
@@ -1963,10 +1963,10 @@ class TestAutoEditRelationInTableSQLA(SQLABase, AutoEditRelationInTableT): pass
 
 class AutoEditRelationInFormT(WidgetTest):
     def setUp(self):
-        self.widget = self.widget(entity=self.DbTestCls9)
+        self.widget = self._widget_cls(entity=self.DbTestCls9)
         return super(AutoEditRelationInFormT, self).setUp()
 
-    widget = tws.DbFormPage
+    _widget_cls = tws.DbFormPage
     attrs = { 'id' : 'autoedit', 'title' : 'Test',
               'child' : tws.AutoTableForm}
 
@@ -2244,10 +2244,10 @@ class TestAutoEditRelationInFormSQLA(SQLABase, AutoEditRelationInFormT): pass
 class NonRequiredOneToOneRelationT(WidgetTest):
 
     def setUp(self):
-        self.widget = self.widget(entity=self.DbTestCls12)
+        self.widget = self._widget_cls(entity=self.DbTestCls12)
         return super(NonRequiredOneToOneRelationT, self).setUp()
 
-    widget = tws.DbFormPage
+    _widget_cls = tws.DbFormPage
     attrs = { 'id' : 'autoedit', 'title' : 'Test',
               'child' : tws.AutoTableForm}
 
@@ -2650,10 +2650,10 @@ class TestNonRequiredOneToOneRelationSQLA(SQLABase,
 
 class AutoTableFormAsChildT(WidgetTest):
     def setUp(self):
-        self.widget = self.widget(entity=self.DbTestCls7)
+        self.widget = self._widget_cls(entity=self.DbTestCls7)
         return super(AutoTableFormAsChildT, self).setUp()
 
-    widget = tws.DbFormPage
+    _widget_cls = tws.DbFormPage
     attrs = { 'id' : 'autotable', 'title' : 'Test',
               'child' : tws.AutoTableForm}
     expected = """
@@ -2922,10 +2922,10 @@ class FormPageRequiredCheckboxT(WidgetTest):
                 'title': 'some title',
                 'entity': self.DbTestCls1,
             }
-        self.widget = self.widget(**attrs)
+        self.widget = self._widget_cls(**attrs)
         return super(FormPageRequiredCheckboxT, self).setUp()
 
-    widget = tws.DbFormPage
+    _widget_cls = tws.DbFormPage
     expected = """
 <html>
 <head><title>some title</title></head>
@@ -3182,13 +3182,13 @@ class TestFormPageRequiredCheckboxTSQLA(SQLABase, FormPageRequiredCheckboxT): pa
 
 
 class DbLinkFieldT(WidgetTest):
-    widget = tws.DbLinkField
+    _widget_cls = tws.DbLinkField
     declarative = True
     params = {'link':'/test'}
     expected = """<a href="/test?id=1">foo1</a>"""
 
     def setUp(self):
-        self.widget = self.widget(entity=self.DbTestCls1, value=self.DbTestCls1.query.get(1))
+        self.widget = self._widget_cls(entity=self.DbTestCls1, value=self.DbTestCls1.query.get(1))
         return super(DbLinkFieldT, self).setUp()
 
     def test_encode(self):
