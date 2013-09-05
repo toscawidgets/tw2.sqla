@@ -579,7 +579,8 @@ class ListPageT(WidgetTest):
                 twf.LinkField(id='id', link='foo?id=$',
                               text='Edit', label='Edit'),
             ]),
-        'newlink' : twf.LinkField(link='cls1', text='New', value=1)
+        'newlink': twf.LinkField(link='cls1', text='New', value=1),
+        'title': 'Db Test Cls1'
     }
 
     # This is kind of non-sensical.  A DbListPage with no call to fetch_data?
@@ -1040,6 +1041,7 @@ class AutoListPageT(WidgetTest):
 
 
     widget = tws.AutoListPage
+    attrs = {'title': 'Db Test Cls1'}
 
     # Doesn't make much sense... an AutoList widget with fetch_data not called?
     expected = """
@@ -1144,6 +1146,7 @@ class AutoListPageT(WidgetTest):
         class SomeListPage(tws.DbListPage):
             _no_autoid = True
             entity = self.DbTestCls1
+            title = 'Db Test Cls1'
 
             class child(tws.AutoViewGrid):
                 name = twf.InputField(type='text')
@@ -1234,8 +1237,8 @@ class AutoListPageOneToOneRelationT(WidgetTest):
         self.widget = self.widget(entity=self.DbTestCls9)
         return super(AutoListPageOneToOneRelationT, self).setUp()
 
-
     widget = tws.AutoListPage
+    attrs = {'title': 'Db Test Cls9'}
 
     # Doesn't make much sense... an AutoList widget with fetch_data not called?
     expected = """
@@ -3232,7 +3235,9 @@ class DbLinkFieldT(WidgetTest):
                     tws.DbLinkField(
                         'edit', entity=self.DbTestCls10, link='/test/$')
                 ],
-                value=d)
+                value=d,
+                entity=None
+                )
         tw2test.assert_eq_xml(w.display(), """
 <form enctype="multipart/form-data" method="post">
   <span class="error"></span>
