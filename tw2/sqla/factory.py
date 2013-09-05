@@ -197,12 +197,12 @@ class WidgetPolicy(object):
                         reverse_property_name=get_reverse_property_name(prop),
                         required_on_parent=(not required),
                     )
-        elif prop.key in cls.name_widgets:
-            widget = cls.name_widgets[prop.key]        
         elif cols and cls.hint_name and cls.hint_name in cols[0].info:
             if not issubclass(cols[0].info[cls.hint_name], NoWidget):
                 widget = cols[0].info[cls.hint_name]
-        else:            
+        elif prop.key in cls.name_widgets:
+            widget = cls.name_widgets[prop.key]
+        else:
             for t, c in product(cls.type_widgets, cols):
                 if isinstance(c.type, t):
                     widget = cls.type_widgets[t]

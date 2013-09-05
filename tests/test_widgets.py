@@ -36,6 +36,8 @@ except ImportError:
     pass
 
 
+class InfoField(twf.InputField): pass
+
 class ElixirBase(object):
     def setUp(self):
         el.metadata = sa.MetaData('sqlite:///:memory:')
@@ -117,6 +119,11 @@ class ElixirBase(object):
             def __unicode__(self):
                 return self.name
 
+        class DbTestCls13(el.Entity):
+            name = el.Field(el.String, info={'edit_widget': InfoField})
+            def __unicode__(self):
+                return self.name
+
 
         self.DbTestCls1 = DbTestCls1
         self.DbTestCls2 = DbTestCls2
@@ -130,6 +137,7 @@ class ElixirBase(object):
         self.DbTestCls10 = DbTestCls10
         self.DbTestCls11 = DbTestCls11
         self.DbTestCls12 = DbTestCls12
+        self.DbTestCls13 = DbTestCls13
 
         el.setup_all()
         el.metadata.create_all()
@@ -263,6 +271,13 @@ class SQLABase(object):
             def __unicode__(self):
                 return self.name
 
+        class DbTestCls13(Base):
+            __tablename__ = 'Test13'
+            id = sa.Column(sa.Integer, primary_key=True)
+            name = sa.Column(sa.String(50), info={'edit_widget': InfoField})
+            def __unicode__(self):
+                return self.name
+
 
         self.DbTestCls1 = DbTestCls1
         self.DbTestCls2 = DbTestCls2
@@ -276,6 +291,7 @@ class SQLABase(object):
         self.DbTestCls10 = DbTestCls10
         self.DbTestCls11 = DbTestCls11
         self.DbTestCls12 = DbTestCls12
+        self.DbTestCls13 = DbTestCls13
 
         Base.metadata.create_all()
 
@@ -1096,15 +1112,18 @@ class AutoListPageT(WidgetEntityTest):
             assert(False)
 
     def test_info_on_prop(self):
-        class AwesomePolicy(tws.WidgetPolicy):
+        """Test we use first the data defined in the hint
+        """
+        class AwesomePolicy(tws.EditPolicy):
             name_widgets = { 'name' : twf.LabelField, }
 
         props = filter(
             lambda x : x.key == 'name',
-            sa.orm.class_mapper(self.DbTestCls1).iterate_properties)
+            sa.orm.class_mapper(self.DbTestCls13).iterate_properties)
         assert(len(props) == 1)
         try:
             w = AwesomePolicy.factory(props[0])
+            assert(issubclass(w, InfoField))
         except twc.WidgetError, e:
             assert(False)
 
@@ -1191,7 +1210,6 @@ class AutoListPageT(WidgetEntityTest):
     <tr class="error"><td colspan="2" id="autolistpage_d:error">
     </td></tr>
 </table></body></html>""")
-
 
 if el:
     class TestAutoListPageElixir(ElixirBase, AutoListPageT): pass
