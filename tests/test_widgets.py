@@ -37,6 +37,8 @@ except ImportError:
 
 
 class InfoField(twf.InputField): pass
+class FakeValidator(twc.Validator): pass
+
 
 class ElixirBase(object):
     def setUp(self):
@@ -120,10 +122,18 @@ class ElixirBase(object):
                 return self.name
 
         class DbTestCls13(el.Entity):
-            name = el.Field(el.String, info={'edit_widget': InfoField})
+            name = el.Field(el.String, info={'edit_widget': InfoField},
+                            required=True)
             def __unicode__(self):
                 return self.name
 
+        class DbTestCls14(el.Entity):
+            name = el.Field(
+                el.String,
+                info={'edit_widget': InfoField(validator=FakeValidator)},
+                required=True)
+            def __unicode__(self):
+                return self.name
 
         self.DbTestCls1 = DbTestCls1
         self.DbTestCls2 = DbTestCls2
@@ -138,6 +148,7 @@ class ElixirBase(object):
         self.DbTestCls11 = DbTestCls11
         self.DbTestCls12 = DbTestCls12
         self.DbTestCls13 = DbTestCls13
+        self.DbTestCls14 = DbTestCls14
 
         el.setup_all()
         el.metadata.create_all()
@@ -274,7 +285,18 @@ class SQLABase(object):
         class DbTestCls13(Base):
             __tablename__ = 'Test13'
             id = sa.Column(sa.Integer, primary_key=True)
-            name = sa.Column(sa.String(50), info={'edit_widget': InfoField})
+            name = sa.Column(sa.String(50), info={'edit_widget': InfoField},
+                             nullable=False)
+            def __unicode__(self):
+                return self.name
+
+        class DbTestCls14(Base):
+            __tablename__ = 'Test14'
+            id = sa.Column(sa.Integer, primary_key=True)
+            name = sa.Column(
+                sa.String(50),
+                info={'edit_widget': InfoField(validator=FakeValidator)},
+                nullable=False)
             def __unicode__(self):
                 return self.name
 
@@ -292,6 +314,7 @@ class SQLABase(object):
         self.DbTestCls11 = DbTestCls11
         self.DbTestCls12 = DbTestCls12
         self.DbTestCls13 = DbTestCls13
+        self.DbTestCls14 = DbTestCls14
 
         Base.metadata.create_all()
 
@@ -1124,6 +1147,23 @@ class AutoListPageT(WidgetEntityTest):
         try:
             w = AwesomePolicy.factory(props[0])
             assert(issubclass(w, InfoField))
+            assert(w.validator)
+        except twc.WidgetError, e:
+            assert(False)
+
+    def test_info_validator_on_prop(self):
+        """Test we use first the data defined in the hint
+        """
+        class AwesomePolicy(tws.EditPolicy): pass
+
+        props = filter(
+            lambda x: x.key == 'name',
+            sa.orm.class_mapper(self.DbTestCls14).iterate_properties)
+        assert(len(props) == 1)
+        try:
+            w = AwesomePolicy.factory(props[0])
+            assert(issubclass(w, InfoField))
+            assert(isinstance(w.validator, FakeValidator))
         except twc.WidgetError, e:
             assert(False)
 

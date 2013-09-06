@@ -220,7 +220,7 @@ class WidgetPolicy(object):
 
         if widget:
             widget_kw['id'] = prop.key
-            if required_widget(prop):
+            if not getattr(widget, 'validator', None) and required_widget(prop):
                 widget_kw['validator'] = twc.Required
             widget = widget(**widget_kw)
 
