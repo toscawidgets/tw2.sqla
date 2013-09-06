@@ -144,6 +144,7 @@ class WidgetPolicy(object):
     @classmethod
     def factory(cls, prop):
         widget = None
+        widget_kw = {}
         cols = getattr(prop, 'columns', [])
         if is_onetomany(prop):
             if not cls.onetomany_widget:
@@ -152,13 +153,12 @@ class WidgetPolicy(object):
                     "for one-to-many relation '%s'" % prop.key)
             prop_cls = prop.mapper.class_
             edit_link = getattr(prop_cls, 'tws_edit_link', None)
-            params = {}
             if cls.add_edit_link:
-                params['link'] = edit_link
-            widget = cls.onetomany_widget(
-                id=prop.key,
-                entity=prop_cls,
-                **params)
+                widget_kw['link'] = edit_link
+            widget_kw.update({
+                'entity': prop_cls,
+            })
+            widget = cls.onetomany_widget
         elif sum([c.primary_key for c in getattr(prop, 'columns', [])]):
             widget = cls.pkey_widget
         elif is_manytoone(prop):
@@ -166,7 +166,10 @@ class WidgetPolicy(object):
                 raise twc.WidgetError(
                     "Cannot automatically create a widget " +
                     "for many-to-one relation '%s'" % prop.key)
-            widget = cls.manytoone_widget(id=prop.key,entity=prop.mapper.class_)
+            widget_kw = {
+                'entity': prop.mapper.class_
+            }
+            widget = cls.manytoone_widget
         elif is_manytomany(prop):
             # Use the same widget as onetomany
             if not cls.onetomany_widget:
@@ -175,28 +178,29 @@ class WidgetPolicy(object):
                     "for many-to-many relation '%s'" % prop.key)
             prop_cls = prop.mapper.class_
             edit_link = getattr(prop_cls, 'tws_edit_link', None)
-            params = {}
             if cls.add_edit_link:
-                params['link'] = edit_link
-            widget = cls.onetomany_widget(
-                id=prop.key,
-                entity=prop_cls,
-                reverse_property_name=get_reverse_property_name(prop),
-                **params
-            )
+                widget_kw['link'] = edit_link
+
+            widget = cls.onetomany_widget
+            widget_kw.update({
+                'id': prop.key,
+                'entit': prop_cls,
+                'reverse_property_name': get_reverse_property_name(prop),
+            })
         elif is_onetoone(prop):
             if not cls.onetoone_widget:
                 raise twc.WidgetError(
                     "Cannot automatically create a widget " +
                     "for one-to-one relation '%s'" % prop.key)
             required = required_widget(prop)
-            widget = cls.onetoone_widget(
-                        id=prop.key,
-                        entity=prop.mapper.class_,
-                        required=required,
-                        reverse_property_name=get_reverse_property_name(prop),
-                        required_on_parent=(not required),
-                    )
+            widget = cls.onetoone_widget
+            widget_kw = {
+                'id': prop.key,
+                'entity': prop.mapper.class_,
+                'required': required,
+                'reverse_property_name': get_reverse_property_name(prop),
+                'required_on_parent': (not required),
+            }
         elif cols and cls.hint_name and cls.hint_name in cols[0].info:
             if not issubclass(cols[0].info[cls.hint_name], NoWidget):
                 widget = cols[0].info[cls.hint_name]
@@ -215,10 +219,10 @@ class WidgetPolicy(object):
                 widget = cls.default_widget
 
         if widget:
-            args = {'id': prop.key}
+            widget_kw['id'] = prop.key
             if required_widget(prop):
-                args['validator'] = twc.Required
-            widget = widget(**args)
+                widget_kw['validator'] = twc.Required
+            widget = widget(**widget_kw)
 
         return widget
 
