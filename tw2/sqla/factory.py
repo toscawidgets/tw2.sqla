@@ -343,7 +343,7 @@ class AutoContainer(twc.Widget):
             cls.required_children = []
             if getattr(cls, 'required_on_parent', False):
                 for c in new_children:
-                    if c.validator.required:
+                    if c.validator and c.validator.required:
                         cls.required_children += [c]
                         c.validator.required = False
             cls.child = cls.child(children=new_children, entity=cls.entity)
