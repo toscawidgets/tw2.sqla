@@ -184,7 +184,7 @@ class WidgetPolicy(object):
             widget = cls.onetomany_widget
             widget_kw.update({
                 'id': prop.key,
-                'entit': prop_cls,
+                'entity': prop_cls,
                 'reverse_property_name': get_reverse_property_name(prop),
             })
         elif is_onetoone(prop):
