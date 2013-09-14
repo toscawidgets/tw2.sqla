@@ -244,6 +244,7 @@ class DbLinkField(twc.Widget):
     link = twc.Param('Path to link to', default=None)
     text = twc.Param('Link text', default='')
     entity = twc.Param('SQLAlchemy mapped class to use', request_local=False)
+    escape = twc.Param('Whether text shall be html-escaped or not', default=True)
 
     def encode(self, value):
         return urllib.quote(unicode(value).encode('utf-8'))
