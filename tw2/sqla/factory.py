@@ -400,7 +400,7 @@ class AutoEditFieldSet(AutoContainer, twf.TableFieldSet):
 
 # This is assigned here and not above because of a circular dep.
 ViewPolicy.onetomany_widget = DbListLinkField
-ViewPolicy.onetoone_widget = twf.LabelField
+ViewPolicy.onetoone_widget = DbLabelField
 EditPolicy.onetoone_widget = AutoEditFieldSet
 
 class AutoListPage(DbListPage):
