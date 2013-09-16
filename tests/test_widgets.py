@@ -10,6 +10,10 @@ import tw2.core.testbase as tw2test
 class WidgetTest(tw2test.WidgetTest):
     engines = ['mako', 'genshi']
     declarative = True
+    # NOTE: widget should have a default value to make sure the tests in
+    # tw2test.WidgetTest are run.
+    widget = twc.Widget
+
 
 class WidgetEntityTest(WidgetTest):
 
