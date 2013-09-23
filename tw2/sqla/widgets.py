@@ -238,6 +238,16 @@ class DbListPage(DbPage, twc.Page):
             self.newlink.prepare()
 
 
+class DbLabelField(twf.LabelField):
+
+    def prepare(self):
+        super(DbLabelField, self).prepare()
+        if self.value and hasattr(self.value, 'get_tws_view_html'):
+            self.value = self.value.get_tws_view_html() or ''
+            # We can have HTML in get_tws_view_html
+            self.escape = False
+
+
 # Note: this does not inherit from LinkField, as few of the parameters apply
 class DbLinkField(twc.Widget):
     template = "tw2.forms.templates.link_field"
@@ -274,7 +284,12 @@ class DbLinkField(twc.Widget):
                 self.attrs['href'] = self.link + '?' + qs
 
         if not self.text:
-            self.text = unicode(self.value or '')
+            if self.value and hasattr(self.value, 'get_tws_view_html'):
+                self.text = self.value.get_tws_view_html() or ''
+                # We can have HTML in get_tws_view_html
+                self.escape = False
+            else:
+                self.text = unicode(self.value or '')
 
 
 class DbListLinkField(twc.RepeatingWidget):

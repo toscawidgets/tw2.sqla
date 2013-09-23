@@ -136,6 +136,14 @@ class ElixirBase(object):
                 el.String,
                 info={'edit_widget': InfoField(validator=FakeValidator)},
                 required=True)
+            other_id = el.Field(el.Integer, required=True)
+            other = el.ManyToOne(
+                DbTestCls13,
+                field=other_id,
+                backref='others',
+                info={'view_widget': tws.NoWidget,
+                      'edit_widget': tws.FactoryWidget(css_class='myclass')}
+            )
             def __unicode__(self):
                 return self.name
 
@@ -301,6 +309,13 @@ class SQLABase(object):
                 sa.String(50),
                 info={'edit_widget': InfoField(validator=FakeValidator)},
                 nullable=False)
+            other_id = sa.Column(sa.Integer, sa.ForeignKey('Test13.id'), nullable=False)
+            other = sa.orm.relation(
+                DbTestCls13,
+                backref=sa.orm.backref('others'),
+                info={'view_widget': tws.NoWidget,
+                      'edit_widget': tws.FactoryWidget(css_class='myclass')}
+            )
             def __unicode__(self):
                 return self.name
 
@@ -1171,6 +1186,37 @@ class AutoListPageT(WidgetEntityTest):
         except twc.WidgetError, e:
             assert(False)
 
+    def test_info_widget_on_relation(self):
+        """Test we use first the data defined in the hint
+        """
+        class AwesomePolicy(tws.ViewPolicy): pass
+
+        props = filter(
+            lambda x: x.key == 'other',
+            sa.orm.class_mapper(self.DbTestCls14).iterate_properties)
+        assert(len(props) == 1)
+        try:
+            w = AwesomePolicy.factory(props[0])
+            assert(w is None)
+        except twc.WidgetError, e:
+            assert(False)
+
+    def test_info_factory_widget_on_relation(self):
+        """Test we use first the data defined in the hint
+        """
+        class AwesomePolicy(tws.EditPolicy): pass
+
+        props = filter(
+            lambda x: x.key == 'other',
+            sa.orm.class_mapper(self.DbTestCls14).iterate_properties)
+        assert(len(props) == 1)
+        try:
+            w = AwesomePolicy.factory(props[0])
+            assert(issubclass(w, tws.DbSingleSelectField))
+            assert(w.css_class == 'myclass')
+        except twc.WidgetError, e:
+            assert(False)
+
     def test_orig_children(self):
         """ Tests overriding properties (`orig_children`) """
 
@@ -1300,7 +1346,7 @@ class AutoListPageOneToOneRelationT(WidgetEntityTest):
                 <span>bob1<input type="hidden" name="autolistpage_d:0:name" value="bob1" id="autolistpage_d:0:name"/></span>
             </td>
             <td>
-              <span>account1<input type="hidden" name="autolistpage_d:0:account" value="account1" id="autolistpage_d:0:account"/></span>
+              <span>account1<input type="hidden" name="autolistpage_d:0:account" value="account1" id="autolistpage_d:0:account" required="required" /></span>
             </td>
             <td>
             </td>
@@ -3190,6 +3236,14 @@ class DbLinkFieldT(WidgetTest):
         w = tws.DbLinkField(entity=self.DbTestCls10, text='edit')
         tw2test.assert_eq_xml(w.display(), '<a>edit</a>')
 
+    def test_get_tws_view_html(self):
+        class TestCls(self.DbTestCls10):
+            def get_tws_view_html(self):
+                return '<strong>name:</strong> %s' % self.name
+        w = tws.DbLinkField(entity=TestCls, value=TestCls(name='Fred'))
+        tw2test.assert_eq_xml(w.display(),
+                              '<a><strong>name:</strong> Fred</a>')
+
     def test_parent_value(self):
         d = self.DbTestCls10(name="fred")
         w = tws.AutoTableForm(
@@ -3224,3 +3278,27 @@ if el:
     class TestLinkFieldElixir(ElixirBase, DbLinkFieldT): pass
 
 class TestLinkFieldSQLA(SQLABase, DbLinkFieldT): pass
+
+
+class DbLabelFieldT(WidgetTest):
+    _widget_cls = tws.DbLabelField
+    params = {}
+    expected = """<span>foo1<input value="foo1" type="hidden" /></span>"""
+
+    def setUp(self):
+        self.widget = self._widget_cls(entity=self.DbTestCls1, value=self.DbTestCls1.query.get(1))
+        return super(DbLabelFieldT, self).setUp()
+
+    def test_get_tws_view_html(self):
+        class TestCls(self.DbTestCls1):
+            def get_tws_view_html(self):
+                return '<strong>name:</strong> %s' % self.name
+        w = tws.DbLabelField(entity=TestCls, value=TestCls(name='Fred'))
+        expected = ('<span><strong>name:</strong> Fred'
+                    '<input type="hidden" value="Fred"/></span>')
+        tw2test.assert_eq_xml(w.display(), expected)
+
+if el:
+    class TestDbLabelFieldElixir(ElixirBase, DbLabelFieldT): pass
+
+class TestDbLabelFieldSQLA(SQLABase, DbLabelFieldT): pass

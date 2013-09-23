@@ -33,17 +33,20 @@ def sort_properties(localname_from_relationname, localname_creation_order):
         When a relation has a column on the local side, we put the relation at
         the place of the column.
         """
-        weight1 = 0
-        weight2 = 0
-        if is_onetoone(prop1):
-            weight1 += 2
-        if is_onetoone(prop2):
-            weight2 += 2
-        if is_manytomany(prop1):
-            weight1 += 1
-        if is_manytomany(prop2):
-            weight2 += 1
-        
+        def get_weight(prop):
+            if is_onetoone(prop):
+                return 4
+            elif is_onetomany(prop):
+                return 3
+            elif is_manytoone(prop):
+                return 2
+            elif is_manytomany(prop):
+                return 1
+            return 0
+
+        weight1 = get_weight(prop1)
+        weight2 = get_weight(prop2)
+
         res = cmp(weight1, weight2)
         if res != 0:
             return res
@@ -145,8 +148,24 @@ class WidgetPolicy(object):
     def factory(cls, prop):
         widget = None
         widget_kw = {}
+        factory_widget = None
         cols = getattr(prop, 'columns', [])
-        if is_onetomany(prop):
+        if cls.hint_name:
+            if is_relation(prop):
+                widget = prop.info.get(cls.hint_name)
+            elif cols:
+                widget = cols[0].info.get(cls.hint_name)
+        if widget:
+            if issubclass(widget, NoWidget):
+                # We don't want to display this field!
+                return None
+            if issubclass(widget, FactoryWidget):
+                factory_widget = widget
+                widget = None
+
+        if widget:
+            pass
+        elif is_onetomany(prop):
             if not cls.onetomany_widget:
                 raise twc.WidgetError(
                     "Cannot automatically create a widget " +
@@ -201,9 +220,6 @@ class WidgetPolicy(object):
                 'reverse_property_name': get_reverse_property_name(prop),
                 'required_on_parent': (not required),
             }
-        elif cols and cls.hint_name and cls.hint_name in cols[0].info:
-            if not issubclass(cols[0].info[cls.hint_name], NoWidget):
-                widget = cols[0].info[cls.hint_name]
         elif prop.key in cls.name_widgets:
             widget = cls.name_widgets[prop.key]
         else:
@@ -220,7 +236,12 @@ class WidgetPolicy(object):
 
         if widget:
             widget_kw['id'] = prop.key
-            if not getattr(widget, 'validator', None) and required_widget(prop):
+            if factory_widget:
+                for k, v in widget._all_params.items():
+                    value = getattr(factory_widget, k, None)
+                    if value and value != v.default:
+                        widget_kw[k] = value
+            if 'validator' not in widget_kw and not getattr(widget, 'validator', None) and required_widget(prop):
                 widget_kw['validator'] = twc.Required
             widget = widget(**widget_kw)
 
@@ -230,6 +251,12 @@ class WidgetPolicy(object):
 class NoWidget(twc.Widget):
     pass
 
+
+class FactoryWidget(twc.Widget):
+    """Widget to use when we want to let the factory decides the widget to use
+    but we want to apply some specifics parameters
+    """
+    pass
 
 class ViewPolicy(WidgetPolicy):
     """Base WidgetPolicy for viewing data."""
@@ -376,7 +403,7 @@ class AutoEditFieldSet(AutoContainer, twf.TableFieldSet):
 
 # This is assigned here and not above because of a circular dep.
 ViewPolicy.onetomany_widget = DbListLinkField
-ViewPolicy.onetoone_widget = twf.LabelField
+ViewPolicy.onetoone_widget = DbLabelField
 EditPolicy.onetoone_widget = AutoEditFieldSet
 
 class AutoListPage(DbListPage):
