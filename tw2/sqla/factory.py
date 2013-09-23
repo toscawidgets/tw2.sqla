@@ -145,6 +145,7 @@ class WidgetPolicy(object):
     def factory(cls, prop):
         widget = None
         widget_kw = {}
+        factory_widget = None
         cols = getattr(prop, 'columns', [])
         if cls.hint_name:
             if is_relation(prop):
@@ -155,6 +156,12 @@ class WidgetPolicy(object):
             if issubclass(widget, NoWidget):
                 # We don't want to display this field!
                 return None
+            if issubclass(widget, FactoryWidget):
+                factory_widget = widget
+                widget = None
+
+        if widget:
+            pass
         elif is_onetomany(prop):
             if not cls.onetomany_widget:
                 raise twc.WidgetError(
@@ -226,7 +233,12 @@ class WidgetPolicy(object):
 
         if widget:
             widget_kw['id'] = prop.key
-            if not getattr(widget, 'validator', None) and required_widget(prop):
+            if factory_widget:
+                for k, v in widget._all_params.items():
+                    value = getattr(factory_widget, k, None)
+                    if value and value != v.default:
+                        widget_kw[k] = value
+            if 'validator' not in widget_kw and not getattr(widget, 'validator', None) and required_widget(prop):
                 widget_kw['validator'] = twc.Required
             widget = widget(**widget_kw)
 
@@ -236,6 +248,12 @@ class WidgetPolicy(object):
 class NoWidget(twc.Widget):
     pass
 
+
+class FactoryWidget(twc.Widget):
+    """Widget to use when we want to let the factory decides the widget to use
+    but we want to apply some specifics parameters
+    """
+    pass
 
 class ViewPolicy(WidgetPolicy):
     """Base WidgetPolicy for viewing data."""

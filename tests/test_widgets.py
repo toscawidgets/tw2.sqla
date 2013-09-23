@@ -141,7 +141,8 @@ class ElixirBase(object):
                 DbTestCls13,
                 field=other_id,
                 backref='others',
-                info={'view_widget': tws.NoWidget}
+                info={'view_widget': tws.NoWidget,
+                      'edit_widget': tws.FactoryWidget(css_class='myclass')}
             )
             def __unicode__(self):
                 return self.name
@@ -312,7 +313,8 @@ class SQLABase(object):
             other = sa.orm.relation(
                 DbTestCls13,
                 backref=sa.orm.backref('others'),
-                info={'view_widget': tws.NoWidget}
+                info={'view_widget': tws.NoWidget,
+                      'edit_widget': tws.FactoryWidget(css_class='myclass')}
             )
             def __unicode__(self):
                 return self.name
@@ -1196,6 +1198,22 @@ class AutoListPageT(WidgetEntityTest):
         try:
             w = AwesomePolicy.factory(props[0])
             assert(w is None)
+        except twc.WidgetError, e:
+            assert(False)
+
+    def test_info_factory_widget_on_relation(self):
+        """Test we use first the data defined in the hint
+        """
+        class AwesomePolicy(tws.EditPolicy): pass
+
+        props = filter(
+            lambda x: x.key == 'other',
+            sa.orm.class_mapper(self.DbTestCls14).iterate_properties)
+        assert(len(props) == 1)
+        try:
+            w = AwesomePolicy.factory(props[0])
+            assert(issubclass(w, tws.DbSingleSelectField))
+            assert(w.css_class == 'myclass')
         except twc.WidgetError, e:
             assert(False)
 

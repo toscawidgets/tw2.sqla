@@ -8,7 +8,7 @@ from factory import (
     AutoTableForm, AutoViewGrid, AutoGrowingGrid,
     AutoListPage, AutoListPageEdit,
     AutoEditFieldSet, AutoViewFieldSet,
-    NoWidget)
+    NoWidget, FactoryWidget)
 
 import utils
 import widgets
