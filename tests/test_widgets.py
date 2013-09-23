@@ -1300,7 +1300,7 @@ class AutoListPageOneToOneRelationT(WidgetEntityTest):
                 <span>bob1<input type="hidden" name="autolistpage_d:0:name" value="bob1" id="autolistpage_d:0:name"/></span>
             </td>
             <td>
-              <span>account1<input type="hidden" name="autolistpage_d:0:account" value="account1" id="autolistpage_d:0:account"/></span>
+              <span>account1<input type="hidden" name="autolistpage_d:0:account" value="account1" id="autolistpage_d:0:account" required="required" /></span>
             </td>
             <td>
             </td>
