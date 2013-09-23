@@ -33,17 +33,20 @@ def sort_properties(localname_from_relationname, localname_creation_order):
         When a relation has a column on the local side, we put the relation at
         the place of the column.
         """
-        weight1 = 0
-        weight2 = 0
-        if is_onetoone(prop1):
-            weight1 += 2
-        if is_onetoone(prop2):
-            weight2 += 2
-        if is_manytomany(prop1):
-            weight1 += 1
-        if is_manytomany(prop2):
-            weight2 += 1
-        
+        def get_weight(prop):
+            if is_onetoone(prop):
+                return 4
+            elif is_onetomany(prop):
+                return 3
+            elif is_manytoone(prop):
+                return 2
+            elif is_manytomany(prop):
+                return 1
+            return 0
+
+        weight1 = get_weight(prop1)
+        weight2 = get_weight(prop2)
+
         res = cmp(weight1, weight2)
         if res != 0:
             return res
