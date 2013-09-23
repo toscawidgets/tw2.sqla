@@ -136,6 +136,13 @@ class ElixirBase(object):
                 el.String,
                 info={'edit_widget': InfoField(validator=FakeValidator)},
                 required=True)
+            other_id = el.Field(el.Integer, required=True)
+            other = el.ManyToOne(
+                DbTestCls13,
+                field=other_id,
+                backref='others',
+                info={'view_widget': tws.NoWidget}
+            )
             def __unicode__(self):
                 return self.name
 
@@ -301,6 +308,12 @@ class SQLABase(object):
                 sa.String(50),
                 info={'edit_widget': InfoField(validator=FakeValidator)},
                 nullable=False)
+            other_id = sa.Column(sa.Integer, sa.ForeignKey('Test13.id'), nullable=False)
+            other = sa.orm.relation(
+                DbTestCls13,
+                backref=sa.orm.backref('others'),
+                info={'view_widget': tws.NoWidget}
+            )
             def __unicode__(self):
                 return self.name
 
@@ -1168,6 +1181,21 @@ class AutoListPageT(WidgetEntityTest):
             w = AwesomePolicy.factory(props[0])
             assert(issubclass(w, InfoField))
             assert(isinstance(w.validator, FakeValidator))
+        except twc.WidgetError, e:
+            assert(False)
+
+    def test_info_widget_on_relation(self):
+        """Test we use first the data defined in the hint
+        """
+        class AwesomePolicy(tws.ViewPolicy): pass
+
+        props = filter(
+            lambda x: x.key == 'other',
+            sa.orm.class_mapper(self.DbTestCls14).iterate_properties)
+        assert(len(props) == 1)
+        try:
+            w = AwesomePolicy.factory(props[0])
+            assert(w is None)
         except twc.WidgetError, e:
             assert(False)
 

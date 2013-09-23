@@ -146,7 +146,16 @@ class WidgetPolicy(object):
         widget = None
         widget_kw = {}
         cols = getattr(prop, 'columns', [])
-        if is_onetomany(prop):
+        if cls.hint_name:
+            if is_relation(prop):
+                widget = prop.info.get(cls.hint_name)
+            elif cols:
+                widget = cols[0].info.get(cls.hint_name)
+        if widget:
+            if issubclass(widget, NoWidget):
+                # We don't want to display this field!
+                return None
+        elif is_onetomany(prop):
             if not cls.onetomany_widget:
                 raise twc.WidgetError(
                     "Cannot automatically create a widget " +
@@ -201,9 +210,6 @@ class WidgetPolicy(object):
                 'reverse_property_name': get_reverse_property_name(prop),
                 'required_on_parent': (not required),
             }
-        elif cols and cls.hint_name and cls.hint_name in cols[0].info:
-            if not issubclass(cols[0].info[cls.hint_name], NoWidget):
-                widget = cols[0].info[cls.hint_name]
         elif prop.key in cls.name_widgets:
             widget = cls.name_widgets[prop.key]
         else:
