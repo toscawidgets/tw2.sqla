@@ -68,7 +68,7 @@ class RelatedItemValidator(twc.Validator):
 
     def __init__(self, entity, required=False, **kw):
         super(RelatedItemValidator, self).__init__(**kw)
-        self.required=required
+        self.required = required
         self.entity = entity
         self.item_validator = RelatedValidator(entity=self.entity)
 
@@ -95,7 +95,7 @@ class RelatedOneToOneValidator(twc.Validator):
 
     def __init__(self, entity, required=False, required_children=None, **kw):
         super(RelatedOneToOneValidator, self).__init__(**kw)
-        self.required=required
+        self.required = required
         self.entity = entity
         self.required_children = required_children
 
@@ -145,11 +145,12 @@ class RelatedOneToOneValidator(twc.Validator):
 
 
 class DbPage(twc.Page):
-    entity = twc.Param('SQLAlchemy mapped class to use', request_local=False)
+    entity = twc.Param('SQLAlchemy mapped class to use', request_local=False,
+                       default=None)
     _no_autoid = True
     @classmethod
     def post_define(cls):
-        if hasattr(cls, 'entity') and not hasattr(cls, 'title'):
+        if getattr(cls, 'entity', None) and not hasattr(cls, 'title'):
             cls.title = twc.util.name2label(cls.entity.__name__)
 
 class DbFormPage(DbPage, twf.FormPage):
@@ -158,7 +159,8 @@ class DbFormPage(DbPage, twf.FormPage):
     from the database, based on the primary key in the URL (no parameters for a new record). The
     `validated_request` method saves the data to the database.
     """
-    redirect = twc.Param('Location to redirect to after successful POST', request_local=False)
+    redirect = twc.Param('Location to redirect to after successful POST',
+                         request_local=False, default=None)
     _no_autoid = True
 
     def fetch_data(self, req):
@@ -177,7 +179,7 @@ class DbFormPage(DbPage, twf.FormPage):
         if do_commit:
             transaction.commit()
 
-        if hasattr(cls, 'redirect'):
+        if cls.redirect is not None:
             return webob.Response(request=req, status=302, location=cls.redirect)
         else:
             return super(DbFormPage, cls).validated_request(req, data)
@@ -188,12 +190,13 @@ class DbListForm(DbPage, twf.FormPage):
     A page that contains a list form with database synchronisation. The `fetch_data` method loads a full
     table from the database. The `validated_request` method saves the data to the database.
     """
-    redirect = twc.Param('Location to redirect to after successful POST', request_local=False)
+    redirect = twc.Param('Location to redirect to after successful POST',
+                         request_local=False, default=None)
     _no_autoid = True
 
     def fetch_data(self, req):
         self.value = self.entity.query.all()
-        
+
     @classmethod
     def validated_request(cls, req, data, protect_prm_tamp=True, do_commit=True):
         utils.from_list(cls.entity, cls.entity.query.all(), data,
@@ -201,7 +204,7 @@ class DbListForm(DbPage, twf.FormPage):
         if do_commit:
             transaction.commit()
 
-        if hasattr(cls, 'redirect'):
+        if cls.redirect is not None:
             return webob.Response(request=req, status=302, location=cls.redirect)
         else:
             return super(DbListForm, cls).validated_request(req, data)
@@ -235,12 +238,23 @@ class DbListPage(DbPage, twc.Page):
             self.newlink.prepare()
 
 
+class DbLabelField(twf.LabelField):
+
+    def prepare(self):
+        super(DbLabelField, self).prepare()
+        if self.value and hasattr(self.value, 'get_tws_view_html'):
+            self.value = self.value.get_tws_view_html() or ''
+            # We can have HTML in get_tws_view_html
+            self.escape = False
+
+
 # Note: this does not inherit from LinkField, as few of the parameters apply
 class DbLinkField(twc.Widget):
     template = "tw2.forms.templates.link_field"
     link = twc.Param('Path to link to', default=None)
     text = twc.Param('Link text', default='')
     entity = twc.Param('SQLAlchemy mapped class to use', request_local=False)
+    escape = twc.Param('Whether text shall be html-escaped or not', default=True)
 
     def encode(self, value):
         return urllib.quote(unicode(value).encode('utf-8'))
@@ -270,7 +284,12 @@ class DbLinkField(twc.Widget):
                 self.attrs['href'] = self.link + '?' + qs
 
         if not self.text:
-            self.text = unicode(self.value or '')
+            if self.value and hasattr(self.value, 'get_tws_view_html'):
+                self.text = self.value.get_tws_view_html() or ''
+                # We can have HTML in get_tws_view_html
+                self.escape = False
+            else:
+                self.text = unicode(self.value or '')
 
 
 class DbListLinkField(twc.RepeatingWidget):
@@ -334,7 +353,7 @@ class DbSingleSelectLink(twd.LinkContainer):
     class child(DbSingleSelectField):
         @classmethod
         def post_define(cls):
-            if hasattr(cls.parent, 'entity') and not hasattr(cls, 'entity'):
+            if getattr(cls.parent, 'entity', None) and not cls.entity:
                 cls.entity = cls.parent.entity
 
 

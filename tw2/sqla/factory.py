@@ -33,17 +33,20 @@ def sort_properties(localname_from_relationname, localname_creation_order):
         When a relation has a column on the local side, we put the relation at
         the place of the column.
         """
-        weight1 = 0
-        weight2 = 0
-        if is_onetoone(prop1):
-            weight1 += 2
-        if is_onetoone(prop2):
-            weight2 += 2
-        if is_manytomany(prop1):
-            weight1 += 1
-        if is_manytomany(prop2):
-            weight2 += 1
-        
+        def get_weight(prop):
+            if is_onetoone(prop):
+                return 4
+            elif is_onetomany(prop):
+                return 3
+            elif is_manytoone(prop):
+                return 2
+            elif is_manytomany(prop):
+                return 1
+            return 0
+
+        weight1 = get_weight(prop1)
+        weight2 = get_weight(prop2)
+
         res = cmp(weight1, weight2)
         if res != 0:
             return res
@@ -144,21 +147,37 @@ class WidgetPolicy(object):
     @classmethod
     def factory(cls, prop):
         widget = None
+        widget_kw = {}
+        factory_widget = None
         cols = getattr(prop, 'columns', [])
-        if is_onetomany(prop):
+        if cls.hint_name:
+            if is_relation(prop):
+                widget = prop.info.get(cls.hint_name)
+            elif cols:
+                widget = cols[0].info.get(cls.hint_name)
+        if widget:
+            if issubclass(widget, NoWidget):
+                # We don't want to display this field!
+                return None
+            if issubclass(widget, FactoryWidget):
+                factory_widget = widget
+                widget = None
+
+        if widget:
+            pass
+        elif is_onetomany(prop):
             if not cls.onetomany_widget:
                 raise twc.WidgetError(
                     "Cannot automatically create a widget " +
                     "for one-to-many relation '%s'" % prop.key)
             prop_cls = prop.mapper.class_
             edit_link = getattr(prop_cls, 'tws_edit_link', None)
-            params = {}
             if cls.add_edit_link:
-                params['link'] = edit_link
-            widget = cls.onetomany_widget(
-                id=prop.key,
-                entity=prop_cls,
-                **params)
+                widget_kw['link'] = edit_link
+            widget_kw.update({
+                'entity': prop_cls,
+            })
+            widget = cls.onetomany_widget
         elif sum([c.primary_key for c in getattr(prop, 'columns', [])]):
             widget = cls.pkey_widget
         elif is_manytoone(prop):
@@ -166,7 +185,10 @@ class WidgetPolicy(object):
                 raise twc.WidgetError(
                     "Cannot automatically create a widget " +
                     "for many-to-one relation '%s'" % prop.key)
-            widget = cls.manytoone_widget(id=prop.key,entity=prop.mapper.class_)
+            widget_kw = {
+                'entity': prop.mapper.class_
+            }
+            widget = cls.manytoone_widget
         elif is_manytomany(prop):
             # Use the same widget as onetomany
             if not cls.onetomany_widget:
@@ -175,34 +197,32 @@ class WidgetPolicy(object):
                     "for many-to-many relation '%s'" % prop.key)
             prop_cls = prop.mapper.class_
             edit_link = getattr(prop_cls, 'tws_edit_link', None)
-            params = {}
             if cls.add_edit_link:
-                params['link'] = edit_link
-            widget = cls.onetomany_widget(
-                id=prop.key,
-                entity=prop_cls,
-                reverse_property_name=get_reverse_property_name(prop),
-                **params
-            )
+                widget_kw['link'] = edit_link
+
+            widget = cls.onetomany_widget
+            widget_kw.update({
+                'id': prop.key,
+                'entity': prop_cls,
+                'reverse_property_name': get_reverse_property_name(prop),
+            })
         elif is_onetoone(prop):
             if not cls.onetoone_widget:
                 raise twc.WidgetError(
                     "Cannot automatically create a widget " +
                     "for one-to-one relation '%s'" % prop.key)
             required = required_widget(prop)
-            widget = cls.onetoone_widget(
-                        id=prop.key,
-                        entity=prop.mapper.class_,
-                        required=required,
-                        reverse_property_name=get_reverse_property_name(prop),
-                        required_on_parent=(not required),
-                    )
+            widget = cls.onetoone_widget
+            widget_kw = {
+                'id': prop.key,
+                'entity': prop.mapper.class_,
+                'required': required,
+                'reverse_property_name': get_reverse_property_name(prop),
+                'required_on_parent': (not required),
+            }
         elif prop.key in cls.name_widgets:
-            widget = cls.name_widgets[prop.key]        
-        elif cols and cls.hint_name and cls.hint_name in cols[0].info:
-            if not issubclass(cols[0].info[cls.hint_name], NoWidget):
-                widget = cols[0].info[cls.hint_name]
-        else:            
+            widget = cls.name_widgets[prop.key]
+        else:
             for t, c in product(cls.type_widgets, cols):
                 if isinstance(c.type, t):
                     widget = cls.type_widgets[t]
@@ -215,10 +235,15 @@ class WidgetPolicy(object):
                 widget = cls.default_widget
 
         if widget:
-            args = {'id': prop.key}
-            if required_widget(prop):
-                args['validator'] = twc.Required
-            widget = widget(**args)
+            widget_kw['id'] = prop.key
+            if factory_widget:
+                for k, v in widget._all_params.items():
+                    value = getattr(factory_widget, k, None)
+                    if value and value != v.default:
+                        widget_kw[k] = value
+            if 'validator' not in widget_kw and not getattr(widget, 'validator', None) and required_widget(prop):
+                widget_kw['validator'] = twc.Required
+            widget = widget(**widget_kw)
 
         return widget
 
@@ -226,6 +251,12 @@ class WidgetPolicy(object):
 class NoWidget(twc.Widget):
     pass
 
+
+class FactoryWidget(twc.Widget):
+    """Widget to use when we want to let the factory decides the widget to use
+    but we want to apply some specifics parameters
+    """
+    pass
 
 class ViewPolicy(WidgetPolicy):
     """Base WidgetPolicy for viewing data."""
@@ -275,10 +306,10 @@ class AutoContainer(twc.Widget):
 
     @classmethod
     def post_define(cls):
-        if not hasattr(cls, 'entity') and hasattr(cls, 'parent') and hasattr(cls.parent, 'entity'):
+        if not getattr(cls, 'entity', None) and getattr(cls.parent, 'entity', None):
             cls.entity = cls.parent.entity
 
-        if hasattr(cls, 'entity') and not getattr(cls, '_auto_widgets', False):
+        if getattr(cls, 'entity', None) and not getattr(cls, '_auto_widgets', False):
             cls._auto_widgets = True
             fkey = dict((compat.local_name(p), p)
                         for p in sa.orm.class_mapper(cls.entity).iterate_properties
@@ -339,7 +370,7 @@ class AutoContainer(twc.Widget):
             cls.required_children = []
             if getattr(cls, 'required_on_parent', False):
                 for c in new_children:
-                    if c.validator.required:
+                    if c.validator and c.validator.required:
                         cls.required_children += [c]
                         c.validator.required = False
             cls.child = cls.child(children=new_children, entity=cls.entity)
@@ -372,7 +403,7 @@ class AutoEditFieldSet(AutoContainer, twf.TableFieldSet):
 
 # This is assigned here and not above because of a circular dep.
 ViewPolicy.onetomany_widget = DbListLinkField
-ViewPolicy.onetoone_widget = AutoViewFieldSet
+ViewPolicy.onetoone_widget = DbLabelField
 EditPolicy.onetoone_widget = AutoEditFieldSet
 
 class AutoListPage(DbListPage):
