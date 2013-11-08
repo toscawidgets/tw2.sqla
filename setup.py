@@ -22,7 +22,7 @@ requires = [
 
 setup(
     name='tw2.sqla',
-    version='2.0.6',
+    version='2.1.0',
     description='SQLAlchemy database layer for ToscaWidgets 2, a web widget toolkit.',
     long_description=open('README.rst').read().split('.. split here', 1)[1],
     author='Paul Johnston',
